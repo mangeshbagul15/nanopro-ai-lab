@@ -2719,56 +2719,112 @@ body.in-global_ai_lab .nano-dynamic-island {
   justify-content: center !important;
 }
 
-/* Chat header: title keeps the space, actions stay on one line */
+/* Chat header: title keeps the space, actions stay on one line with visible labels */
 #view-global_ai_lab .ailab-canvas-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
   flex-wrap: nowrap !important;
-  gap: 10px !important;
+  gap: 12px !important;
   padding: 10px 16px !important;
-  min-height: 56px;
+  min-height: 54px !important;
+  background: #161B22 !important;
+  border-bottom: 1px solid #30363D !important;
+  position: relative !important;
+  z-index: 5 !important;
 }
 #view-global_ai_lab .ailab-chat-title-wrap {
   flex: 1 1 auto !important;
   min-width: 0 !important;
-  width: auto !important;
+  overflow: hidden !important;
 }
+#view-global_ai_lab .ailab-active-title {
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #F0F6FC !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+#view-global_ai_lab .ailab-active-sub {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  color: #8B949E !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-top: 2px !important;
+}
+#view-global_ai_lab .ailab-canvas-head-actions,
 #view-global_ai_lab .ailab-canvas-head > div:last-child {
   flex: 0 0 auto !important;
   display: flex !important;
   align-items: center !important;
   gap: 6px !important;
+  margin-left: auto !important;
 }
 #view-global_ai_lab .ailab-canvas-head .ailab-code-btn {
   height: 28px !important;
-  padding: 0 9px !important;
+  padding: 0 10px !important;
   font-size: 11.5px !important;
+  font-weight: 600 !important;
   white-space: nowrap !important;
   flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  background: #21262D !important;
+  color: #C9D1D9 !important;
+  border: 1px solid #30363D !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
 }
-#view-global_ai_lab .ailab-active-sub {
-  gap: 6px !important;
-  max-width: 100%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+#view-global_ai_lab .ailab-canvas-head .ailab-code-btn:hover {
+  background: #30363D !important;
+  color: #F0F6FC !important;
+  border-color: #8B949E !important;
+}
+#view-global_ai_lab .ailab-canvas-head .ailab-code-btn .lbl {
+  display: inline !important;
 }
 
-/* Explorer: slide-over panel, chat keeps full width */
+/* Explorer: docked left panel next to Chats sidebar, zero overlay, never hides chat header actions */
 #view-global_ai_lab .ailab-explorer {
-  position: absolute !important;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 300px !important;
-  z-index: 45;
-  background: #0B111C !important;
-  border-left: 1px solid var(--al-line);
-  border-right: none !important;
-  box-shadow: -24px 0 48px rgba(0, 0, 0, 0.45);
-}
-#view-global_ai_lab .ailab-explorer.is-hidden { display: none !important; }
-#view-global_ai_lab .ailab-grip-v#ailabExplorerGrip {
+  position: relative !important;
+  top: auto !important;
   right: auto !important;
-  left: -3px !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 275px;
+  min-width: 220px;
+  max-width: 460px;
+  flex: 0 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  background: #161B22 !important;
+  border-right: 1px solid #30363D !important;
+  border-left: none !important;
+  box-shadow: none !important;
+  z-index: 10 !important;
+  overflow: hidden !important;
+}
+#view-global_ai_lab .ailab-explorer.is-hidden {
+  display: none !important;
+  width: 0 !important;
+}
+#view-global_ai_lab .ailab-grip-v#ailabExplorerGrip {
+  position: absolute !important;
+  top: 0 !important;
+  right: -3px !important;
+  left: auto !important;
+  bottom: 0 !important;
+  width: 6px !important;
+  cursor: col-resize !important;
+  z-index: 25 !important;
 }
 
 /* Empty state: quieter */
@@ -2828,22 +2884,20 @@ body.in-global_ai_lab .nano-dynamic-island {
   text-overflow: ellipsis;
 }
 
-/* Narrow windows: keep icons, drop labels */
+/* Responsive adjustments */
 @media (max-width: 1220px) {
   #view-global_ai_lab .ailab-conn-badge { display: none !important; }
+  #view-global_ai_lab .ailab-input-tags .ailab-mode-pill,
+  #view-global_ai_lab #ailabSlaLabel { display: none; }
+}
+
+@media (max-width: 640px) {
   #view-global_ai_lab .ailab-cua-toggle-btn {
     width: 28px;
     padding: 0 !important;
     justify-content: center;
   }
   #view-global_ai_lab .ailab-cua-toggle-btn .lbl { display: none; }
-  #view-global_ai_lab .ailab-input-tags .ailab-mode-pill,
-  #view-global_ai_lab #ailabSlaLabel { display: none; }
-  #view-global_ai_lab .ailab-canvas-head .ailab-code-btn {
-    width: 30px;
-    justify-content: center;
-    padding: 0 !important;
-  }
   #view-global_ai_lab .ailab-canvas-head .ailab-code-btn .lbl { display: none; }
 }
 
@@ -4314,13 +4368,22 @@ body.in-global_ai_lab .nano-dynamic-island {
     ailabLoadExplorer();
   };
 
-  window.ailabToggleExplorer = function() {
+  window.ailabToggleExplorer = function(force) {
     const p = $id("ailabExplorer");
     const btn = $id("ailabToggleExplorer");
+    const sidebar = $id("ailabSidebar");
     if (!p) return;
-    const isHidden = p.classList.toggle("is-hidden");
+    const isHidden = force !== undefined ? !force : p.classList.toggle("is-hidden");
+    if (force !== undefined) {
+      p.classList.toggle("is-hidden", isHidden);
+    }
     AILAB_EXPLORER.isOpen = !isHidden;
     if (btn) btn.classList.toggle("is-active", !isHidden);
+
+    // On compact screens (< 1150px), gracefully collapse sidebar when opening Explorer
+    if (!isHidden && window.innerWidth < 1150 && sidebar && !sidebar.classList.contains("collapsed")) {
+      sidebar.classList.add("collapsed");
+    }
   };
 
   window.ailabAuthFetch = function(url, options = {}) {
@@ -7101,7 +7164,16 @@ body.in-global_ai_lab .nano-dynamic-island {
 
   window.ailabToggleSidebar = function() {
     const sb = $id("ailabSidebar");
-    if (sb) sb.classList.toggle("collapsed");
+    const exp = $id("ailabExplorer");
+    if (!sb) return;
+    const isNowCollapsed = sb.classList.toggle("collapsed");
+    // If opening sidebar on smaller screen, collapse explorer so nothing ever cramps
+    if (!isNowCollapsed && window.innerWidth < 1150 && exp && !exp.classList.contains("is-hidden")) {
+      exp.classList.add("is-hidden");
+      AILAB_EXPLORER.isOpen = false;
+      const expBtn = $id("ailabToggleExplorer");
+      if (expBtn) expBtn.classList.remove("is-active");
+    }
   };
 
   // -------------------------------------------------------------
@@ -7863,6 +7935,13 @@ body.in-global_ai_lab .nano-dynamic-island {
         if (grip) grip.style.display = "";
         if (btn) btn.classList.add("active");
         if (sidebar && !sidebar.classList.contains("collapsed")) sidebar.classList.add("collapsed");
+        const exp = document.getElementById("ailabExplorer");
+        if (exp && !exp.classList.contains("is-hidden")) {
+          exp.classList.add("is-hidden");
+          if (window.AILAB_EXPLORER) window.AILAB_EXPLORER.isOpen = false;
+          const expBtn = document.getElementById("ailabToggleExplorer");
+          if (expBtn) expBtn.classList.remove("is-active");
+        }
         const appShell = document.getElementById("app-shell");
         if (appShell && !appShell.classList.contains("sidebar-collapsed")) appShell.classList.add("sidebar-collapsed");
         this.isOpen = true;
