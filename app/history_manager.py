@@ -58,6 +58,17 @@ class HistoryManager:
                 created_at REAL NOT NULL,
                 user_key TEXT NOT NULL
             )""")
+            c.execute("""
+            CREATE TABLE IF NOT EXISTS attachments (
+                id TEXT PRIMARY KEY,
+                chat_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                mime_type TEXT NOT NULL,
+                data TEXT NOT NULL,
+                kind TEXT DEFAULT 'image',
+                created_at REAL NOT NULL,
+                user_key TEXT NOT NULL
+            )""")
             conn.commit()
 
     def _seed_default_chats(self):
@@ -171,5 +182,50 @@ class HistoryManager:
             """, (proj_id, name, description, now, now, user_key))
             conn.commit()
         return {"status": "success", "project_id": proj_id, "name": name}
+
+    def update_project(self, project_id: str, name: Optional[str] = None, description: Optional[str] = None) -> Dict[str, Any]:
+        now = time.time()
+        with self._get_conn() as conn:
+            c = conn.cursor()
+            if name is not None:
+                c.execute("UPDATE projects SET name = ?, updated_at = ? WHERE id = ?", (name, now, project_id))
+            if description is not None:
+                c.execute("UPDATE projects SET description = ?, updated_at = ? WHERE id = ?", (description, now, project_id))
+            conn.commit()
+        return {"status": "success", "project_id": project_id}
+
+    def delete_project(self, project_id: str) -> Dict[str, Any]:
+        with self._get_conn() as conn:
+            c = conn.cursor()
+            c.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+            c.execute("UPDATE chats SET project_id = '' WHERE project_id = ?", (project_id,))
+            conn.commit()
+        return {"status": "success", "deleted_project_id": project_id}
+
+    def add_attachment(self, chat_id: str, name: str, mime_type: str, data_base64: str, kind: str = "image", user_key: str = "admin") -> Dict[str, Any]:
+        att_id = f"att_{uuid.uuid4().hex[:12]}"
+        now = time.time()
+        with self._get_conn() as conn:
+            c = conn.cursor()
+            c.execute("""
+            INSERT INTO attachments (id, chat_id, name, mime_type, data, kind, created_at, user_key)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (att_id, chat_id, name, mime_type, data_base64, kind, now, user_key))
+            conn.commit()
+        return {
+            "id": att_id,
+            "chat_id": chat_id,
+            "name": name,
+            "mime_type": mime_type,
+            "kind": kind,
+            "created_at": now
+        }
+
+    def get_attachment(self, attachment_id: str, user_key: str = "admin") -> Optional[Dict[str, Any]]:
+        with self._get_conn() as conn:
+            c = conn.cursor()
+            c.execute("SELECT * FROM attachments WHERE id = ?", (attachment_id,))
+            row = c.fetchone()
+            return dict(row) if row else None
 
 history_manager = HistoryManager()
