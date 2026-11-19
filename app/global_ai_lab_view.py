@@ -2884,6 +2884,182 @@ body.in-global_ai_lab .nano-dynamic-island {
   text-overflow: ellipsis;
 }
 
+/* ========================================================================= */
+/* MODERN ANIMATED USER DOCK & AUTH BUTTONS (LOGOUT / SWITCH USER)          */
+/* ========================================================================= */
+#view-global_ai_lab .ailab-user-dock {
+  flex-shrink: 0;
+  background: #11161D;
+  border-top: 1px solid #30363D;
+  padding: 10px 12px 12px;
+  position: relative;
+  z-index: 5;
+}
+
+#view-global_ai_lab .ailab-user-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#view-global_ai_lab .ailab-user-avatar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#view-global_ai_lab .ailab-user-avatar {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #10B981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+  color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.35);
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+#view-global_ai_lab .ailab-user-avatar:hover {
+  transform: scale(1.08) rotate(3deg);
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
+}
+
+#view-global_ai_lab .ailab-user-pulse-dot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 7px;
+  height: 7px;
+  background: #10B981;
+  border-radius: 50%;
+  border: 1.5px solid #11161D;
+  box-shadow: 0 0 6px #10B981;
+  animation: ailabLivePulse 2s infinite ease-in-out;
+}
+
+#view-global_ai_lab .ailab-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+#view-global_ai_lab .ailab-user-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #F0F6FC;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.1px;
+}
+
+#view-global_ai_lab .ailab-user-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+#view-global_ai_lab .ailab-user-role-badge {
+  font-size: 8.5px;
+  font-weight: 800;
+  background: rgba(88, 166, 255, 0.18);
+  color: #58A6FF;
+  border: 1px solid rgba(88, 166, 255, 0.35);
+  border-radius: 3px;
+  padding: 1px 4px;
+  letter-spacing: 0.3px;
+}
+
+#view-global_ai_lab .ailab-user-status-text {
+  font-size: 9.5px;
+  color: #7EE787;
+  font-weight: 600;
+}
+
+#view-global_ai_lab .ailab-auth-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+#view-global_ai_lab .ailab-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #30363D;
+  background: #161B22;
+  color: #C9D1D9;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#view-global_ai_lab .ailab-auth-icon {
+  flex-shrink: 0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.2s ease;
+}
+
+/* Switch User Button Hover & Active */
+#view-global_ai_lab .ailab-switch-btn:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #38BDF8;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.18);
+}
+#view-global_ai_lab .ailab-switch-btn:hover .ailab-auth-icon {
+  transform: rotate(180deg) scale(1.1);
+  stroke: #38BDF8;
+}
+#view-global_ai_lab .ailab-switch-btn:active {
+  transform: translateY(0);
+}
+
+/* Log Out Button Hover & Active */
+#view-global_ai_lab .ailab-logout-btn:hover {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.45);
+  color: #F87171;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.18);
+}
+#view-global_ai_lab .ailab-logout-btn:hover .ailab-auth-icon {
+  transform: translateX(3px) scale(1.1);
+  stroke: #F87171;
+}
+#view-global_ai_lab .ailab-logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Loading micro-spinner inside button */
+#view-global_ai_lab .ailab-spin-loader {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ailabSpin 0.6s linear infinite;
+}
+@keyframes ailabSpin {
+  to { transform: rotate(360deg); }
+}
+
 /* Mobile Backdrop for Drawers */
 #view-global_ai_lab .ailab-mobile-backdrop {
   position: fixed;
@@ -3806,6 +3982,41 @@ body.in-global_ai_lab .nano-dynamic-island {
         <button type="button" id="ailabBqSyncBtn" onclick="AILAB_DUCKDB.syncToBigQuery()" title="Sync to Google BigQuery durable archive">
           <span id="ailabBqSyncLabel">Sync</span>
         </button>
+      </div>
+
+      <!-- User Profile & Auth Controls (Modern Animated Dock in Bottom Left Corner) -->
+      <div class="ailab-user-dock">
+        <div class="ailab-user-card">
+          <div class="ailab-user-avatar-wrap">
+            <div class="ailab-user-avatar">
+              <span id="ailabSidebarAvatarText">MB</span>
+              <span class="ailab-user-pulse-dot"></span>
+            </div>
+            <div class="ailab-user-info">
+              <div class="ailab-user-name" id="ailabSidebarUserName" title="Super Admin (Mangesh Bagul)">Super Admin (Mangesh Bagul)</div>
+              <div class="ailab-user-meta">
+                <span class="ailab-user-role-badge">ADMIN</span>
+                <span class="ailab-user-status-text">&#9679; Active Session</span>
+              </div>
+            </div>
+          </div>
+          <div class="ailab-auth-actions">
+            <!-- Modern Animated Switch User Button -->
+            <button type="button" class="ailab-auth-btn ailab-switch-btn" id="ailabSwitchUserBtn" onclick="ailabSwitchUser(this)" title="Switch to another user or login account">
+              <svg class="ailab-auth-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+              </svg>
+              <span>Switch User</span>
+            </button>
+            <!-- Modern Animated Log Out Button -->
+            <button type="button" class="ailab-auth-btn ailab-logout-btn" id="ailabLogOutBtn" onclick="ailabLogOut(this)" title="Sign out of NanoPro AI Lab securely">
+              <svg class="ailab-auth-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -7512,6 +7723,69 @@ body.in-global_ai_lab .nano-dynamic-island {
     if (bd) bd.classList.remove("is-visible");
     const expBtn = $id("ailabToggleExplorer");
     if (expBtn) expBtn.classList.remove("is-active");
+  };
+
+  window.ailabLogOut = async function(btnEl) {
+    if (btnEl) {
+      if (btnEl.disabled) return;
+      btnEl.disabled = true;
+      btnEl.innerHTML = `<span class="ailab-spin-loader"></span> <span>Logging out...</span>`;
+    }
+    if (typeof ailabShowDynamicToast === "function") {
+      ailabShowDynamicToast("🚪 Logging out of NanoPro AI Lab...");
+    }
+    try {
+      await ailabAuthFetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+    } catch (_) {}
+
+    // Invalidate session cookie & localStorage
+    document.cookie = "nanopro_session=; Max-Age=0; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+    try {
+      localStorage.removeItem("nanopro_session_token");
+      localStorage.removeItem("nanopro_user");
+      sessionStorage.clear();
+    } catch (_) {}
+
+    // Smooth exit fade animation
+    document.body.style.transition = "opacity 0.25s ease";
+    document.body.style.opacity = "0";
+
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 250);
+  };
+
+  window.ailabSwitchUser = async function(btnEl) {
+    if (btnEl) {
+      if (btnEl.disabled) return;
+      btnEl.disabled = true;
+      btnEl.innerHTML = `<span class="ailab-spin-loader"></span> <span>Switching...</span>`;
+    }
+    if (typeof ailabShowDynamicToast === "function") {
+      ailabShowDynamicToast("👥 Switching user account...");
+    }
+    try {
+      await ailabAuthFetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+    } catch (_) {}
+
+    document.cookie = "nanopro_session=; Max-Age=0; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+    try {
+      localStorage.removeItem("nanopro_session_token");
+      sessionStorage.clear();
+    } catch (_) {}
+
+    document.body.style.transition = "opacity 0.25s ease";
+    document.body.style.opacity = "0";
+
+    setTimeout(() => {
+      window.location.href = "/login?switch_user=1";
+    }, 250);
   };
 
   // -------------------------------------------------------------

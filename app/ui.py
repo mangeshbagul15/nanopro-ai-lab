@@ -20,6 +20,12 @@ def get_ai_lab_html(user: Optional[Dict[str, Any]] = None) -> str:
 
     view_content = get_view_html()
 
+    # Bind active user identity into sidebar dock & avatar
+    initials = "".join([part[0] for part in user_name.split()[:2] if part]).upper() or "MB"
+    view_content = view_content.replace('>Super Admin (Mangesh Bagul)<', f'>{user_name}<')
+    view_content = view_content.replace('>MB<', f'>{initials}<')
+    view_content = view_content.replace('>ADMIN<', f'>{user_role}<')
+
     # Ensure active class is set so view displays flex
     if '<div class="workspace-view" id="view-global_ai_lab">' in view_content:
         view_content = view_content.replace(
