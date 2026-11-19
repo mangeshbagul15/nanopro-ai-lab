@@ -19,3 +19,17 @@ services:
         sync: false
       - key: JEV_API_KEY
         sync: false
+      - key: TELEGRAM_CHAT_ID
+        value: "1200023268"
+      - key: TELEGRAM_REPORTS_BOT_TOKEN
+        sync: false
+      - key: WHATSAPP_CLOUD_PHONE_ID
+        value: "1355864990944215"
+      - key: WHATSAPP_CLOUD_ACCESS_TOKEN
+        sync: false
+      - key: EMAIL_RELAY_TO
+        value: "nanoproaistudio@gmail.com"
+      - key: EMAIL_RELAY_URL
+        value: "https://script.google.com/macros/s/AKfycbx7J_Q5QUmArEq6IlagRc1s1vJEqw0mSFJ9HL7jtec5IioocovA1JY4tNBqdNQhmOOn/exec"
+      - key: EMAIL_RELAY_SECRET
+        sync: false

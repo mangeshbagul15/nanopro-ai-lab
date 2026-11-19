@@ -7,6 +7,7 @@ from typing import Optional, Dict, Any
 from app.config import SYSTEM_IDENTITY, TOTAL_MODELS_COUNT
 from app.router import ai_router
 from app.reports_service import get_report_bytes
+from app.alerts_service import dispatch_telegram, dispatch_email, dispatch_whatsapp
 from app.ui import get_ai_lab_html
 
 app = FastAPI(
@@ -19,6 +20,12 @@ class AIExecuteRequest(BaseModel):
     prompt: str
     model: Optional[str] = "auto"
     mode: Optional[str] = "balanced"
+
+class AlertRequest(BaseModel):
+    channel: str # 'telegram', 'email', 'whatsapp'
+    message: Optional[str] = "⚡ NanoPro Global AI Lab Operational Status Alert"
+    subject: Optional[str] = "NanoPro Production Alert"
+    recipient: Optional[str] = None
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_home():
@@ -39,6 +46,23 @@ async def health_check():
 async def execute_ai(req: AIExecuteRequest):
     result = await ai_router.execute(prompt=req.prompt, model_id=req.model, mode=req.mode)
     return JSONResponse(result)
+
+@app.post("/api/alerts/dispatch")
+async def send_alert(req: AlertRequest):
+    ch = req.channel.lower()
+    if ch == "telegram":
+        res = await dispatch_telegram(req.message or "⚡ NanoPro Production Global AI Lab status check.")
+    elif ch == "email":
+        res = await dispatch_email(
+            subject=req.subject or "NanoPro Alert",
+            body=req.message or "NanoPro Production Alert",
+            to=req.recipient
+        )
+    elif ch == "whatsapp":
+        res = await dispatch_whatsapp(text=req.message or "⚡ NanoPro WhatsApp broadcast active.")
+    else:
+        return JSONResponse({"status": "error", "message": f"Unsupported channel: {req.channel}"}, status_code=400)
+    return JSONResponse({"status": "success", "channel": ch, "result": res})
 
 @app.get("/api/reports/download/{report_type}")
 async def download_report(report_type: str):
