@@ -3142,6 +3142,10 @@ body.in-global_ai_lab .nano-dynamic-island {
     left: 0 !important;
     top: 44px !important;
     bottom: 0 !important;
+    height: calc(100vh - 44px) !important;
+    height: calc(100dvh - 44px) !important;
+    display: flex !important;
+    flex-direction: column !important;
     width: min(300px, 84vw) !important;
     max-width: 84vw !important;
     z-index: 999 !important;
@@ -3156,6 +3160,33 @@ body.in-global_ai_lab .nano-dynamic-island {
   }
   #view-global_ai_lab .ailab-sidebar.collapsed {
     transform: translateX(-105%) !important;
+  }
+
+  #view-global_ai_lab .ailab-sidebar-scroll {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  #view-global_ai_lab .ailab-user-dock {
+    flex-shrink: 0 !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #11161D !important;
+    border-top: 1px solid #30363D !important;
+    padding: 10px 12px 14px !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.5) !important;
+    z-index: 20 !important;
+  }
+  #view-global_ai_lab .ailab-auth-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  #view-global_ai_lab .ailab-auth-btn {
+    min-height: 40px !important;
+    font-size: 12px !important;
   }
 
   #view-global_ai_lab .ailab-explorer {
@@ -3295,6 +3326,12 @@ body.in-global_ai_lab .nano-dynamic-island {
   }
   #view-global_ai_lab .ailab-live-routed-badge {
     display: none !important;
+  }
+  #view-global_ai_lab #ailabUserBadge {
+    max-width: 75px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
   #view-global_ai_lab .ailab-cua-toggle-btn {
     width: 28px;
@@ -7227,7 +7264,9 @@ body.in-global_ai_lab .nano-dynamic-island {
           body: JSON.stringify({ prompt: prompt })
         });
         const adminJson = await adminRes.json();
-        if (adminJson && adminJson.status && adminJson.status !== "not_admin") adminData = adminJson;
+        if (adminJson && adminJson.status === "success" && adminJson.action) {
+          adminData = adminJson;
+        }
       } catch (_) { /* fall through to normal chat */ }
 
       // 3. Explicit BigQuery CREATE DDL runs for real on the backend. A pasted

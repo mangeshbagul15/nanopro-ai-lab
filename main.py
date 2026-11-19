@@ -594,7 +594,7 @@ async def api_ai_bigquery_admin(payload: Dict[str, Any] = Body(...)):
     """Runs Explorer admin instructions typed into the AI Lab chat."""
     result = maybe_admin(payload.get("prompt", ""))
     if result is None:
-        return JSONResponse({"status": "error", "message": "No admin command recognized."}, status_code=200)
+        return JSONResponse({"status": "not_admin", "message": "No admin command recognized."}, status_code=200)
     result["user"] = "Super Admin (Mangesh Bagul)"
     return JSONResponse(result)
 
