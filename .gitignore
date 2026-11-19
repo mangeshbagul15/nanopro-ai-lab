@@ -11,3 +11,7 @@ ENV/
 .vscode/
 *.log
 data/
+*.enc
+nanopro_operator/workspaces/
+nanopro_operator/screenshots/
+nanopro_operator/.vault_secrets.enc

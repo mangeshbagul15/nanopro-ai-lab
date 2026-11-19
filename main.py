@@ -641,6 +641,39 @@ async def api_cua_store_secret(payload: Dict[str, Any] = Body(...)):
     _CUA_SECRETS_VAULT.append(entry)
     return JSONResponse({"status": "success", "id": sec_id, "provider": provider, "masked": masked})
 
+# -------------------------------------------------------------
+# NanoPro Operator & Autonomous Devin Engine Endpoints
+# -------------------------------------------------------------
+@app.get("/api/operator/status")
+async def api_operator_status():
+    """Reports status of autonomous GUI agent and Devin engine."""
+    from nanopro_operator.core.credential_vault import vault
+    from nanopro_operator.config import VISION_MODELS_CATALOG
+    return JSONResponse({
+        "status": "ready",
+        "engine": "NanoPro Operator & Devin Full-Stack VLM",
+        "vision_models": len(VISION_MODELS_CATALOG),
+        "vault_services": len(vault.list_services()),
+        "som_grounding": "Active",
+        "self_healing": "Active",
+        "guardrails": "Armed"
+    })
+
+@app.post("/api/operator/devin/synthesize")
+async def api_operator_devin_synthesize(payload: Dict[str, Any] = Body(...)):
+    """Synthesizes code for a full-stack project autonomously."""
+    prompt = payload.get("prompt", "")
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+    from nanopro_operator.devin_engine.code_generator import CodeGenerator
+    cg = CodeGenerator()
+    files = await cg.generate_app(prompt)
+    return JSONResponse({
+        "status": "success",
+        "files_count": len(files),
+        "files": files
+    })
+
 @app.get("/api/ai/cua/secrets")
 async def api_cua_get_secrets():
     return JSONResponse({"status": "success", "secrets": _CUA_SECRETS_VAULT})
