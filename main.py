@@ -460,6 +460,27 @@ async def api_smart_route(payload: Dict[str, Any] = Body(...)):
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=200)
 
+def format_interactive_hints(content: str, prompt: str) -> str:
+    """Guarantees 3 clickable follow-up options [HINT: 🔹 Option 1 | 🔹 Option 2 | 🔹 Option 3] in every response."""
+    if "[HINT:" in content or "[hint:" in content.lower():
+        return content
+
+    p_low = (prompt + " " + content).lower()
+    if any(w in p_low for w in ["math", "proof", "pareto", "thompson", "algorithm", "गणित", "फॉर्म्युला", "formula"]):
+        hints = "[HINT: 🔹 Pareto Utility चे गणितीय सूत्र दाखवा | 🔹 Thompson Sampling Beta Posteriori स्पष्ट करा | 🔹 Sub-300ms SLA चे बेंचमार्क आकडे पहा]"
+    elif any(w in p_low for w in ["report", "अहवाल", "aml", "fiu", "str", "ctr", "banking", "बँक", "फायनान्स", "finance"]):
+        hints = "[HINT: 🔹 16 AML/FIU-IND अहवालांची संपूर्ण यादी दाखवा | 🔹 5 मास्टर कन्सोलिडेटेड एक्सेल वर्कबुक्स डाऊनलोड करा | 🔹 BigQuery मधील 900 रो डेटा तपासा]"
+    elif any(w in p_low for w in ["airflow", "dag", "orchestrat", "sftp", "पाइपलाइन", "pipeline"]):
+        hints = "[HINT: 🔹 15 Airflow DAGs चे थेट ऑर्केस्ट्रेशन पहा | 🔹 SFTP Hub इनबाउंड/आउटबाउंड फाइल्स तपासा | 🔹 Telegram / WhatsApp अलर्ट्स टेस्ट करा]"
+    elif any(w in p_low for w in ["bigquery", "duckdb", "snowflake", "table", "schema", "डेटाबेस", "sql", "कॉलम", "column"]):
+        hints = "[HINT: 🔹 BigQuery 8 Bronze टेबल्सचे स्कीमा पहा | 🔹 CMG व GAM टेबल्स मधील डेटा तपासा | 🔹 नवीन टेबलसाठी BigQuery DDL तयार करा]"
+    elif any(w in p_low for w in ["model", "मॉडेल", "groq", "llama", "deepseek", "qwen", "gpt"]):
+        hints = "[HINT: 🔹 4,804+ मॉडेल्स युनिफाइड मेश कसा काम करतो? | 🔹 Groq LPU Sub-300ms लॅटन्सी तपासा | 🔹 Llama 3.3 70B विरुद्ध GPT-OSS 120B तुलना करा]"
+    else:
+        hints = "[HINT: 🔹 21 Core Banking अहवालांचा तपशील दाखवा | 🔹 15 Airflow DAGs चे ऑर्केस्ट्रेशन पहा | 🔹 4,804+ मॉडेल्स मेश कसा काम करतो?]"
+    
+    return content.rstrip() + "\n\n" + hints
+
 @app.post("/api/ai/execute")
 async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
     """Executes AI prompt with BigQuery DDL/Admin intercept, sub-300ms inference, and mathematical telemetry."""
@@ -505,6 +526,7 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
 
         used_model = result.get("model") or result.get("model_executed") or model_to_run
         content = result.get("content") or result.get("response") or ""
+        content = format_interactive_hints(content, prompt)
         latency_ms = result.get("latency_ms", 320)
 
         # Update Thompson Bandit prior

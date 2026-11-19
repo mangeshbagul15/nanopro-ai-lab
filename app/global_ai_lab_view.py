@@ -7284,7 +7284,7 @@ body.in-global_ai_lab .nano-dynamic-island {
         // 11. Parse Interactive Suggestion Chips / Hints: [HINT: Option 1 | Option 2 | Option 3]
     html = html.replace(/\[HINT:\s*([^\]]+)\]/gi, (match, hintStr) => {
       const options = hintStr.split('|').map(o => o.trim()).filter(Boolean);
-      let chipsHtml = '<div class="ailab-hint-group"><span class="ailab-hint-lbl">💡 सुचवलेले पर्याय (1-Tap Suggestions):</span><div class="ailab-hint-chips">';
+      let chipsHtml = '<div class="ailab-hint-group"><span class="ailab-hint-lbl">💡 यापैकी अजून काही संबंधित विचारायचं आहे का? (1-Tap Actions):</span><div class="ailab-hint-chips">';
       options.forEach(opt => {
         const safeText = encodeURIComponent(opt);
         chipsHtml += `<button type="button" class="ailab-hint-chip" onclick="ailabSendHint(decodeURIComponent('${safeText}'))"><span>${opt}</span></button>`;

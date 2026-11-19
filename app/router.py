@@ -58,7 +58,11 @@ class AIExecutionRouter:
                 "You are NanoPro Global AI Lab, an advanced AI system orchestrating 4,804+ models.\n"
                 "You provide answers in fluent, professional Marathi with standard technical terms.\n"
                 "Provide accurate real-time metrics: 4,804+ models, 15 Airflow DAGs, 21 Core Banking & AML/FIU-IND reports, "
-                "T-1 statutory batch at 11:00 AM IST, live BigQuery 8 tables (900 rows), and zero cascading pipeline downtime."
+                "T-1 statutory batch at 11:00 AM IST, live BigQuery 8 tables (900 rows), and zero cascading pipeline downtime.\n\n"
+                "MANDATORY REQUIREMENT - INTERACTIVE 1-TAP FOLLOW-UP SUGGESTIONS:\n"
+                "At the very end of EVERY response, you MUST provide 3 relevant, highly useful follow-up options or related questions that the user can ask next.\n"
+                "Format them on the final line using this exact syntax:\n"
+                "[HINT: 🔹 पर्याय १ | 🔹 पर्याय २ | 🔹 पर्याय ३]"
             )
 
             async with httpx.AsyncClient(timeout=25.0) as client:
@@ -131,7 +135,8 @@ class AIExecutionRouter:
                 "- [Credit Card Risk & Delinquency Workbook](/api/reports/download/credit_card_risk)\n"
                 "- [ALM Liquidity & Basel III Structural Gap](/api/reports/download/alm_liquidity)\n"
                 "- [Loans, Microfinance & JLG Portfolio](/api/reports/download/loans_microfinance)\n\n"
-                "**वितरण वेळ:** दररोज सकाळी **११:०० AM IST** (T-1 सायकल)."
+                "**वितरण वेळ:** दररोज सकाळी **११:०० AM IST** (T-1 सायकल).\n\n"
+                "[HINT: 🔹 16 AML/FIU-IND अहवालांची संपूर्ण यादी दाखवा | 🔹 5 मास्टर एक्सेल वर्कबुक्स थेट डाऊनलोड करा | 🔹 BigQuery 900 रो डेटा तपासा]"
             )
         else:
             content = (
@@ -141,7 +146,8 @@ class AIExecutionRouter:
                 "- **डेटा प्लेन:** Google BigQuery ८ ब्रॉन्झ टेबल्स (९०० रो) + DuckDB + Snowflake.\n"
                 "- **ऑर्केस्ट्रेशन:** १५ स्वतंत्र Apache Airflow DAGs (कोणताही कॅस्केडिंग डाऊनटाईम नाही).\n"
                 "- **बँकिंग अहवाल:** एकूण २१ अहवाल (१६ AML/FIU-IND + ५ कन्सोलिडेटेड एक्सेल वर्कबुक्स).\n"
-                "- **T-1 शेड्यूलिंग:** दररोज सकाळी ११:०० AM IST ला नियमित एक्झिक्यूशन."
+                "- **T-1 शेड्यूलिंग:** दररोज सकाळी ११:०० AM IST ला नियमित एक्झिक्यूशन.\n\n"
+                "[HINT: 🔹 21 Core Banking अहवालांचा तपशील दाखवा | 🔹 15 Airflow DAGs चे ऑर्केस्ट्रेशन पहा | 🔹 4,804+ मॉडेल्स मेश कसा काम करतो?]"
             )
 
         return {
