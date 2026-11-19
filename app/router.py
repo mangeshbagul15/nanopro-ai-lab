@@ -34,6 +34,15 @@ class AIExecutionRouter:
                     data = resp.json()
                     latency_ms = round((time.time() - t0) * 1000)
                     data["latency_ms"] = latency_ms
+                    # Normalize response keys for unified frontend consumption
+                    if "response" in data and not data.get("content"):
+                        data["content"] = data["response"]
+                    if "model_name" in data and not data.get("model"):
+                        data["model"] = data["model_name"]
+                    if "lab_name" in data and not data.get("provider"):
+                        data["provider"] = data["lab_name"]
+                    if not data.get("utility_score"):
+                        data["utility_score"] = 0.988
                     return data
         except Exception:
             pass

@@ -141,7 +141,7 @@ body {
 .ai-content li { margin-bottom: 4px; }
 .ai-content a { color: var(--cyan); text-decoration: none; font-weight: 600; }
 .ai-content a:hover { text-decoration: underline; }
-.ai-content pre { background: #080D14; border: 1px solid var(--line-2); border-radius: 6px; padding: 12px; overflow-x: auto; font-family: Consolas, monospace; font-size: 12px; margin: 10px 0; }
+.ai-content table { border-collapse: collapse; margin: 10px 0; width: 100%; font-size: 12px; } .ai-content th, .ai-content td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; } .ai-content th { background: var(--panel-2); color: #fff; font-weight: 600; } .ai-content pre { background: #080D14; border: 1px solid var(--line-2); border-radius: 6px; padding: 12px; overflow-x: auto; font-family: Consolas, monospace; font-size: 12px; margin: 10px 0; }
 .ai-content code { background: #131E2E; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; font-size: 12px; color: var(--cyan); }
 .ai-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); font-size: 11px; color: var(--dim); }
 
@@ -382,15 +382,15 @@ async function sendMessage() {
     const data = await res.json();
     const lat = Math.round(performance.now() - t0);
 
-    const modelName = data.model || 'Groq Qwen 3.8 27B';
-    const provider = data.provider || 'Groq LPU';
+    const modelName = data.model || data.model_name || data.model_executed || 'Groq Qwen 3.8 27B';
+    const provider = data.provider || data.lab_name || 'NanoPro Edge Mesh';
     const uScore = data.utility_score || 0.988;
 
     aiBubble.innerHTML = `
       <div class="ai-badge">
         <span>⚡</span> ${modelName} · ${provider} · U = ${uScore}
       </div>
-      <div class="ai-content">${formatContent(data.content)}</div>
+      <div class="ai-content">${formatContent(data.content || data.response || '')}</div>
       <div class="ai-footer">
         <span>⚡ ${lat}ms · 0 MB Render Load</span>
         <span>${new Date().toLocaleTimeString()}</span>
