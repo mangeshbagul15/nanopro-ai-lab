@@ -1,5 +1,22 @@
-def get_ai_lab_html() -> str:
-    return """<!DOCTYPE html>
+import os
+from typing import Dict, Any, Optional
+
+def get_login_page_html() -> str:
+    gateway_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "deploy", "login_gateway.html")
+    if os.path.exists(gateway_file):
+        try:
+            with open(gateway_file, "r", encoding="utf-8") as f:
+                content = f.read()
+                if content.strip():
+                    return content
+        except Exception:
+            pass
+    return """<!DOCTYPE html><html><head><title>NanoPro Zero-Trust Gateway</title></head><body style="background:#0B1119;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;"><div style="text-align:center;"><h2>🧠 NanoPro Security Gateway</h2><p>Please log in.</p></div></body></html>"""
+
+def get_ai_lab_html(user: Optional[Dict[str, Any]] = None) -> str:
+    user_name = (user.get("full_name") or user.get("username") or "Super Admin") if user else "Super Admin"
+    user_role = (user.get("role") or "ADMIN").upper() if user else "ADMIN"
+    html = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -196,6 +213,11 @@ textarea#chatInput { background: transparent; border: none; color: #fff; font-fa
     <button class="pill-btn" onclick="openAirflowModal()">
       ⏱️ Airflow 15 DAGs
     </button>
+    <div style="display:flex; align-items:center; gap:8px; background:rgba(99,102,241,0.18); border:1px solid rgba(99,102,241,0.4); padding:4px 10px; border-radius:6px; font-size:12px; color:#fff;">
+      <span>👤 {USER_NAME}</span>
+      <span style="font-size:10px; background:#6366F1; color:#fff; padding:1px 5px; border-radius:3px; font-weight:600;">{USER_ROLE}</span>
+      <button onclick="logout()" style="background:none; border:none; color:var(--dim); cursor:pointer; font-size:13px; margin-left:4px;" title="Sign Out">🚪</button>
+    </div>
   </div>
 </header>
 
@@ -406,6 +428,14 @@ async function sendMessage() {
   container.scrollTop = container.scrollHeight;
 }
 
+async function logout() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include' });
+  } catch(e) {}
+  document.cookie = 'nanopro_session=; Max-Age=0; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  window.location.href = '/login';
+}
+
 function formatContent(text) {
   if (!text) return '';
   let formatted = text
@@ -423,3 +453,4 @@ function formatContent(text) {
 </body>
 </html>
 """
+    return html.replace("{USER_NAME}", user_name).replace("{USER_ROLE}", user_role)

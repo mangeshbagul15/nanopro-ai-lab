@@ -1,0 +1,977 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mangesh Nano Pro — Zero-Trust Security Gateway</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='npG' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2338BDF8'/%3E%3Cstop offset='50%25' stop-color='%236366F1'/%3E%3Cstop offset='100%25' stop-color='%2310B981'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230B1120'/%3E%3Cpath d='M16 46 L32 16 L48 46 L38 46 L32 30 L26 46 Z' fill='url(%23npG)'/%3E%3Ccircle cx='32' cy='22' r='4' fill='%2338BDF8'/%3E%3Ccircle cx='48' cy='46' r='3.5' fill='%2310B981'/%3E%3Ccircle cx='16' cy='46' r='3.5' fill='%236366F1'/%3E%3C/svg%3E">
+    <!-- Google Identity Services Official SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 50% 15%, #0F172A 0%, #020617 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #F8FAFC;
+            padding: 20px;
+        }
+        .gateway-card {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 40px rgba(56, 189, 248, 0.12);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .gateway-header {
+            padding: 26px 28px 18px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0) 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .auth-logo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38BDF8;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .pulse-dot {
+            width: 7px; height: 7px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .gateway-title { font-size: 21px; font-weight: 800; color: #FFF; margin-bottom: 4px; letter-spacing: -0.4px; }
+        .gateway-sub { font-size: 12.5px; color: #94A3B8; }
+
+        .gateway-body { padding: 22px 26px 24px; }
+
+        .alert-box {
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: none;
+            line-height: 1.45;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .alert-error { background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #FCA5A5; }
+        .alert-success { background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #6EE7B7; }
+        .alert-warning { background: rgba(245, 158, 11, 0.15); border: 1px solid #F59E0B; color: #FCD34D; }
+        .alert-info { background: rgba(56, 189, 248, 0.15); border: 1px solid #38BDF8; color: #7DD3FC; }
+
+        /* Google Button */
+        .btn-google {
+            width: 100%;
+            padding: 11px 14px;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            color: #0F172A;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.1s, opacity 0.2s, background 0.15s;
+        }
+        .btn-google:hover { background: #F8FAFC; transform: translateY(-1px); }
+        .btn-google:active { transform: translateY(0); }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 16px 0;
+            color: #64748B;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #1E2D4A;
+        }
+        .auth-divider span { padding: 0 10px; }
+
+        /* Method Switcher Segmented Control */
+        .method-switcher {
+            display: flex;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 16px;
+            gap: 3px;
+        }
+        .method-btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            border-radius: 7px;
+            color: #94A3B8;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .method-btn.active {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38BDF8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-size: 11px; font-weight: 700; color: #CBD5E1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 13.5px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            border-color: #38BDF8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        .form-hint { font-size: 11px; color: #94A3B8; margin-top: 5px; line-height: 1.35; }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            color: #94A3B8;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #0284C7 0%, #2563EB 50%, #4F46E5 100%);
+            border: none;
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35);
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-whatsapp {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #059669 0%, #10B981 50%, #25D366 100%);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            border-radius: 10px;
+            color: #FFF;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn-whatsapp:hover { opacity: 0.95; transform: translateY(-1px); }
+        .btn-whatsapp:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .otp-input {
+            text-align: center;
+            letter-spacing: 8px;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .auth-footer-toggle {
+            text-align: center;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 12px;
+            color: #94A3B8;
+        }
+        .link-btn {
+            background: none;
+            border: none;
+            color: #38BDF8;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0 4px;
+        }
+        .link-btn:hover { color: #7DD3FC; }
+
+        .security-footer {
+            padding: 10px 20px;
+            background: rgba(10, 15, 29, 0.85);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+            font-size: 10px;
+            color: #64748B;
+            font-weight: 600;
+        }
+    </style>
+    <script>
+        if (window.location.search.includes('token=')) {
+            document.documentElement.classList.add('authenticating-state');
+        }
+    </script>
+    <style>
+        .authenticating-state body { justify-content: center; }
+        .authenticating-state .gateway-card { display: none !important; }
+        .authenticating-state #authSplash { display: flex !important; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+        <!-- AUTHENTICATING SPLASH (Hides Login Card During OAuth Handshake) -->
+    <div id="authSplash" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; min-height: 280px;">
+        <div style="width: 52px; height: 52px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: #38BDF8; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 22px;"></div>
+        <div style="font-size: 19px; font-weight: 800; color: #FFF; letter-spacing: -0.3px;">Authenticating Official Google Identity...</div>
+        <div style="font-size: 13px; color: #38BDF8; margin-top: 6px; font-weight: 600;">Zero-Trust Sentinel Verified &bull; Launching NanoPro Studio</div>
+    </div>
+
+    <div class="gateway-card">
+        <!-- HEADER -->
+        <div class="gateway-header">
+            <div class="auth-logo-pill">
+                <div class="pulse-dot"></div>
+                <span>Zero-Trust Enterprise Sentinel</span>
+            </div>
+            <h1 id="viewTitle" class="gateway-title">Mangesh Nano Pro AI</h1>
+            <p id="viewSub" class="gateway-sub">Sign in to access your autonomous intelligent studio</p>
+        </div>
+
+        <!-- BODY -->
+        <div class="gateway-body">
+            <!-- Alert Notification -->
+            <div id="alertBox" class="alert-box"></div>
+
+            <!-- ============================================================= -->
+            <!-- 1. SIGN IN VIEW (DEFAULT: ALL LOGIN METHODS IN ONE PLACE)     -->
+            <!-- ============================================================= -->
+            <div id="loginView">
+                <!-- 🌐 GOOGLE ONE-CLICK OAUTH -->
+                <div style="margin-bottom: 12px;">
+                    <button type="button" id="googleOAuthBtn" onclick="handleOfficialGoogleSignIn()" class="btn-google">
+                        <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                        </svg>
+                        <span id="googleBtnText">Continue with Google (Official OAuth)</span>
+                    </button>
+                    <div id="gsiButtonMount" style="display:none; justify-content:center; margin-top:4px;"></div>
+                </div>
+
+                <div class="auth-divider">
+                    <span>OR CHOOSE SIGN-IN METHOD</span>
+                </div>
+
+                <!-- METHOD SWITCHER: PASSWORD VS WHATSAPP OTP -->
+                <div class="method-switcher">
+                    <button type="button" id="methodPasswordBtn" class="method-btn active" onclick="switchLoginMethod('password')">
+                        🔐 Password Login
+                    </button>
+                    <button type="button" id="methodWhatsappBtn" class="method-btn" onclick="switchLoginMethod('whatsapp')">
+                        💬 WhatsApp OTP
+                    </button>
+                </div>
+
+                <!-- SUB-VIEW A: DIRECT PASSWORD LOGIN -->
+                <div id="methodPasswordPanel">
+                    <form id="loginForm" onsubmit="handleDirectLogin(event); return false;">
+                        <div class="form-group">
+                            <label class="form-label" for="loginUsername">Username / Email / Mobile</label>
+                            <input type="text" id="loginUsername" class="form-input" placeholder="username or email" autocomplete="username" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="loginPassword">Password</label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <input type="password" id="loginPassword" class="form-input" placeholder="Enter Password" autocomplete="current-password" required style="padding-right: 42px;">
+                                <button type="button" onclick="togglePasswordVisibility('loginPassword', 'loginEyeIcon')" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94A3B8; padding: 4px; display: flex; align-items: center; justify-content: center; outline: none;" title="Toggle Password Visibility">
+                                    <svg id="loginEyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-options">
+                            <label class="remember-label">
+                                <input type="checkbox" id="rememberMe"> Remember this device
+                            </label>
+                        </div>
+                        <button type="submit" id="loginBtn" class="btn-primary">
+                            🔐 Sign In &amp; Launch NanoPro
+                        </button>
+                    </form>
+                </div>
+
+                <!-- SUB-VIEW B: WHATSAPP OTP LOGIN -->
+                <div id="methodWhatsappPanel" style="display:none;">
+                    <!-- Step 1: Send OTP -->
+                    <div id="waStepRequest">
+                        <div class="form-group">
+                            <label class="form-label" for="waPhoneNumber">WhatsApp Mobile Number</label>
+                            <input type="tel" id="waPhoneNumber" class="form-input" value="" placeholder="+91 XXXXX XXXXX (with country code)" onkeydown="if(event.key==='Enter') handleSendWaOtp()">
+                            <div class="form-hint">Request a WhatsApp code. You may need to send LOGIN to the NanoPro bot first.</div>
+                        </div>
+                        <button type="button" id="waSendBtn" onclick="handleSendWaOtp()" class="btn-whatsapp">
+                            📲 Send WhatsApp OTP
+                        </button>
+                    </div>
+
+                    <!-- Step 2: Verify OTP -->
+                    <div id="waStepVerify" style="display:none;">
+                        <div id="waTargetDisplay" style="text-align:center; font-size:12.5px; color:#38BDF8; font-weight:700; margin-bottom:12px;"></div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <label class="form-label" style="text-align:center; font-size:12px; color:#94A3B8;">Enter 6-Digit OTP</label>
+                            <input type="text" id="waOtpCode" class="form-input otp-input" placeholder="••••••" maxlength="6" autocomplete="one-time-code" inputmode="numeric" onkeydown="if(event.key==='Enter') handleVerifyWaOtp()" style="letter-spacing: 6px; text-align: center; font-size: 20px; font-weight: 700;">
+                            <div class="form-hint" style="text-align:center; margin-top: 6px; font-size: 11.5px; color: #94A3B8;">Enter the 6-digit OTP received on your WhatsApp</div>
+                        </div>
+                        <button type="button" id="waVerifyBtn" onclick="handleVerifyWaOtp()" class="btn-whatsapp">
+                            🔓 Verify &amp; Launch NanoPro
+                        </button>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:11.5px;">
+                            <a href="javascript:void(0)" onclick="resetWaStep()" style="color:#94A3B8; text-decoration:underline;">← Change Number</a>
+                            <a href="javascript:void(0)" id="waWebActionLink" target="_blank" style="color:#10B981; font-weight:700; display:none; text-decoration: none;">💬 Open on WhatsApp &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM FOOTER TOGGLE: SWITCH TO SIGNUP -->
+                <div class="auth-footer-toggle">
+                    <span>Don't have an account?</span>
+                    <button type="button" onclick="showSignupView()" class="link-btn">Request Access / Sign Up</button>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- 2. SIGN UP / REQUEST ACCESS VIEW                              -->
+            <!-- ============================================================= -->
+            <div id="signupView" style="display:none;">
+                <form id="registerForm" onsubmit="handleRegister(event); return false;">
+                    <div style="background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.3); border-radius:10px; padding:12px; margin-bottom:16px;">
+                        <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:12.5px; color:#F59E0B; margin-bottom:4px;">
+                            <span>🛡️</span> Zero-Trust Enterprise Security Gate
+                        </div>
+                        <div style="font-size:11.5px; color:#CBD5E1; line-height:1.45;">
+                            सर्व नवीन खात्यांसाठी <b>Super Admin (nanopro)</b> कडून मंजुरी आवश्यक आहे. नोंदणीनंतर ॲडमिन मंजुरी दिल्यावरच लॉगिन करता येईल.
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label class="form-label" for="regFullName">Full Name *</label>
+                            <input type="text" id="regFullName" class="form-input" placeholder="उदा. Rahul Patil" autocomplete="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="regUsername">Desired Username *</label>
+                            <input type="text" id="regUsername" class="form-input" placeholder="उदा. rahul_p" autocomplete="username" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regEmail">Work / Personal Email *</label>
+                        <input type="email" id="regEmail" class="form-input" placeholder="name@company.com" autocomplete="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regPhone">WhatsApp / Mobile Number *</label>
+                        <input type="tel" id="regPhone" class="form-input" placeholder="+91 9876543210" autocomplete="tel" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regDept">Department / Role *</label>
+                        <select id="regDept" class="form-input" style="background:#0F172A; color:#F8FAFC; cursor:pointer;" required>
+                            <option value="Engineering & AI Architecture">🤖 Engineering & AI Architecture</option>
+                            <option value="Data Engineering & Analytics">📊 Data Engineering & Analytics</option>
+                            <option value="Data Science & ML">🔬 Data Science & ML</option>
+                            <option value="Product & Operations">🚀 Product & Operations</option>
+                            <option value="Business Management">💼 Business Management</option>
+                            <option value="Security & Compliance">🛡️ Security & Compliance</option>
+                            <option value="General">🌐 Other / General</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regPurpose">Access Purpose / Justification *</label>
+                        <input type="text" id="regPurpose" class="form-input" placeholder="उदा. AI Data Modeling, Analytics & SQL Query Studio" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regPassword">Secure Password (Min 8 chars, A-Z, 0-9, @#$) *</label>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="password" id="regPassword" class="form-input" placeholder="••••••••••••" autocomplete="new-password" required style="padding-right: 42px;">
+                            <button type="button" onclick="togglePasswordVisibility('regPassword', 'regEyeIcon')" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #94A3B8; padding: 4px; display: flex; align-items: center; justify-content: center; outline: none;" title="Toggle Password Visibility">
+                                <svg id="regEyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="regBtn" class="btn-primary" style="background:linear-gradient(135deg, #0284C7 0%, #059669 100%); box-shadow:0 4px 15px rgba(5,150,105,0.3); font-size:13.5px; font-weight:700; padding:12px; margin-top:8px;">
+                        🚀 Submit Access Request (ॲडमिन मंजुरीसाठी पाठवा)
+                    </button>
+
+                    <div class="auth-footer-toggle" style="margin-top:14px; text-align:center;">
+                        <span>आधीच मंजूर खाते आहे का?</span>
+                        <button type="button" onclick="showLoginView()" class="link-btn" style="color:#38BDF8; font-weight:700; text-decoration:none;">
+                            Sign In to NanoPro →
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ZERO-TRUST FOOTER -->
+        <div class="security-footer">
+            🛡️ Zero-Trust Security Sentinel &bull; Dashboard markup is NEVER served unauthenticated
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+                // Password Visibility Toggle Sentinel
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) {
+                    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                }
+            } else {
+                input.type = 'password';
+                if (icon) {
+                    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                }
+            }
+        }
+        window.togglePasswordVisibility = togglePasswordVisibility;
+
+        // Core Notification Sentinel
+        function showAlert(msg, type = 'info') {
+            const b = document.getElementById('alertBox');
+            if (!b) return;
+            b.innerHTML = msg;
+            b.className = 'alert-box';
+            if (type === 'error') b.classList.add('alert-error');
+            else if (type === 'success') b.classList.add('alert-success');
+            else if (type === 'warning') b.classList.add('alert-warning');
+            else b.classList.add('alert-info');
+            b.style.display = 'block';
+        }
+        window.showAlert = showAlert;
+
+        function hideAlert() {
+            const b = document.getElementById('alertBox');
+            if (b) b.style.display = 'none';
+        }
+        window.hideAlert = hideAlert;
+
+        // View Toggles: Login vs Signup
+        function showSignupView() {
+            hideAlert();
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('signupView').style.display = 'block';
+            document.getElementById('viewTitle').innerText = 'Request Access / Register';
+            document.getElementById('viewSub').innerText = 'Create your verified enterprise NanoPro identity';
+            document.getElementById('regFullName').focus();
+        }
+        window.showSignupView = showSignupView;
+
+        function showLoginView() {
+            hideAlert();
+            document.getElementById('signupView').style.display = 'none';
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('viewTitle').innerText = 'Mangesh Nano Pro AI';
+            document.getElementById('viewSub').innerText = 'Sign in to access your autonomous intelligent studio';
+            document.getElementById('loginUsername').focus();
+        }
+        window.showLoginView = showLoginView;
+
+        // Login Method Switcher: Password vs WhatsApp OTP
+        function switchLoginMethod(method) {
+            hideAlert();
+            const btnPwd = document.getElementById('methodPasswordBtn');
+            const btnWa = document.getElementById('methodWhatsappBtn');
+            const panelPwd = document.getElementById('methodPasswordPanel');
+            const panelWa = document.getElementById('methodWhatsappPanel');
+
+            if (method === 'whatsapp') {
+                btnPwd.classList.remove('active');
+                btnWa.classList.add('active');
+                panelPwd.style.display = 'none';
+                panelWa.style.display = 'block';
+                const p = document.getElementById('waPhoneNumber');
+                if (p) p.focus();
+            } else {
+                btnWa.classList.remove('active');
+                btnPwd.classList.add('active');
+                panelWa.style.display = 'none';
+                panelPwd.style.display = 'block';
+                const u = document.getElementById('loginUsername');
+                if (u) u.focus();
+            }
+        }
+        window.switchLoginMethod = switchLoginMethod;
+
+        // Native Google Identity Services sign-in (no third-party Clerk dependency)
+        async function initGoogleSignIn() {
+            try {
+                const cfgResp = await fetch('/api/auth/google-config');
+                const cfg = await cfgResp.json();
+                if (!cfg || !cfg.client_id) return;
+                for (let i = 0; i < 50 && !(window.google && window.google.accounts && window.google.accounts.id); i++) {
+                    await new Promise(r => setTimeout(r, 100));
+                }
+                if (!(window.google && window.google.accounts && window.google.accounts.id)) return;
+                window.google.accounts.id.initialize({
+                    client_id: cfg.client_id,
+                    callback: handleGoogleCredential,
+                    ux_mode: 'redirect',
+                    login_uri: window.location.origin + '/api/auth/google-callback',
+                    auto_select: false,
+                    cancel_on_tap_outside: true
+                });
+                const mount = document.getElementById('gsiButtonMount');
+                const custom = document.getElementById('googleOAuthBtn');
+                if (mount) {
+                    mount.style.display = 'flex';
+                    window.google.accounts.id.renderButton(mount, {
+                        type: 'standard', theme: 'outline', size: 'large',
+                        text: 'continue_with', shape: 'pill', logo_alignment: 'left', width: 380
+                    });
+                }
+                if (custom) custom.style.display = 'none';
+            } catch (e) {
+                console.warn('Google sign-in init skipped:', e);
+            }
+        }
+
+        async function handleGoogleCredential(response) {
+            if (!response || !response.credential) return;
+            hideAlert();
+            showAlert('🌐 Google identity received. Establishing secure session...', 'info');
+            try {
+                const resp = await fetch('/api/auth/google-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+                const data = await resp.json();
+                if (data && data.status === 'success' && data.session_token) {
+                    localStorage.setItem('nanopro_session_token', data.session_token);
+                    localStorage.setItem('nanopro_active_account', data.user.username);
+                    document.cookie = 'nanopro_session=' + encodeURIComponent(data.session_token) + '; path=/; max-age=2592000; SameSite=Lax';
+                    showAlert('✅ Google Authenticated! Launching NanoPro...', 'success');
+                    setTimeout(() => {
+                        window.location.replace('/?token=' + encodeURIComponent(data.session_token));
+                    }, 250);
+                } else if (data && (data.status === 'pending_approval' || data.status_code === 'PENDING_APPROVAL')) {
+                    showAlert('⏳ ' + (data.error || 'Google verified. Admin approval is required before first sign-in.'), 'warning');
+                } else {
+                    showAlert((data && data.error) || 'Google verification failed. Please try again.', 'error');
+                }
+            } catch (e) {
+                showAlert('Google sign-in error: ' + e.message, 'error');
+            }
+        }
+
+        async function handleOfficialGoogleSignIn() {
+            hideAlert();
+            try {
+                const cfg = await (await fetch('/api/auth/google-config')).json();
+                if (!cfg || !cfg.client_id) {
+                    showAlert('⚠️ Google sign-in is not configured yet. The administrator must set GOOGLE_CLIENT_ID on Render and add this site to the Google OAuth client.', 'warning');
+                    return;
+                }
+                if (window.google && window.google.accounts && window.google.accounts.id) {
+                    await initGoogleSignIn();
+                    showAlert('🌐 Google sign-in is ready. Please click the Google button above.', 'info');
+                    return;
+                }
+                showAlert('⚠️ Google sign-in could not load (network or ad-blocker). Please reload the page, or use password / WhatsApp OTP.', 'warning');
+            } catch (e) {
+                showAlert('Google sign-in error: ' + e.message, 'error');
+            }
+        }
+        window.handleOfficialGoogleSignIn = handleOfficialGoogleSignIn;
+
+        window.addEventListener('load', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isLogout = urlParams.has('logout') || sessionStorage.getItem('nanopro_just_logged_out') === '1';
+
+            // Pre-fill remembered username if Remember Device was active
+            const savedUser = localStorage.getItem('nanopro_saved_username');
+            const remFlag = localStorage.getItem('nanopro_remember_device') === 'true';
+            if (savedUser && !urlParams.has('logout')) {
+                const u = document.getElementById('loginUsername');
+                if (u && !u.value) u.value = savedUser;
+                const rem = document.getElementById('rememberMe');
+                if (rem) rem.checked = remFlag;
+            }
+
+            if (isLogout) {
+                sessionStorage.removeItem('nanopro_just_logged_out');
+                localStorage.removeItem('nanopro_session_token');
+                localStorage.removeItem('nanopro_active_account');
+                localStorage.removeItem('nanopro_saved_accounts');
+                localStorage.removeItem('nanopro_remember_credentials');
+                document.cookie = 'nanopro_session=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+                document.cookie = 'nanopro_session=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+                showAlert('ℹ️ Successfully logged out. Please choose a login option below.', 'info');
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+                return; // STOP! Do not auto-login on logout!
+            }
+
+            const googleError = urlParams.get('google');
+            if (googleError) {
+                const messages = {
+                    pending_approval: '⏳ Google account verified. Admin approval is required before sign-in.',
+                    pending: '⏳ Google account verified. Admin approval is required before sign-in.',
+                    rejected: '❌ This Google account was rejected by the administrator.',
+                    disabled: '🔒 This account is disabled.',
+                    csrf: 'Security check failed. Please try Google sign-in again.',
+                    verify: 'Google verification failed. Please try again.',
+                    missing_credential: 'Google did not return a login credential. Please try again.',
+                    unreachable: 'Google sign-in service is starting up. Please retry in a few seconds.'
+                };
+                showAlert(messages[googleError] || 'Google sign-in did not complete. Please try again.', 'warning');
+            }
+
+            await initGoogleSignIn();
+        });
+
+        // Direct Password Login
+        async function handleDirectLogin(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            hideAlert();
+
+            const username = (document.getElementById('loginUsername')?.value || '').trim();
+            const password = (document.getElementById('loginPassword')?.value || '').trim();
+            const remember = document.getElementById('rememberMe')?.checked ?? false;
+
+            if (!username || !password) {
+                showAlert('Please enter both Username/Email and Password.', 'warning');
+                return false;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Verifying Credentials...';
+            }
+
+            try {
+                let data = null;
+
+                // Tier 1: POST to current host
+                try {
+                    const resp = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    data = await resp.json();
+                } catch(e1) {}
+
+                // If explicit PENDING_APPROVAL response, display warning immediately and halt fallbacks
+                if (data && (data.status_code === 'PENDING_APPROVAL' || data.status === 'pending_approval')) {
+                    showAlert('⏳ ' + (data.error || 'तुमचे खाते ॲडमिन (nanopro) कडून मंजुरीच्या प्रतीक्षेत आहे (Pending Approval).'), 'warning');
+                    return false;
+                }
+
+                if (data && data.status === 'success' && data.session_token) {
+                    localStorage.setItem('nanopro_session_token', data.session_token);
+                    localStorage.setItem('nanopro_active_account', data.user.username);
+                    document.cookie = 'nanopro_session=' + encodeURIComponent(data.session_token) + '; path=/; max-age=2592000; SameSite=Lax';
+
+                    showAlert('✅ Access Granted! Loading workspace...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/?token=' + encodeURIComponent(data.session_token);
+                    }, 250);
+                    return false;
+                } else {
+                    showAlert((data && data.message) || (data && data.error) || 'Invalid credentials. Please check your username and password.', 'error');
+                }
+            } catch(err) {
+                showAlert('Login Error: ' + err.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '🔐 Sign In & Launch NanoPro';
+                }
+            }
+            return false;
+        }
+        window.handleDirectLogin = handleDirectLogin;
+
+        // WhatsApp OTP Workflow
+        let currentWaTarget = '';
+
+        async function handleSendWaOtp() {
+            const phoneInput = document.getElementById('waPhoneNumber');
+            const phone = ((phoneInput && phoneInput.value) || '').trim();
+            const btn = document.getElementById('waSendBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Sending OTP to WhatsApp...';
+            }
+            hideAlert();
+
+            try {
+                let data = null;
+                let status = 0;
+                try {
+                    const send = () => fetch('/api/auth/otp/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier: phone, channel: 'whatsapp' })
+                    });
+                    let resp = await send();
+                    if (resp.status === 503) {
+                        showAlert('NanoPro is waking up, retrying…', 'warning');
+                        await new Promise(r => setTimeout(r, 3000));
+                        resp = await send();
+                    }
+                    status = resp.status;
+                    data = await resp.json().catch(() => null);
+                } catch(e1) {}
+
+                if (data && (data.status === 'success' || data.status === 'pending')) {
+                    const replyRequired = data.delivery === 'reply_required';
+                    currentWaTarget = data.identifier || phone;
+                    const disp = document.getElementById('waTargetDisplay');
+                    if (disp) disp.innerText = (replyRequired ? 'Send LOGIN from WhatsApp: ' : 'WhatsApp code requested for: ') + currentWaTarget;
+                    document.getElementById('waStepRequest').style.display = 'none';
+                    document.getElementById('waStepVerify').style.display = 'block';
+
+                    const linkBtn = document.getElementById('waWebActionLink');
+                    if (linkBtn) {
+                        linkBtn.style.display = replyRequired ? 'inline-block' : 'none';
+                        if (replyRequired) {
+                            linkBtn.href = data.whatsapp_link;
+                            linkBtn.rel = 'noopener noreferrer';
+                            linkBtn.textContent = 'Open WhatsApp and send LOGIN';
+                        }
+                    }
+
+                    showAlert(data.message || 'Enter the code received on WhatsApp.', replyRequired ? 'warning' : 'success');
+                    const otpInp = document.getElementById('waOtpCode');
+                    if (otpInp) {
+                        otpInp.value = ''; // Strictly empty! User manually enters OTP from mobile WhatsApp
+                        otpInp.focus();
+                    }
+                } else {
+                    const fallbackMsg = status === 503
+                        ? 'NanoPro server is starting up. Please tap "Send WhatsApp OTP" again in a few seconds.'
+                        : 'Failed to send WhatsApp OTP. Please check phone number.';
+                    showAlert((data && data.error) || fallbackMsg, 'error');
+                }
+            } catch(e) {
+                showAlert('OTP Dispatch Error: ' + e.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '📲 Send WhatsApp OTP';
+                }
+            }
+        }
+        window.handleSendWaOtp = handleSendWaOtp;
+
+        function resetWaStep() {
+            document.getElementById('waStepRequest').style.display = 'block';
+            document.getElementById('waStepVerify').style.display = 'none';
+            const o = document.getElementById('waOtpCode');
+            if (o) o.value = '';
+            hideAlert();
+        }
+        window.resetWaStep = resetWaStep;
+
+        async function handleVerifyWaOtp() {
+            const otpCode = (document.getElementById('waOtpCode')?.value || '').trim();
+            if (!/^[0-9]{6}$/.test(otpCode)) {
+                showAlert('Please enter the 6-digit OTP.', 'warning');
+                return;
+            }
+
+            const phone = currentWaTarget || (document.getElementById('waPhoneNumber')?.value || '').trim();
+            const btn = document.getElementById('waVerifyBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Verifying WhatsApp OTP...';
+            }
+            hideAlert();
+
+            try {
+                let data = null;
+                try {
+                    const resp = await fetch('/api/auth/otp/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier: phone, otp_code: otpCode, channel: 'whatsapp' })
+                    });
+                    data = await resp.json();
+                } catch(e1) {}
+
+                // If account is PENDING_APPROVAL, stop fallbacks and alert user directly
+                if (data && (data.status_code === 'PENDING_APPROVAL' || data.status === 'pending_approval')) {
+                    showAlert('⏳ ' + (data.error || 'सुरक्षेसाठी नवीन वापरकर्त्यांसाठी Super Admin (nanopro) कडून मंजुरी आवश्यक आहे.'), 'warning');
+                    return false;
+                }
+
+                if (data && data.status === 'success' && data.session_token) {
+                    localStorage.setItem('nanopro_session_token', data.session_token);
+                    localStorage.setItem('nanopro_active_account', data.user.username);
+                    document.cookie = 'nanopro_session=' + encodeURIComponent(data.session_token) + '; path=/; max-age=2592000; SameSite=Lax';
+
+                    showAlert('✅ WhatsApp OTP Verified! Loading workspace...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/?token=' + encodeURIComponent(data.session_token);
+                    }, 250);
+                } else if (data && (data.status === 'pending_approval' || data.status_code === 'PENDING_APPROVAL')) {
+                    showAlert('⏳ <b>WhatsApp OTP verified! Account will be activated after admin approval.</b>', 'warning');
+                } else {
+                    showAlert((data && data.error) || 'Invalid OTP code. Please try again.', 'error');
+                }
+            } catch(e) {
+                showAlert('OTP Verification Error: ' + e.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '🔓 Verify & Launch NanoPro';
+                }
+            }
+        }
+        window.handleVerifyWaOtp = handleVerifyWaOtp;
+
+        // Registration Workflow
+        async function handleRegister(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            hideAlert();
+
+            const fullName = (document.getElementById('regFullName')?.value || '').trim();
+            const username = (document.getElementById('regUsername')?.value || '').trim();
+            const email = (document.getElementById('regEmail')?.value || '').trim();
+            const phone = (document.getElementById('regPhone')?.value || '').trim();
+            const department = (document.getElementById('regDept')?.value || 'General').trim();
+            const purpose = (document.getElementById('regPurpose')?.value || 'Enterprise Access').trim();
+            const password = (document.getElementById('regPassword')?.value || '').trim();
+
+            if (!fullName || !username || !email || !password || !phone) {
+                showAlert('कृपया सर्व आवश्यक माहिती प्रविष्ट करा (Full Name, Username, Email, Phone, Password).', 'warning');
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Submitting Access Request...';
+            }
+
+            try {
+                let data = null;
+                const regPayload = { 
+                    full_name: fullName, 
+                    username, 
+                    email, 
+                    phone_number: phone, 
+                    department, 
+                    purpose, 
+                    password 
+                };
+
+                try {
+                    const resp = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(regPayload)
+                    });
+                    data = await resp.json();
+                } catch(e1) {}
+
+                if (data && (data.status === 'success' || data.status_code === 'PENDING_APPROVAL')) {
+                    const msg = data.message || 'तुमची प्रवेश विनंती (Access Request) यशस्वीरीत्या पाठवली गेली आहे! सुरक्षेसाठी Super Admin (nanopro) कडून मंजुरी मिळाल्यावरच खाते सक्रिय होईल.';
+                    showAlert('⏳ ' + msg, 'success');
+                    document.getElementById('registerForm')?.reset();
+                    const uInput = document.getElementById('loginUsername');
+                    if (uInput) uInput.value = username;
+                    setTimeout(() => {
+                        showLoginView();
+                        const pInput = document.getElementById('loginPassword');
+                        if (pInput) pInput.focus();
+                    }, 3500);
+                } else {
+                    showAlert((data && (data.error || data.message)) || 'Registration failed. Please try again.', 'error');
+                }
+            } catch(err) {
+                showAlert('Registration error: ' + err.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '🚀 Submit Access Request (ॲडमिन मंजुरीसाठी पाठवा)';
+                }
+            }
+        }
+        window.handleRegister = handleRegister;
+    </script>
+</body>
+</html>
+
