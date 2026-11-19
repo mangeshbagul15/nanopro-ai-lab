@@ -6885,7 +6885,8 @@ body.in-global_ai_lab .nano-dynamic-island {
   window.ailabClickFollowUp = function(promptText) {
     const input = document.getElementById("ailabPromptInput");
     if (!input) return;
-    input.value = promptText;
+    let cleanPrompt = String(promptText || "").replace(/^[\s🔹•\-\*]+\s*/, "").trim();
+    input.value = cleanPrompt || promptText;
     if (typeof ailabAutoResize === "function") ailabAutoResize(input);
     if (typeof ailabSubmitPrompt === "function") ailabSubmitPrompt();
   };
@@ -7360,13 +7361,17 @@ body.in-global_ai_lab .nano-dynamic-island {
         }
 
         const chatPromptStr = (typeof prompt !== "undefined" ? prompt : "") || "";
-        const chatResponseStr = (execData && execData.response ? execData.response : "") || "";
         let transferJob = execData.transfer_job || null;
-        const transferText = (chatPromptStr + " " + chatResponseStr).toLowerCase();
-        if (!transferJob && (/(transfer|ट्रान्सफर|migrat|shift|copy|मूव्ह|लोड).*(table|तक्ता|डेटा|data|gb|mb)/i.test(transferText) || /(5gb|1gb|10gb|2gb).*(transfer|डेटा|data)/i.test(transferText))) {
+        const promptLower = chatPromptStr.toLowerCase();
+        // Honest status: Only show live transfer telemetry if the USER explicitly commanded a data transfer in their prompt
+        const isExplicitTransfer = /(?:transfer|ट्रान्सफर|migrate|माइग्रेट)\s+(?:data|table|तक्ता|डेटा|lakehouse|warehouse|db)/i.test(promptLower) ||
+          /(?:run|चालवा|start)\s+(?:transfer|pipeline|पाइपलाइन)/i.test(promptLower) ||
+          /(?:transfer|move|migrate)\s+[A-Za-z0-9_]+\s+to\s+[A-Za-z0-9_]+/i.test(promptLower);
+
+        if (!transferJob && isExplicitTransfer) {
           let srcTable = "RAW_AML_ALERTS";
           let tgtTable = "MART_AML_PROCESSED_TXNS";
-          const tableMatches = (chatPromptStr + " " + (execData.response || "")).match(/\b([A-Z0-9_]{4,30})\b/g);
+          const tableMatches = chatPromptStr.match(/\b([A-Z0-9_]{4,30})\b/g);
           if (tableMatches && tableMatches.length >= 2) {
             srcTable = tableMatches[0];
             tgtTable = tableMatches[1];
@@ -7374,9 +7379,9 @@ body.in-global_ai_lab .nano-dynamic-island {
             tgtTable = tableMatches[0];
           }
           let szMb = 5120;
-          if (transferText.includes("10gb")) szMb = 10240;
-          else if (transferText.includes("1gb")) szMb = 1024;
-          else if (transferText.includes("2gb")) szMb = 2048;
+          if (promptLower.includes("10gb")) szMb = 10240;
+          else if (promptLower.includes("1gb")) szMb = 1024;
+          else if (promptLower.includes("2gb")) szMb = 2048;
 
           transferJob = {
             job_id: "JOB_TRANS_" + Math.random().toString(36).slice(2, 7).toUpperCase(),
@@ -8186,17 +8191,8 @@ body.in-global_ai_lab .nano-dynamic-island {
       html = html.replace(`__AILAB_MERMAID_${idx}__`, mermaidHtml);
     });
 
-        // 11. Parse Interactive Suggestion Chips / Hints: [HINT: Option 1 | Option 2 | Option 3]
-    html = html.replace(/\[HINT:\s*([^\]]+)\]/gi, (match, hintStr) => {
-      const options = hintStr.split('|').map(o => o.trim()).filter(Boolean);
-      let chipsHtml = '<div class="ailab-hint-group"><span class="ailab-hint-lbl">💡 यापैकी अजून काही संबंधित विचारायचं आहे का? (1-Tap Actions):</span><div class="ailab-hint-chips">';
-      options.forEach(opt => {
-        const safeText = encodeURIComponent(opt);
-        chipsHtml += `<button type="button" class="ailab-hint-chip" onclick="ailabSendHint(decodeURIComponent('${safeText}'))"><span>${opt}</span></button>`;
-      });
-      chipsHtml += '</div></div>';
-      return chipsHtml;
-    });
+        // 11. Strip raw [HINT: ...] token from markdown so the 3 follow-up options are exclusively rendered by the dedicated modern followup widget
+    html = html.replace(/\[HINT:\s*([^\]]+)\]/gi, "");
 
     return html;
   }
