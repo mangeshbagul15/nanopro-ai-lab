@@ -7275,9 +7275,23 @@ body.in-global_ai_lab .nano-dynamic-island {
       html = html.replace(`__AILAB_CODE_${idx}__`, blockHtml);
     });
 
-    // 10. Restore Mermaid blocks with unescaped code
+    // 10. Restore Mermaid blocks with rich visual wrap and 1-tap action buttons
     mermaidPlaceholders.forEach((code, idx) => {
-      const mermaidHtml = `<div class="ailab-mermaid-container"><pre class="mermaid">${code}</pre></div>`;
+      const escapedCode = encodeURIComponent(code);
+      const mermaidHtml = `<div class="ailab-mermaid-wrap" style="margin:14px 0;background:#080D14;border:1.5px solid rgba(139,92,246,0.35);border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,0.5);">
+        <div class="ailab-mermaid-header" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(15,23,42,0.9);border-bottom:1px solid rgba(139,92,246,0.25);">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:#C084FC;">
+            <span>📐</span> <span>2D Architecture & Workflow Visualizer</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="ailab-diag-btn" onclick="ailabCopyDiagramCode(decodeURIComponent('${escapedCode}'))" style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.4);color:#E2E8F0;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;" title="Copy Mermaid Definition">📋 Copy Code</button>
+            <button type="button" class="ailab-diag-btn" onclick="ailabShareDiagram(decodeURIComponent('${escapedCode}'))" style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);color:#38BDF8;padding:3px 9px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;" title="Share Diagram Link">🔗 Share Diagram</button>
+          </div>
+        </div>
+        <div class="ailab-mermaid-container" style="background:#080D14;padding:16px;text-align:center;overflow-x:auto;">
+          <pre class="mermaid">${code}</pre>
+        </div>
+      </div>`;
       html = html.replace(`__AILAB_MERMAID_${idx}__`, mermaidHtml);
     });
 
@@ -8806,6 +8820,35 @@ body.in-global_ai_lab .nano-dynamic-island {
 
     // Default fallback: send text as prompt hint
     ailabSendHint(text);
+  };
+
+  
+  // Global Diagram Copy & Share Actions
+  window.ailabCopyDiagramCode = function(code) {
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      if (typeof ailabShowDynamicToast === 'function') {
+        ailabShowDynamicToast("📋 2D Mermaid Architecture code copied to clipboard!");
+      } else {
+        alert("Mermaid code copied to clipboard!");
+      }
+    }).catch(() => {
+      prompt("Copy Mermaid Code:", code);
+    });
+  };
+
+  window.ailabShareDiagram = function(code) {
+    if (!code) return;
+    const shareUrl = "https://mermaid.live/edit#base64:" + btoa(unescape(encodeURIComponent(code)));
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      if (typeof ailabShowDynamicToast === 'function') {
+        ailabShowDynamicToast("🔗 Live Mermaid diagram link copied to clipboard!");
+      } else {
+        alert("Diagram link copied to clipboard!");
+      }
+    }).catch(() => {
+      prompt("Share Diagram Link:", shareUrl);
+    });
   };
 
   window.ailabSendHint = function(text) {
