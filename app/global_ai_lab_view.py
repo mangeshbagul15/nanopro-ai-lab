@@ -2884,14 +2884,242 @@ body.in-global_ai_lab .nano-dynamic-island {
   text-overflow: ellipsis;
 }
 
-/* Responsive adjustments */
+/* Mobile Backdrop for Drawers */
+#view-global_ai_lab .ailab-mobile-backdrop {
+  position: fixed;
+  inset: 44px 0 0 0;
+  background: rgba(3, 7, 18, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+#view-global_ai_lab .ailab-mobile-backdrop.is-visible {
+  display: block;
+  opacity: 1;
+}
+
+/* 1-Tap Interactive Follow-up Question Chips */
+#view-global_ai_lab .ailab-followup-wrap {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+#view-global_ai_lab .ailab-followup-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94A3B8;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#view-global_ai_lab .ailab-followup-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;
+}
+#view-global_ai_lab .ailab-followup-chip {
+  background: #161B22;
+  border: 1px solid #30363D;
+  color: #58A6FF;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+  min-height: 32px;
+}
+#view-global_ai_lab .ailab-followup-chip:hover {
+  background: #21262D;
+  border-color: #58A6FF;
+  color: #79C0FF;
+  transform: translateY(-1px);
+}
+#view-global_ai_lab .ailab-followup-chip:active {
+  transform: translateY(0);
+}
+
+/* Comprehensive Mobile & Tablet Responsive Adjustments */
 @media (max-width: 1220px) {
   #view-global_ai_lab .ailab-conn-badge { display: none !important; }
   #view-global_ai_lab .ailab-input-tags .ailab-mode-pill,
   #view-global_ai_lab #ailabSlaLabel { display: none; }
 }
 
+@media (max-width: 900px) {
+  /* Drawers */
+  #view-global_ai_lab .ailab-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 44px !important;
+    bottom: 0 !important;
+    width: min(300px, 84vw) !important;
+    max-width: 84vw !important;
+    z-index: 999 !important;
+    background: #161B22 !important;
+    border-right: 1px solid #30363D !important;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.6) !important;
+    transform: translateX(-105%) !important;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  #view-global_ai_lab .ailab-sidebar.is-open-mobile {
+    transform: translateX(0) !important;
+  }
+  #view-global_ai_lab .ailab-sidebar.collapsed {
+    transform: translateX(-105%) !important;
+  }
+
+  #view-global_ai_lab .ailab-explorer {
+    position: fixed !important;
+    left: 0 !important;
+    top: 44px !important;
+    bottom: 0 !important;
+    width: min(320px, 86vw) !important;
+    max-width: 86vw !important;
+    z-index: 999 !important;
+    background: #161B22 !important;
+    border-right: 1px solid #30363D !important;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.6) !important;
+    transform: translateX(-105%) !important;
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    display: flex !important;
+  }
+  #view-global_ai_lab .ailab-explorer:not(.is-hidden) {
+    transform: translateX(0) !important;
+  }
+  #view-global_ai_lab .ailab-explorer.is-hidden {
+    transform: translateX(-105%) !important;
+  }
+
+  #view-global_ai_lab #ailabGrip,
+  #view-global_ai_lab #ailabExplorerGrip {
+    display: none !important;
+  }
+
+  /* Main Canvas: Full width, zero cramping */
+  #view-global_ai_lab .ailab-main {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Chat window & canvas */
+  #view-global_ai_lab .ailab-chat-window {
+    padding: 10px 10px 14px !important;
+  }
+  #view-global_ai_lab .ailab-messages-wrap {
+    max-width: 100% !important;
+    padding: 0 !important;
+    gap: 12px !important;
+  }
+
+  /* Chat Messages & Typography */
+  #view-global_ai_lab .ailab-msg {
+    margin-bottom: 12px !important;
+  }
+  #view-global_ai_lab .ailab-msg-assistant .ailab-bubble,
+  #view-global_ai_lab .ailab-asst-bubble {
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+    border-radius: 8px !important;
+    max-width: 100% !important;
+    word-break: break-word !important;
+  }
+  #view-global_ai_lab .ailab-msg-user .ailab-bubble,
+  #view-global_ai_lab .ailab-user-bubble {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    max-width: 92% !important;
+    word-break: break-word !important;
+  }
+  #view-global_ai_lab .ailab-asst-bubble pre {
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  #view-global_ai_lab .ailab-asst-bubble table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    font-size: 12px !important;
+  }
+
+  /* Composer Cockpit */
+  #view-global_ai_lab .ailab-input-cockpit {
+    padding: 8px 10px 10px !important;
+  }
+  #view-global_ai_lab .ailab-input-box {
+    padding: 8px 10px !important;
+  }
+  #view-global_ai_lab .ailab-textarea {
+    font-size: 14px !important;
+    min-height: 38px !important;
+  }
+  #view-global_ai_lab .ailab-send-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    min-height: 36px !important;
+  }
+
+  /* Airflow Modal on mobile */
+  #view-global_ai_lab .ailab-modal {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  #view-global_ai_lab .ailab-modal-pills {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 8px 12px !important;
+  }
+}
+
 @media (max-width: 640px) {
+  #view-global_ai_lab .ailab-topbar {
+    padding: 0 8px !important;
+    gap: 6px !important;
+  }
+  #view-global_ai_lab .ailab-brand span {
+    font-size: 12px !important;
+  }
+  #view-global_ai_lab .ailab-topbar-new-chat-btn span {
+    display: none !important;
+  }
+  #view-global_ai_lab .ailab-topbar-new-chat-btn {
+    padding: 0 8px !important;
+    min-width: 32px !important;
+    height: 30px !important;
+  }
+  #view-global_ai_lab .ailab-model-selector-wrap {
+    max-width: 125px !important;
+  }
+  #view-global_ai_lab .ailab-effort-wrap {
+    display: none !important;
+  }
+  #view-global_ai_lab .ailab-live-routed-badge {
+    display: none !important;
+  }
   #view-global_ai_lab .ailab-cua-toggle-btn {
     width: 28px;
     padding: 0 !important;
@@ -2899,6 +3127,15 @@ body.in-global_ai_lab .nano-dynamic-island {
   }
   #view-global_ai_lab .ailab-cua-toggle-btn .lbl { display: none; }
   #view-global_ai_lab .ailab-canvas-head .ailab-code-btn .lbl { display: none; }
+  #view-global_ai_lab .ailab-followup-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    scrollbar-width: none;
+  }
+  #view-global_ai_lab .ailab-followup-chips::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ===================================================================== */
@@ -3520,6 +3757,9 @@ body.in-global_ai_lab .nano-dynamic-island {
 
   <!-- Workspace Body -->
   <div class="ailab-body">
+    <!-- Mobile Backdrop for Sidebar & Explorer drawers -->
+    <div id="ailabMobileBackdrop" class="ailab-mobile-backdrop" onclick="ailabCloseMobileDrawers()"></div>
+
     <!-- Panel 1: Chats & Projects (Resizable Sidebar) -->
     <aside class="ailab-sidebar" id="ailabSidebar">
       <div class="ailab-sidebar-head">
@@ -3588,19 +3828,6 @@ body.in-global_ai_lab .nano-dynamic-island {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
         </div>
-      </div>
-      <!-- Persistent Airflow & SFTP Action Card inside Explorer -->
-      <div style="padding:8px 12px;background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(6,182,212,0.1));border-bottom:1px solid rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:7px;">
-          <span style="font-size:16px;">⏱️</span>
-          <div>
-            <div style="font-size:11.5px;font-weight:800;color:#F8FAFC;">Airflow Orchestrator</div>
-            <div style="font-size:10px;color:#34D399;">DAGs • SFTP • Alerts • Logs</div>
-          </div>
-        </div>
-        <button type="button" class="ailab-btn-primary" onclick="ailabOpenAirflowModal()" style="padding:4px 10px;font-size:11px;background:#10B981;border-color:#10B981;color:#FFFFFF;font-weight:800;cursor:pointer;border-radius:6px;box-shadow:0 0 10px rgba(16,185,129,0.4);">
-          Launch ➔
-        </button>
       </div>
       <div class="ailab-explorer-search">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -4372,6 +4599,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     const p = $id("ailabExplorer");
     const btn = $id("ailabToggleExplorer");
     const sidebar = $id("ailabSidebar");
+    const bd = $id("ailabMobileBackdrop");
     if (!p) return;
     const isHidden = force !== undefined ? !force : p.classList.toggle("is-hidden");
     if (force !== undefined) {
@@ -4379,6 +4607,18 @@ body.in-global_ai_lab .nano-dynamic-island {
     }
     AILAB_EXPLORER.isOpen = !isHidden;
     if (btn) btn.classList.toggle("is-active", !isHidden);
+
+    if (window.innerWidth <= 900) {
+      if (!isHidden) {
+        if (sidebar) sidebar.classList.remove("is-open-mobile");
+        if (bd) bd.classList.add("is-visible");
+      } else {
+        if (bd && (!sidebar || !sidebar.classList.contains("is-open-mobile"))) {
+          bd.classList.remove("is-visible");
+        }
+      }
+      return;
+    }
 
     // On compact screens (< 1150px), gracefully collapse sidebar when opening Explorer
     if (!isHidden && window.innerWidth < 1150 && sidebar && !sidebar.classList.contains("collapsed")) {
@@ -5834,6 +6074,9 @@ body.in-global_ai_lab .nano-dynamic-island {
   AILAB.chatIndexCache = AILAB.chatIndexCache || {};
 
   window.ailabSelectChat = async function(chatId) {
+    if (window.innerWidth <= 900 && typeof ailabCloseMobileDrawers === "function") {
+      ailabCloseMobileDrawers();
+    }
     AILAB.activeChatId = chatId;
     const activeChat = AILAB.chats.find(c => c.id === chatId);
     if (activeChat) {
@@ -6312,9 +6555,71 @@ body.in-global_ai_lab .nano-dynamic-island {
         </div>
       `;
 
+      // Context-aware 3 follow-up suggestion chips
+      let followUpChips = [];
+      const contentText = String(msg.content || "");
+      const hintMatch = contentText.match(/\[HINT:\s*([^\]]+)\]/i);
+      if (hintMatch && hintMatch[1]) {
+        followUpChips = hintMatch[1].split("|").map(s => s.trim()).filter(Boolean);
+      }
+      if (!followUpChips.length) {
+        const lower = contentText.toLowerCase();
+        if (lower.includes("bigquery") || lower.includes("cmg") || lower.includes("bronze") || lower.includes("cbs")) {
+          followUpChips = [
+            "📊 CMG, GAM, HTD रो डेटा तपासणी दाखवा",
+            "⚡ BigQuery वरून AWS S3 ला डेटा सिंक करा",
+            "🦆 DuckDB मधील विश्लेषणात्मक ताळेबंद तपासा"
+          ];
+        } else if (lower.includes("aml") || lower.includes("fiu") || lower.includes("report") || lower.includes("अहवाल")) {
+          followUpChips = [
+            "📑 16 AML/FIU-IND अहवाल डाउनलोड करा",
+            "📈 5 मास्टर एक्सेल वर्कबुक्स लिंक्स द्या",
+            "🚨 उच्च-जोखीम संशयास्पद खाती फिल्टर करा"
+          ];
+        } else if (lower.includes("airflow") || lower.includes("dag") || lower.includes("pipeline") || lower.includes("orchestrat")) {
+          followUpChips = [
+            "⚡ 15 Airflow DAGs चे थेट लाइव्ह स्टेटस दाखवा",
+            "⏱️ bq_to_s3 DAG त्वरित मॅन्युअली चालवा",
+            "📜 Telegram आणि WhatsApp अलर्ट लॉग तपासा"
+          ];
+        } else if (lower.includes("cua") || lower.includes("browser") || lower.includes("ब्राउझर")) {
+          followUpChips = [
+            "🌐 CUA द्वारे बँक पोर्टलवर फॉर्म ऑटो-फिल करा",
+            "🖱️ स्क्रीनवरील एरर समजून Critic Agent द्वारे सोडवा",
+            "📸 सध्याच्या ब्राउझर व्ह्यूपोर्टचा स्क्रीनशॉट घ्या"
+          ];
+        } else {
+          followUpChips = [
+            "🏗️ या सिस्टीमचे Mermaid Architecture Diagram दाखवा",
+            "⚡ 4,804 मॉडेल्समधील जलद SLA मॉडेल निवडा",
+            "📊 या डेटाचे सखोल विश्लेषण (Summary) द्या"
+          ];
+        }
+      }
+      followUpChips = followUpChips.slice(0, 3);
+
+      const followUpHtml = followUpChips.length ? `
+        <div class="ailab-followup-wrap">
+          <div class="ailab-followup-label">
+            <span>💡 यापैकी अजून काही विचारायचे आहे का? (1-Tap Fast Answer)</span>
+          </div>
+          <div class="ailab-followup-chips">
+            ${followUpChips.map(ch => `
+              <button type="button" class="ailab-followup-chip" onclick="ailabClickFollowUp('${escapeHtml(ch).replace(/'/g, "\\'")}')">
+                <span>${escapeHtml(ch)}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      ` : "";
+
       wrap.innerHTML = `
         ${headerHtml}
-        <div class="ailab-bubble ailab-asst-bubble">${contentHtml}</div>
+        <div class="ailab-bubble ailab-asst-bubble">
+          ${contentHtml}
+          ${followUpHtml}
+        </div>
         ${footerHtml}
       `;
     }
@@ -6328,6 +6633,14 @@ body.in-global_ai_lab .nano-dynamic-island {
     }
     return wrap;
   }
+
+  window.ailabClickFollowUp = function(promptText) {
+    const input = document.getElementById("ailabPromptInput");
+    if (!input) return;
+    input.value = promptText;
+    if (typeof ailabAutoResize === "function") ailabAutoResize(input);
+    if (typeof ailabSubmitPrompt === "function") ailabSubmitPrompt();
+  };
 
   window.ailabToggleMathCard = function(cardId) {
     const el = document.getElementById(cardId);
@@ -7165,7 +7478,21 @@ body.in-global_ai_lab .nano-dynamic-island {
   window.ailabToggleSidebar = function() {
     const sb = $id("ailabSidebar");
     const exp = $id("ailabExplorer");
+    const bd = $id("ailabMobileBackdrop");
     if (!sb) return;
+
+    if (window.innerWidth <= 900) {
+      const isOpen = sb.classList.toggle("is-open-mobile");
+      if (isOpen && exp && !exp.classList.contains("is-hidden")) {
+        exp.classList.add("is-hidden");
+        AILAB_EXPLORER.isOpen = false;
+        const expBtn = $id("ailabToggleExplorer");
+        if (expBtn) expBtn.classList.remove("is-active");
+      }
+      if (bd) bd.classList.toggle("is-visible", isOpen);
+      return;
+    }
+
     const isNowCollapsed = sb.classList.toggle("collapsed");
     // If opening sidebar on smaller screen, collapse explorer so nothing ever cramps
     if (!isNowCollapsed && window.innerWidth < 1150 && exp && !exp.classList.contains("is-hidden")) {
@@ -7174,6 +7501,17 @@ body.in-global_ai_lab .nano-dynamic-island {
       const expBtn = $id("ailabToggleExplorer");
       if (expBtn) expBtn.classList.remove("is-active");
     }
+  };
+
+  window.ailabCloseMobileDrawers = function() {
+    const sb = $id("ailabSidebar");
+    const exp = $id("ailabExplorer");
+    const bd = $id("ailabMobileBackdrop");
+    if (sb) sb.classList.remove("is-open-mobile");
+    if (exp) exp.classList.add("is-hidden");
+    if (bd) bd.classList.remove("is-visible");
+    const expBtn = $id("ailabToggleExplorer");
+    if (expBtn) expBtn.classList.remove("is-active");
   };
 
   // -------------------------------------------------------------
@@ -9672,11 +10010,13 @@ body.in-global_ai_lab .nano-dynamic-island {
 
   window.ailabOrchCurrentEngine = "all";
 
-  function orchDagEngine(id) {
-    if (id === "bq_to_s3") return "bigquery";
-    if (id === "sftp_to_s3" || id === "glue_catalog") return "aws";
-    if (id.startsWith("snowflake_") || id.startsWith("bank_l") || id === "bank_raw_history") return "snowflake";
-    if (id === "duckdb_report") return "duckdb";
+  function orchDagEngine(dagOrId) {
+    const id = typeof dagOrId === "object" && dagOrId ? String(dagOrId.id || dagOrId.dag_id || "") : String(dagOrId || "");
+    const engine = typeof dagOrId === "object" && dagOrId ? String(dagOrId.engine || "").toLowerCase() : "";
+    if (engine.includes("bigquery") || id === "bq_to_s3" || id.startsWith("bq_")) return "bigquery";
+    if (engine.includes("aws") || engine.includes("s3") || engine.includes("glue") || id.includes("s3") || id === "sftp_to_s3" || id === "glue_catalog") return "aws";
+    if (engine.includes("snowflake") || id.startsWith("snowflake_") || id.startsWith("bank_l") || id.includes("ledger") || id === "bank_raw_history" || id.includes("risk") || id.includes("aml")) return "snowflake";
+    if (engine.includes("duckdb") || id.includes("duckdb")) return "duckdb";
     return "reports";
   }
 
@@ -9720,13 +10060,13 @@ body.in-global_ai_lab .nano-dynamic-island {
     window.ailabOrchState.overview = data;
     const allDags = data.dags || [];
     const countTab = document.getElementById("orchDagCountTab");
-    if (countTab) countTab.textContent = `${allDags.length} DAG${allDags.length === 1 ? "" : "s"}`;
+    if (countTab) countTab.textContent = `${allDags.length} Airflow DAGs`;
     if (!allDags.length) {
       box.innerHTML = `<div style="text-align:center;padding:20px;color:#94A3B8;">No DAGs reported.</div>`;
       return;
     }
     const curEngine = window.ailabOrchCurrentEngine || "all";
-    const dags = curEngine === "all" ? allDags : allDags.filter(d => orchDagEngine(d.id) === curEngine);
+    const dags = curEngine === "all" ? allDags : allDags.filter(d => orchDagEngine(d) === curEngine);
     if (!dags.length) {
       box.innerHTML = `<div style="text-align:center;padding:24px;color:#94A3B8;">No DAGs found for engine <strong>${orchEsc(curEngine)}</strong>. <button type="button" class="ailab-code-btn" onclick="ailabOrchFilterEngine('all')" style="margin-left:8px;color:#38BDF8;">Show all (${allDags.length})</button></div>`;
       return;
@@ -9734,15 +10074,16 @@ body.in-global_ai_lab .nano-dynamic-island {
     const cycles = (data.cycles || {}).cycles || [];
 
     box.innerHTML = dags.map(dag => {
+      const dagId = String(dag.id || dag.dag_id || "");
       const [stageBg, stageFg] = orchStageColor(dag.stage);
-      const engBadge = orchEngineBadge(orchDagEngine(dag.id));
+      const engBadge = orchEngineBadge(orchDagEngine(dag));
       const metrics = [];
       if (dag.tables != null && dag.tables !== "") metrics.push(`<span style="color:#94A3B8;">tables</span> <strong style="color:#F8FAFC;">${orchEsc(dag.tables)}</strong>`);
       if (dag.rows != null && dag.rows !== "") metrics.push(`<span style="color:#94A3B8;">rows</span> <strong style="color:#F8FAFC;">${orchNum(dag.rows)}</strong>`);
       if (dag.duplicates_removed != null) metrics.push(`<span style="color:#94A3B8;">dupes removed</span> <strong style="color:#F8FAFC;">${orchNum(dag.duplicates_removed)}</strong>`);
       if (dag.run_id) metrics.push(`<span style="color:#94A3B8;">run</span> <code style="color:#CBD5E1;">${orchEsc(dag.run_id)}</code>`);
 
-      const cycleStrip = dag.id === "bq_to_s3" ? `
+      const cycleStrip = (dagId === "bq_to_s3" || dagId.startsWith("bq_")) ? `
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
           ${cycles.map(c => `
             <span style="background:rgba(30,41,59,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:3px 8px;font-size:10.5px;color:#CBD5E1;">
@@ -9757,14 +10098,14 @@ body.in-global_ai_lab .nano-dynamic-island {
               <span style="background:${stageBg};color:${stageFg};font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:4px;">${orchEsc(dag.stage)}</span>
               ${engBadge}
               <span style="font-weight:800;color:#F8FAFC;font-size:13px;">${orchEsc(dag.name)}</span>
-              <code style="font-size:10px;color:#64748B;">${orchEsc(dag.id)}</code>
+              <code style="font-size:10px;color:#64748B;">${orchEsc(dagId)}</code>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <!-- AIRFLOW TOGGLE SWITCH (ON / OFF) -->
               <div style="display:flex;align-items:center;gap:5px;" title="${dag.paused ? 'DAG is PAUSED - click to Resume' : 'DAG is ACTIVE - click to Pause'}">
                 <span style="font-size:10px;font-weight:800;color:${dag.paused ? '#64748B' : '#34D399'};">${dag.paused ? 'PAUSED' : 'ACTIVE'}</span>
                 <label style="position:relative;display:inline-block;width:34px;height:18px;cursor:pointer;margin:0;">
-                  <input type="checkbox" ${dag.paused ? "" : "checked"} onchange="ailabOrchPause('${orchEsc(dag.id)}', this)" style="opacity:0;width:0;height:0;">
+                  <input type="checkbox" ${dag.paused ? "" : "checked"} onchange="ailabOrchPause('${orchEsc(dagId)}', this)" style="opacity:0;width:0;height:0;">
                   <span style="position:absolute;cursor:pointer;inset:0;background:${dag.paused ? '#334155' : '#0284C7'};transition:0.3s;border-radius:20px;border:1px solid rgba(255,255,255,0.15);">
                     <span style="position:absolute;height:12px;width:12px;left:${dag.paused ? '3px' : '17px'};bottom:2px;background:white;transition:0.3s;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.4);"></span>
                   </span>
@@ -9789,9 +10130,9 @@ body.in-global_ai_lab .nano-dynamic-island {
           <div style="font-size:10.5px;color:#64748B;margin-bottom:8px;">Schedule: ${orchEsc(dag.schedule)}${dag.finished_at ? ` &bull; finished ${orchEsc(dag.finished_at)}` : ""}</div>
           ${cycleStrip}
           <div style="display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;margin-top:8px;">
-            <button type="button" class="ailab-code-btn" onclick="ailabOrchRun('${orchEsc(dag.id)}', this)" style="font-size:11px;color:#34D399;border-color:rgba(16,185,129,0.4);">&#9654; ${dag.id === "alerts" ? "Send summary" : "Run now"}</button>
-            <button type="button" class="ailab-code-btn" onclick="ailabOrchPause('${orchEsc(dag.id)}', this)" style="font-size:11px;color:${dag.paused ? "#34D399" : "#FBBF24"};border-color:rgba(255,255,255,0.2);">${dag.paused ? "&#9654; Resume" : "&#10074;&#10074; Pause"}</button>
-            ${dag.id === "alerts" ? "" : `<button type="button" class="ailab-code-btn" onclick="ailabOrchRollback('${orchEsc(dag.id)}', this)" style="font-size:11px;color:#F87171;border-color:rgba(248,113,113,0.4);">&#9198; Rollback</button>`}
+            <button type="button" class="ailab-code-btn" onclick="ailabOrchRun('${orchEsc(dagId)}', this)" style="font-size:11px;color:#34D399;border-color:rgba(16,185,129,0.4);">&#9654; ${dagId === "alerts" ? "Send summary" : "Run now"}</button>
+            <button type="button" class="ailab-code-btn" onclick="ailabOrchPause('${orchEsc(dagId)}', this)" style="font-size:11px;color:${dag.paused ? "#34D399" : "#FBBF24"};border-color:rgba(255,255,255,0.2);">${dag.paused ? "&#9654; Resume" : "&#10074;&#10074; Pause"}</button>
+            ${dagId === "alerts" ? "" : `<button type="button" class="ailab-code-btn" onclick="ailabOrchRollback('${orchEsc(dagId)}', this)" style="font-size:11px;color:#F87171;border-color:rgba(248,113,113,0.4);">&#9198; Rollback</button>`}
           </div>
         </div>`;
     }).join("");
