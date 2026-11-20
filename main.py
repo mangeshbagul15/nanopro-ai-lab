@@ -739,12 +739,8 @@ async def send_alert(req: AlertRequest):
 
 @app.get("/api/reports/download/{report_type}")
 async def download_report(report_type: str):
-    content, media_type, filename = get_report_bytes(report_type)
-    return Response(
-        content=content,
-        media_type=media_type,
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
-    )
+    from app.reports_service import get_report_download_response
+    return get_report_download_response(report_type)
 
 @app.get("/api/health")
 async def health_check():

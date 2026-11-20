@@ -4375,8 +4375,9 @@ body.in-global_ai_lab .nano-dynamic-island {
             <span>📂</span>
             <span>SFTP Inbound Landing &amp; Outbound Regulatory Reports</span>
           </div>
-          <div style="font-size:11px;color:#94A3B8;margin-top:3px;">
-            Repository: <code>s3://nanopro-data-lake-765865641438/sftp/</code> &bull; AWS S3 Ingestion Gateway
+          <div style="font-size:11px;color:#94A3B8;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span>Repository: <code>s3://nanopro-data-lake-765865641438/sftp/</code> &bull; AWS S3 Ingestion Gateway</span>
+            <span style="background:rgba(56,189,248,0.15);color:#38BDF8;border:1px solid rgba(56,189,248,0.35);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:700;">☁️ AWS Zero-Copy Stream &bull; 0 MB Render Load</span>
           </div>
         </div>
         <button type="button" class="ailab-code-btn" onclick="ailabOrchRefreshAll(true)" style="font-size:11px;color:#38BDF8;">&#8635; Refresh SFTP Hub</button>
@@ -10385,6 +10386,7 @@ body.in-global_ai_lab .nano-dynamic-island {
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:5px;">● ${orchEsc(item.status)}</span>
+              ${item.url ? `<a href="${orchEsc(item.url)}" class="ailab-code-btn" style="font-size:11px;color:#38BDF8;text-decoration:none;font-weight:700;padding:4px 10px;border-color:rgba(56,189,248,0.4);">📥 Download</a>` : ""}
             </div>
           </div>
         `).join("");

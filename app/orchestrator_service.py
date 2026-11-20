@@ -246,38 +246,42 @@ def get_orchestrator_overview() -> Dict[str, Any]:
         {
             "file": "CBS_EOD_TXNS_20261120.csv",
             "source": "Core Banking CBS Feed",
-            "size": "4.2 MB",
+            "size": "6.7 MB",
             "date_time": f"{today_display}, 05:30:12 AM IST",
             "status": "INGESTED & ARCHIVED",
-            "records": 900,
-            "target": "nanopro_cbs_bronze"
+            "records": 45000,
+            "target": "nanopro_cbs_bronze",
+            "url": "/api/reports/download/cbs_inbound"
         },
         {
             "file": "SWIFT_MT103_CLEARING.xml",
             "source": "SWIFT Messaging Gateway",
-            "size": "1.1 MB",
+            "size": "1.5 MB",
             "date_time": f"{today_display}, 05:32:45 AM IST",
             "status": "INGESTED & ARCHIVED",
-            "records": 150,
-            "target": "nanopro_cbs_bronze.SWIFT_MSG"
+            "records": 2400,
+            "target": "nanopro_cbs_bronze.SWIFT_MSG",
+            "url": "/api/reports/download/swift_inbound"
         },
         {
             "file": "UPI_DAILY_SETTLEMENT_BATCH_01.csv",
             "source": "NPCI UPI Fast Clearing",
-            "size": "8.5 MB",
+            "size": "9.7 MB",
             "date_time": f"{today_display}, 05:35:10 AM IST",
             "status": "INGESTED & ARCHIVED",
-            "records": 4820,
-            "target": "lakehouse_s3.upi_bronze"
+            "records": 88000,
+            "target": "lakehouse_s3.upi_bronze",
+            "url": "/api/reports/download/upi_inbound"
         },
         {
             "file": "GL_DAILY_CLOSING_BALANCES.csv",
             "source": "General Ledger Master",
-            "size": "2.4 MB",
+            "size": "2.3 MB",
             "date_time": f"{today_display}, 05:40:02 AM IST",
             "status": "INGESTED & ARCHIVED",
-            "records": 1200,
-            "target": "snowflake_l0.gl_balances"
+            "records": 28000,
+            "target": "snowflake_l0.gl_balances",
+            "url": "/api/reports/download/gl_inbound"
         }
     ]
 
@@ -287,7 +291,7 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             "report": "Master Consolidated Banking Executive Workbook",
             "file": "Master_Consolidated_Banking_Executive_20261120.xlsx",
             "category": "Executive Governance",
-            "size": "1.8 MB",
+            "size": "2.1 MB",
             "date_time": f"{today_display}, 11:15:00 AM IST",
             "status": "DELIVERED TO SFTP",
             "url": "/api/reports/download/master_excel"
@@ -296,7 +300,7 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             "report": "16 AML & FIU-IND Statutory Regulatory Reports",
             "file": "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx",
             "category": "AML / FIU-IND Statutory",
-            "size": "2.4 MB",
+            "size": "2.3 MB",
             "date_time": f"{today_display}, 11:15:00 AM IST",
             "status": "DELIVERED TO SFTP",
             "url": "/api/reports/download/aml_fiu_ind"
@@ -305,7 +309,7 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             "report": "Credit Card Risk & Delinquency Mart",
             "file": "Credit_Card_Risk_Delinquency_20261120.xlsx",
             "category": "Credit Risk Portfolio",
-            "size": "1.2 MB",
+            "size": "1.0 MB",
             "date_time": f"{today_display}, 11:15:00 AM IST",
             "status": "DELIVERED TO SFTP",
             "url": "/api/reports/download/credit_card_risk"
@@ -314,7 +318,7 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             "report": "ALM Structural Liquidity & Basel III Structural Gap",
             "file": "ALM_Liquidity_Basel_III_20261120.xlsx",
             "category": "Basel III / ALM",
-            "size": "1.5 MB",
+            "size": "1.0 MB",
             "date_time": f"{today_display}, 11:15:00 AM IST",
             "status": "DELIVERED TO SFTP",
             "url": "/api/reports/download/alm_liquidity"
@@ -323,7 +327,7 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             "report": "Loans & Microfinance JLG Portfolio",
             "file": "Loans_Microfinance_JLG_20261120.xlsx",
             "category": "Microfinance & Priority Lending",
-            "size": "950 KB",
+            "size": "790 KB",
             "date_time": f"{today_display}, 11:15:00 AM IST",
             "status": "DELIVERED TO SFTP",
             "url": "/api/reports/download/loans_microfinance"
