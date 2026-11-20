@@ -4454,6 +4454,27 @@ body.in-global_ai_lab .nano-dynamic-island {
       <div id="airflowDagsList" style="display:flex;flex-direction:column;gap:10px;">
         <div style="text-align:center;padding:20px;color:#94A3B8;">Loading live DAGs...</div>
       </div>
+
+      <!-- DAGs Pagination Toolbar -->
+      <div id="dagsPaginationBar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px;padding:10px 14px;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+        <div style="font-size:11.5px;color:#94A3B8;display:flex;align-items:center;gap:10px;">
+          <span id="dagsPageInfoText" style="font-weight:600;color:#CBD5E1;">Showing 1–25 of 86 DAGs</span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#94A3B8;">
+            <span>Per page:</span>
+            <select id="dagsPageSizeSelect" onchange="ailabOrchChangeDagsPageSize(this.value)" style="background:#0F172A;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#F8FAFC;font-size:11px;padding:3px 7px;outline:none;cursor:pointer;">
+              <option value="25" selected>25 per page</option>
+              <option value="50">50 per page</option>
+              <option value="all">Show All (86)</option>
+            </select>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button type="button" id="dagsPrevBtn" class="ailab-code-btn" onclick="ailabOrchDagsPrevPage()" style="font-size:11px;padding:5px 12px;color:#38BDF8;font-weight:700;cursor:pointer;">&#9664; Previous</button>
+          <span id="dagsPageBadge" style="background:rgba(30,41,59,0.9);border:1px solid rgba(56,189,248,0.3);padding:4px 10px;border-radius:4px;font-size:11px;font-weight:700;color:#38BDF8;">Page 1 / 4</span>
+          <button type="button" id="dagsNextBtn" class="ailab-code-btn" onclick="ailabOrchDagsNextPage()" style="font-size:11px;padding:5px 12px;color:#38BDF8;font-weight:700;cursor:pointer;">Next &#9654;</button>
+        </div>
+      </div>
     </div>
 
     <!-- TAB 2: SFTP HUB -->
@@ -4515,6 +4536,34 @@ body.in-global_ai_lab .nano-dynamic-island {
         <div id="airflowSftpOutboundList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(460px, 1fr));gap:10px;">
           <div style="text-align:center;padding:14px;color:#94A3B8;">Loading outbound statutory reports...</div>
         </div>
+
+        <!-- SFTP Outbound Pagination Toolbar -->
+        <div id="sftpOutboundPaginationBar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:14px;padding:12px 16px;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+          <div style="font-size:11.5px;color:#94A3B8;display:flex;align-items:center;gap:12px;">
+            <span id="sftpPageInfoText" style="font-weight:600;color:#CBD5E1;">Showing 1–25 of 49 reports</span>
+            <span style="color:rgba(255,255,255,0.2);">|</span>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#94A3B8;">
+              <span>Per page:</span>
+              <select id="sftpPageSizeSelect" onchange="ailabOrchChangeSftpPageSize(this.value)" style="background:#0F172A;border:1px solid rgba(255,255,255,0.2);border-radius:5px;color:#F8FAFC;font-size:11.5px;padding:3px 8px;outline:none;cursor:pointer;">
+                <option value="25" selected>25 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+                <option value="all">Show All</option>
+              </select>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button type="button" id="sftpPrevBtn" class="ailab-code-btn" onclick="ailabOrchSftpPrevPage()" style="font-size:11.5px;padding:5px 14px;color:#38BDF8;font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:pointer;">
+              &#9664; Previous
+            </button>
+            <span id="sftpPageBadge" style="background:rgba(30,41,59,0.9);border:1px solid rgba(56,189,248,0.3);padding:4px 12px;border-radius:5px;font-size:11.5px;font-weight:700;color:#38BDF8;">
+              Page 1 / 2
+            </span>
+            <button type="button" id="sftpNextBtn" class="ailab-code-btn" onclick="ailabOrchSftpNextPage()" style="font-size:11.5px;padding:5px 14px;color:#38BDF8;font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:pointer;">
+              Next &#9654;
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -4572,6 +4621,22 @@ body.in-global_ai_lab .nano-dynamic-island {
         <div id="ailabDispatchedReportsList" style="display:flex;flex-direction:column;gap:8px;">
           <div style="text-align:center;padding:14px;color:#94A3B8;">Loading dispatched reports...</div>
         </div>
+
+        <!-- Dispatched Reports Pagination Toolbar -->
+        <div id="dispatchedPaginationBar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px;padding:10px 14px;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+          <span id="dispatchedPageInfoText" style="font-size:11.5px;color:#94A3B8;font-weight:600;">Showing 1–10 of X dispatches</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" id="dispatchedPrevBtn" class="ailab-code-btn" onclick="ailabOrchDispatchedPrevPage()" style="font-size:11px;padding:4px 11px;color:#38BDF8;font-weight:700;cursor:pointer;">&#9664; Previous</button>
+            <span id="dispatchedPageBadge" style="background:rgba(30,41,59,0.8);border:1px solid rgba(56,189,248,0.3);padding:3px 9px;border-radius:4px;font-size:11px;font-weight:700;color:#38BDF8;">Page 1 / 1</span>
+            <button type="button" id="dispatchedNextBtn" class="ailab-code-btn" onclick="ailabOrchDispatchedNextPage()" style="font-size:11px;padding:4px 11px;color:#38BDF8;font-weight:700;cursor:pointer;">Next &#9654;</button>
+            <select id="dispatchedPageSizeSelect" onchange="ailabOrchChangeDispatchedPageSize(this.value)" style="background:#0F172A;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#F8FAFC;font-size:11px;padding:3px 6px;outline:none;cursor:pointer;">
+              <option value="10" selected>10 per page</option>
+              <option value="25">25 per page</option>
+              <option value="50">50 per page</option>
+              <option value="all">Show All</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- SECTION 2: PIPELINE HEALTH INCIDENTS, ALERTS & SHORT RCA -->
@@ -4595,9 +4660,23 @@ body.in-global_ai_lab .nano-dynamic-island {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="font-size:12.5px;font-weight:700;color:#F8FAFC;">Runtime + orchestrator audit log</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="text" id="orchLogFilter" placeholder="filter: dag id, ERROR, partner..." oninput="ailabOrchRenderStoredLogs()" style="width:220px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 9px;color:#F8FAFC;font-size:11.5px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#F87171;cursor:pointer;"><input type="checkbox" id="orchLogErrorsOnly" onchange="ailabOrchRenderStoredLogs()"> errors only</label>
+          <input type="text" id="orchLogFilter" placeholder="filter: dag id, ERROR, partner..." oninput="ailabOrchFilterLogs()" style="width:190px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 9px;color:#F8FAFC;font-size:11.5px;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#F87171;cursor:pointer;"><input type="checkbox" id="orchLogErrorsOnly" onchange="ailabOrchFilterLogs()"> errors only</label>
           <button type="button" class="ailab-code-btn" onclick="ailabOrchLoadLogs()" style="font-size:11px;color:#38BDF8;">&#8635; Refresh</button>
+          
+          <!-- Logs Pagination Controls -->
+          <div style="display:flex;align-items:center;gap:5px;margin-left:6px;padding-left:8px;border-left:1px solid rgba(255,255,255,0.15);">
+            <span id="logsPageInfoText" style="font-size:11px;color:#94A3B8;">Showing 1–50 of X</span>
+            <button type="button" id="logsPrevBtn" class="ailab-code-btn" onclick="ailabOrchLogsPrevPage()" style="font-size:10.5px;padding:3px 8px;color:#38BDF8;font-weight:700;cursor:pointer;">&#9664; Newer</button>
+            <span id="logsPageBadge" style="background:rgba(30,41,59,0.8);border:1px solid rgba(56,189,248,0.3);padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:700;color:#38BDF8;">1 / 1</span>
+            <button type="button" id="logsNextBtn" class="ailab-code-btn" onclick="ailabOrchLogsNextPage()" style="font-size:10.5px;padding:3px 8px;color:#38BDF8;font-weight:700;cursor:pointer;">Older &#9654;</button>
+            <select id="logsPageSizeSelect" onchange="ailabOrchChangeLogsPageSize(this.value)" style="background:#0F172A;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:#F8FAFC;font-size:10.5px;padding:2px 6px;outline:none;cursor:pointer;">
+              <option value="50" selected>50 / pg</option>
+              <option value="100">100 / pg</option>
+              <option value="200">200 / pg</option>
+              <option value="all">All</option>
+            </select>
+          </div>
         </div>
       </div>
       <div id="airflowOrchLogs" style="background:#090D16;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:16px;font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;font-size:11.5px;flex:1;min-height:550px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;color:#CBD5E1;"></div>
@@ -10299,8 +10378,42 @@ body.in-global_ai_lab .nano-dynamic-island {
     return `<span style="background:${b[0]};color:${b[1]};font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid ${b[0]};">${b[2]}</span>`;
   }
 
+  // --- DAGs Pagination State & Handlers ---
+  window.ailabOrchDagsCurrentPage = 1;
+  window.ailabOrchDagsPageSize = 25;
+
+  window.ailabOrchDagsPrevPage = function() {
+    if (window.ailabOrchDagsCurrentPage > 1) {
+      window.ailabOrchDagsCurrentPage--;
+      if (window.ailabOrchState && window.ailabOrchState.overview) {
+        ailabOrchRenderDags(window.ailabOrchState.overview);
+      }
+    }
+  };
+
+  window.ailabOrchDagsNextPage = function() {
+    const total = window.ailabOrchDagsTotalFiltered || 0;
+    const size = window.ailabOrchDagsPageSize;
+    const maxPages = size === "all" ? 1 : Math.ceil(total / size) || 1;
+    if (window.ailabOrchDagsCurrentPage < maxPages) {
+      window.ailabOrchDagsCurrentPage++;
+      if (window.ailabOrchState && window.ailabOrchState.overview) {
+        ailabOrchRenderDags(window.ailabOrchState.overview);
+      }
+    }
+  };
+
+  window.ailabOrchChangeDagsPageSize = function(val) {
+    window.ailabOrchDagsPageSize = val === "all" ? "all" : parseInt(val, 10);
+    window.ailabOrchDagsCurrentPage = 1;
+    if (window.ailabOrchState && window.ailabOrchState.overview) {
+      ailabOrchRenderDags(window.ailabOrchState.overview);
+    }
+  };
+
   window.ailabOrchFilterEngine = function(engine) {
     window.ailabOrchCurrentEngine = engine || "all";
+    window.ailabOrchDagsCurrentPage = 1;
     const pillMap = {
       all: "dagFilterAll",
       bigquery: "dagFilterBigquery",
@@ -10357,7 +10470,36 @@ body.in-global_ai_lab .nano-dynamic-island {
     }
     const cycles = (data.cycles || {}).cycles || [];
 
-    box.innerHTML = dags.map(dag => {
+    // DAG Pagination Calculation
+    window.ailabOrchDagsTotalFiltered = dags.length;
+    const pageSize = window.ailabOrchDagsPageSize;
+    const maxPages = pageSize === "all" ? 1 : Math.ceil(dags.length / pageSize) || 1;
+    if (window.ailabOrchDagsCurrentPage > maxPages) window.ailabOrchDagsCurrentPage = maxPages;
+    if (window.ailabOrchDagsCurrentPage < 1) window.ailabOrchDagsCurrentPage = 1;
+    const page = window.ailabOrchDagsCurrentPage;
+    const startIdx = pageSize === "all" ? 0 : (page - 1) * pageSize;
+    const endIdx = pageSize === "all" ? dags.length : Math.min(startIdx + pageSize, dags.length);
+    const pageItems = dags.slice(startIdx, endIdx);
+
+    // Update DAG pagination bar controls
+    const infoText = document.getElementById("dagsPageInfoText");
+    if (infoText) infoText.textContent = `Showing ${dags.length ? startIdx + 1 : 0}–${endIdx} of ${dags.length} DAGs`;
+    const pageBadge = document.getElementById("dagsPageBadge");
+    if (pageBadge) pageBadge.textContent = `Page ${page} / ${maxPages}`;
+    const prevBtn = document.getElementById("dagsPrevBtn");
+    if (prevBtn) {
+      prevBtn.disabled = page <= 1;
+      prevBtn.style.opacity = page <= 1 ? "0.4" : "1";
+      prevBtn.style.pointerEvents = page <= 1 ? "none" : "auto";
+    }
+    const nextBtn = document.getElementById("dagsNextBtn");
+    if (nextBtn) {
+      nextBtn.disabled = page >= maxPages;
+      nextBtn.style.opacity = page >= maxPages ? "0.4" : "1";
+      nextBtn.style.pointerEvents = page >= maxPages ? "none" : "auto";
+    }
+
+    box.innerHTML = pageItems.map(dag => {
       const dagId = String(dag.id || dag.dag_id || "");
       const [stageBg, stageFg] = orchStageColor(dag.stage);
       const engBadge = orchEngineBadge(orchDagEngine(dag));
@@ -10579,11 +10721,38 @@ body.in-global_ai_lab .nano-dynamic-island {
     } catch (err) { ailabOrchToast("Schedule error: " + err.message, "#F87171"); }
   };
 
+  // --- SFTP Outbound Pagination State & Handlers ---
   window.ailabOrchSftpCurrentCat = "all";
   window.ailabOrchSftpSearchQuery = "";
+  window.ailabOrchSftpCurrentPage = 1;
+  window.ailabOrchSftpPageSize = 25;
+
+  window.ailabOrchSftpPrevPage = function() {
+    if (window.ailabOrchSftpCurrentPage > 1) {
+      window.ailabOrchSftpCurrentPage--;
+      ailabOrchRenderSftpOutboundFiltered();
+    }
+  };
+
+  window.ailabOrchSftpNextPage = function() {
+    const total = window.ailabOrchSftpTotalFiltered || 0;
+    const size = window.ailabOrchSftpPageSize;
+    const maxPages = size === "all" ? 1 : Math.ceil(total / size) || 1;
+    if (window.ailabOrchSftpCurrentPage < maxPages) {
+      window.ailabOrchSftpCurrentPage++;
+      ailabOrchRenderSftpOutboundFiltered();
+    }
+  };
+
+  window.ailabOrchChangeSftpPageSize = function(val) {
+    window.ailabOrchSftpPageSize = val === "all" ? "all" : parseInt(val, 10);
+    window.ailabOrchSftpCurrentPage = 1;
+    ailabOrchRenderSftpOutboundFiltered();
+  };
 
   window.ailabOrchFilterSftpCategory = function(cat) {
     window.ailabOrchSftpCurrentCat = cat || "all";
+    window.ailabOrchSftpCurrentPage = 1;
     const pillMap = {
       all: "sftpFilterAll",
       aml: "sftpFilterAml",
@@ -10605,6 +10774,7 @@ body.in-global_ai_lab .nano-dynamic-island {
   window.ailabOrchFilterSftpReports = function() {
     const input = document.getElementById("sftpOutboundSearchInput");
     window.ailabOrchSftpSearchQuery = input ? input.value.trim().toLowerCase() : "";
+    window.ailabOrchSftpCurrentPage = 1;
     ailabOrchRenderSftpOutboundFiltered();
   };
 
@@ -10632,12 +10802,41 @@ body.in-global_ai_lab .nano-dynamic-island {
       return true;
     });
 
+    // SFTP Pagination Calculation
+    window.ailabOrchSftpTotalFiltered = list.length;
+    const pageSize = window.ailabOrchSftpPageSize;
+    const maxPages = pageSize === "all" ? 1 : Math.ceil(list.length / pageSize) || 1;
+    if (window.ailabOrchSftpCurrentPage > maxPages) window.ailabOrchSftpCurrentPage = maxPages;
+    if (window.ailabOrchSftpCurrentPage < 1) window.ailabOrchSftpCurrentPage = 1;
+    const page = window.ailabOrchSftpCurrentPage;
+    const startIdx = pageSize === "all" ? 0 : (page - 1) * pageSize;
+    const endIdx = pageSize === "all" ? list.length : Math.min(startIdx + pageSize, list.length);
+    const pageItems = list.slice(startIdx, endIdx);
+
+    // Update SFTP pagination bar controls
+    const infoText = document.getElementById("sftpPageInfoText");
+    if (infoText) infoText.textContent = `Showing ${list.length ? startIdx + 1 : 0}–${endIdx} of ${list.length} reports`;
+    const pageBadge = document.getElementById("sftpPageBadge");
+    if (pageBadge) pageBadge.textContent = `Page ${page} / ${maxPages}`;
+    const prevBtn = document.getElementById("sftpPrevBtn");
+    if (prevBtn) {
+      prevBtn.disabled = page <= 1;
+      prevBtn.style.opacity = page <= 1 ? "0.4" : "1";
+      prevBtn.style.pointerEvents = page <= 1 ? "none" : "auto";
+    }
+    const nextBtn = document.getElementById("sftpNextBtn");
+    if (nextBtn) {
+      nextBtn.disabled = page >= maxPages;
+      nextBtn.style.opacity = page >= maxPages ? "0.4" : "1";
+      nextBtn.style.pointerEvents = page >= maxPages ? "none" : "auto";
+    }
+
     if (!list.length) {
       outBox.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; padding:24px; color:#94A3B8;">No statutory reports found matching current filter or search. <button type="button" class="ailab-code-btn" onclick="ailabOrchFilterSftpCategory('all')" style="margin-left:8px;color:#38BDF8;">Show All (${allReports.length})</button></div>`;
       return;
     }
 
-    outBox.innerHTML = list.map(item => `
+    outBox.innerHTML = pageItems.map(item => `
       <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(52,211,153,0.22);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;transition:border-color 0.15s ease;">
         <div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
@@ -10698,6 +10897,39 @@ body.in-global_ai_lab .nano-dynamic-island {
     ailabOrchRenderSftpOutboundFiltered();
   };
 
+  // --- Dispatched Reports Pagination Handlers ---
+  window.ailabOrchDispatchedCurrentPage = 1;
+  window.ailabOrchDispatchedPageSize = 10;
+
+  window.ailabOrchDispatchedPrevPage = function() {
+    if (window.ailabOrchDispatchedCurrentPage > 1) {
+      window.ailabOrchDispatchedCurrentPage--;
+      if (window.ailabOrchState && window.ailabOrchState.alertsData) {
+        ailabOrchRenderAlerts(window.ailabOrchState.alertsData);
+      }
+    }
+  };
+
+  window.ailabOrchDispatchedNextPage = function() {
+    const total = window.ailabOrchDispatchedTotal || 0;
+    const size = window.ailabOrchDispatchedPageSize || 10;
+    const maxPages = size === "all" ? 1 : Math.ceil(total / size) || 1;
+    if (window.ailabOrchDispatchedCurrentPage < maxPages) {
+      window.ailabOrchDispatchedCurrentPage++;
+      if (window.ailabOrchState && window.ailabOrchState.alertsData) {
+        ailabOrchRenderAlerts(window.ailabOrchState.alertsData);
+      }
+    }
+  };
+
+  window.ailabOrchChangeDispatchedPageSize = function(val) {
+    window.ailabOrchDispatchedPageSize = val === "all" ? "all" : parseInt(val, 10);
+    window.ailabOrchDispatchedCurrentPage = 1;
+    if (window.ailabOrchState && window.ailabOrchState.alertsData) {
+      ailabOrchRenderAlerts(window.ailabOrchState.alertsData);
+    }
+  };
+
   window.ailabOrchRenderAlerts = function(data) {
     const sched = data.alerts_schedule || (data.alerts && data.alerts.schedule) || { status: "RUNNING", dispatch_time: "11:00 AM IST" };
     const isRunning = sched.status === "RUNNING";
@@ -10738,14 +10970,43 @@ body.in-global_ai_lab .nano-dynamic-island {
       }
     }
 
-    // 1. Render Dispatched Reports (konta report konal gela)
+    // 1. Render Dispatched Reports (konta report konal gela) with Pagination
     const repBox = document.getElementById("ailabDispatchedReportsList");
     if (repBox) {
       const list = data.dispatched_reports || (data.alerts && data.alerts.dispatched) || [];
+      window.ailabOrchState.alertsData = data;
+      window.ailabOrchDispatchedTotal = list.length;
+      const pageSize = window.ailabOrchDispatchedPageSize || 10;
+      const maxPages = pageSize === "all" ? 1 : Math.ceil(list.length / pageSize) || 1;
+      if (window.ailabOrchDispatchedCurrentPage > maxPages) window.ailabOrchDispatchedCurrentPage = maxPages;
+      if (window.ailabOrchDispatchedCurrentPage < 1) window.ailabOrchDispatchedCurrentPage = 1;
+      const page = window.ailabOrchDispatchedCurrentPage;
+      const startIdx = pageSize === "all" ? 0 : (page - 1) * pageSize;
+      const endIdx = pageSize === "all" ? list.length : Math.min(startIdx + pageSize, list.length);
+      const pageItems = list.slice(startIdx, endIdx);
+
+      // Update Dispatched pagination bar controls
+      const dispInfoText = document.getElementById("dispatchedPageInfoText");
+      if (dispInfoText) dispInfoText.textContent = `Showing ${list.length ? startIdx + 1 : 0}–${endIdx} of ${list.length} dispatches`;
+      const dispBadge = document.getElementById("dispatchedPageBadge");
+      if (dispBadge) dispBadge.textContent = `Page ${page} / ${maxPages}`;
+      const dispPrev = document.getElementById("dispatchedPrevBtn");
+      if (dispPrev) {
+        dispPrev.disabled = page <= 1;
+        dispPrev.style.opacity = page <= 1 ? "0.4" : "1";
+        dispPrev.style.pointerEvents = page <= 1 ? "none" : "auto";
+      }
+      const dispNext = document.getElementById("dispatchedNextBtn");
+      if (dispNext) {
+        dispNext.disabled = page >= maxPages;
+        dispNext.style.opacity = page >= maxPages ? "0.4" : "1";
+        dispNext.style.pointerEvents = page >= maxPages ? "none" : "auto";
+      }
+
       if (!list.length) {
         repBox.innerHTML = `<div style="text-align:center;padding:14px;color:#94A3B8;">No dispatched reports yet.</div>`;
       } else {
-        repBox.innerHTML = list.map(item => {
+        repBox.innerHTML = pageItems.map(item => {
           const recips = (item.recipients || []).map(r => {
             const ch = String(r.channel).toUpperCase();
             const icon = ch === "TELEGRAM" ? "🤖" : (ch === "WHATSAPP" ? "💬" : "📧");
@@ -10849,6 +11110,38 @@ body.in-global_ai_lab .nano-dynamic-island {
     }
   };
 
+  // --- Logs Pagination State & Handlers ---
+  window.ailabOrchLogsCurrentPage = 1;
+  window.ailabOrchLogsPageSize = 50;
+
+  window.ailabOrchLogsPrevPage = function() {
+    if (window.ailabOrchLogsCurrentPage > 1) {
+      window.ailabOrchLogsCurrentPage--;
+      ailabOrchRenderStoredLogs();
+    }
+  };
+
+  window.ailabOrchLogsNextPage = function() {
+    const total = window.ailabOrchLogsTotalFiltered || 0;
+    const size = window.ailabOrchLogsPageSize;
+    const maxPages = size === "all" ? 1 : Math.ceil(total / size) || 1;
+    if (window.ailabOrchLogsCurrentPage < maxPages) {
+      window.ailabOrchLogsCurrentPage++;
+      ailabOrchRenderStoredLogs();
+    }
+  };
+
+  window.ailabOrchChangeLogsPageSize = function(val) {
+    window.ailabOrchLogsPageSize = val === "all" ? "all" : parseInt(val, 10);
+    window.ailabOrchLogsCurrentPage = 1;
+    ailabOrchRenderStoredLogs();
+  };
+
+  window.ailabOrchFilterLogs = function() {
+    window.ailabOrchLogsCurrentPage = 1;
+    ailabOrchRenderStoredLogs();
+  };
+
   window.ailabOrchRenderStoredLogs = function() {
     const box = document.getElementById("airflowOrchLogs");
     if (!box) return;
@@ -10861,11 +11154,41 @@ body.in-global_ai_lab .nano-dynamic-island {
       if (term && !text.toLowerCase().includes(term)) return false;
       return true;
     });
+
+    // Logs Pagination Calculation
+    window.ailabOrchLogsTotalFiltered = rows.length;
+    const pageSize = window.ailabOrchLogsPageSize;
+    const maxPages = pageSize === "all" ? 1 : Math.ceil(rows.length / pageSize) || 1;
+    if (window.ailabOrchLogsCurrentPage > maxPages) window.ailabOrchLogsCurrentPage = maxPages;
+    if (window.ailabOrchLogsCurrentPage < 1) window.ailabOrchLogsCurrentPage = 1;
+    const page = window.ailabOrchLogsCurrentPage;
+    const startIdx = pageSize === "all" ? 0 : (page - 1) * pageSize;
+    const endIdx = pageSize === "all" ? rows.length : Math.min(startIdx + pageSize, rows.length);
+    const pageItems = rows.slice(startIdx, endIdx);
+
+    // Update Logs pagination bar controls
+    const logInfoText = document.getElementById("logsPageInfoText");
+    if (logInfoText) logInfoText.textContent = `Showing ${rows.length ? startIdx + 1 : 0}–${endIdx} of ${rows.length}`;
+    const logBadge = document.getElementById("logsPageBadge");
+    if (logBadge) logBadge.textContent = `${page} / ${maxPages}`;
+    const logPrev = document.getElementById("logsPrevBtn");
+    if (logPrev) {
+      logPrev.disabled = page <= 1;
+      logPrev.style.opacity = page <= 1 ? "0.4" : "1";
+      logPrev.style.pointerEvents = page <= 1 ? "none" : "auto";
+    }
+    const logNext = document.getElementById("logsNextBtn");
+    if (logNext) {
+      logNext.disabled = page >= maxPages;
+      logNext.style.opacity = page >= maxPages ? "0.4" : "1";
+      logNext.style.pointerEvents = page >= maxPages ? "none" : "auto";
+    }
+
     if (!rows.length) {
       box.innerHTML = `<div style="color:#64748B;">${all.length ? "No log lines match this filter." : "No log entries yet."}</div>`;
       return;
     }
-    box.innerHTML = rows.map(item => {
+    box.innerHTML = pageItems.map(item => {
       const text = String(item.text || "");
       let color = "#CBD5E1";
       if (/ERROR|FAILED|ERROR_RETRY/i.test(text)) color = "#F87171";
