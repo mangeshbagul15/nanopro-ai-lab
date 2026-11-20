@@ -1,0 +1,6 @@
+name = "nanopro-prod"
+main = "deploy/cloudflare_worker_prod.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+PROD_BACKEND_URL = "https://nanopro-ai-lab.onrender.com"

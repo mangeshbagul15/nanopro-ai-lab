@@ -70,6 +70,55 @@ export default {
         }
       }
 
+      // Intercept Render free tier cold-start (HTTP 502, 503, 504 during wake-up)
+      if (upstreamResp.status >= 502 && upstreamResp.status <= 504) {
+        await new Promise(r => setTimeout(r, 2000));
+        try {
+          const retryResp = await fetch(upstreamUrl.toString(), {
+            method: request.method,
+            headers: newHeaders,
+            body: ["GET", "HEAD"].includes(request.method) ? undefined : request.body,
+            redirect: "manual"
+          });
+          if (retryResp.status < 500) {
+            const retryHeaders = new Headers(retryResp.headers);
+            for (const [k, v] of Object.entries(CORS_HEADERS)) {
+              if (!retryHeaders.has(k)) retryHeaders.set(k, v);
+            }
+            return new Response(retryResp.body, {
+              status: retryResp.status,
+              statusText: retryResp.statusText,
+              headers: retryHeaders
+            });
+          }
+        } catch (_) {}
+
+        const accept = request.headers.get("accept") || "";
+        const isHtml = url.pathname === "/" || url.pathname === "/login" || accept.includes("text/html");
+        if (isHtml) {
+          return new Response(getColdStartHtml(url.toString()), {
+            status: 200,
+            headers: {
+              "Content-Type": "text/html; charset=utf-8",
+              ...CORS_HEADERS
+            }
+          });
+        }
+
+        return new Response(JSON.stringify({
+          status: "waking_up",
+          message: "NanoPro PROD backend is spinning up from sleep. Auto-recovering in seconds...",
+          retry_after: 3
+        }), {
+          status: 503,
+          headers: {
+            "Content-Type": "application/json",
+            "Retry-After": "3",
+            ...CORS_HEADERS
+          }
+        });
+      }
+
       return new Response(upstreamResp.body, {
         status: upstreamResp.status,
         statusText: upstreamResp.statusText,

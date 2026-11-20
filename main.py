@@ -2,6 +2,8 @@ import os
 import time
 import json
 import base64
+import asyncio
+import httpx
 from fastapi import FastAPI, Request, Response, Form, Query, HTTPException, Body
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
@@ -31,6 +33,23 @@ app = FastAPI(
     version=SYSTEM_IDENTITY["version"],
     description="Enterprise 4,804+ Models Frontier Mesh, Explorer Lakehouses, Airflow Orchestrator & Multi-Channel Alerts"
 )
+
+@app.on_event("startup")
+async def start_keepalive_pinger():
+    """Keeps the Render free tier container awake 24/7 by pinging the public URL every 10 minutes."""
+    async def _pinger_loop():
+        await asyncio.sleep(45)
+        render_url = os.environ.get("RENDER_EXTERNAL_URL") or "https://nanopro-ai-lab.onrender.com"
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            while True:
+                try:
+                    await client.get(f"{render_url}/api/health")
+                except Exception:
+                    pass
+                await asyncio.sleep(600)
+
+    asyncio.create_task(_pinger_loop())
+
 
 # In-memory CUA secrets vault for browser agent credentials
 _CUA_SECRETS_VAULT: List[Dict[str, Any]] = []
