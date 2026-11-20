@@ -4335,7 +4335,6 @@ body.in-global_ai_lab .nano-dynamic-island {
     <div class="ailab-modal-pills" style="padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;flex-wrap:wrap;background:rgba(15,23,42,0.6);">
       <button type="button" class="ailab-pill is-active" id="tabAirflowDags" onclick="ailabSwitchAirflowTab('dags')">&#9889; <span id="orchDagCountTab">15 Airflow DAGs</span></button>
       <button type="button" class="ailab-pill" id="tabAirflowArch" onclick="ailabSwitchAirflowTab('arch')">&#128290; Airflow Topology Graph</button>
-      <button type="button" class="ailab-pill" id="tabAirflowAgents" onclick="ailabSwitchAirflowTab('agents')">&#129504; 320 AI Agents Live Operations HUD</button>
       <button type="button" class="ailab-pill" id="tabAirflowSftp" onclick="ailabSwitchAirflowTab('sftp')">&#128194; SFTP Hub</button>
       <button type="button" class="ailab-pill" id="tabAirflowAlerts" onclick="ailabSwitchAirflowTab('alerts')">&#128276; Multi-Channel Alerts</button>
       <button type="button" class="ailab-pill" id="tabAirflowLogs" onclick="ailabSwitchAirflowTab('logs')">&#128220; Logs &amp; Audit</button>
@@ -4368,281 +4367,114 @@ body.in-global_ai_lab .nano-dynamic-island {
       </div>
     </div>
 
-    <!-- TAB: 320 AI AGENTS LIVE OPERATIONS HUD -->
-    <div id="airflowTabAgents" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
-      <!-- CENTRAL AI MANAGER HOLOGRAPHIC STATION -->
-      <div style="background:radial-gradient(ellipse at top left, rgba(56,189,248,0.15), rgba(15,23,42,0.95)), #0F172A;border:1px solid rgba(56,189,248,0.35);border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+    <!-- TAB 2: SFTP HUB -->
+    <div id="airflowTabSftp" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#F8FAFC;display:flex;align-items:center;gap:8px;">
+            <span>📂</span>
+            <span>SFTP Inbound Landing &amp; Outbound Regulatory Reports</span>
+          </div>
+          <div style="font-size:11px;color:#94A3B8;margin-top:3px;">
+            Repository: <code>s3://nanopro-data-lake-765865641438/sftp/</code> &bull; AWS S3 Ingestion Gateway
+          </div>
+        </div>
+        <button type="button" class="ailab-code-btn" onclick="ailabOrchRefreshAll(true)" style="font-size:11px;color:#38BDF8;">&#8635; Refresh SFTP Hub</button>
+      </div>
+
+      <!-- INBOUND SFTP FEEDS -->
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="display:flex;align-items:center;gap:6px;"><span style="color:#38BDF8;">📥</span> Inbound SFTP Files (sftp/inbound/)</span>
+          <span style="font-size:11px;color:#34D399;font-weight:700;">● Ingested into Bronze Lakehouse</span>
+        </div>
+        <div id="airflowSftpInboundList" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:14px;color:#94A3B8;">Loading inbound SFTP feeds...</div>
+        </div>
+      </div>
+
+      <!-- OUTBOUND STATUTORY REPORTS -->
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;">
+        <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="display:flex;align-items:center;gap:6px;"><span style="color:#34D399;">📤</span> Outbound Regulatory Reports (sftp/outbound/reports/)</span>
+          <span style="font-size:11px;color:#38BDF8;font-weight:700;">● Published to Secure Drop &amp; Direct Download</span>
+        </div>
+        <div id="airflowSftpOutboundList" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:14px;color:#94A3B8;">Loading outbound statutory reports...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MULTI-CHANNEL ALERTS & MONITORING -->
+    <div id="airflowTabAlerts" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
+      <!-- ALERT SCHEDULER & CONTROLS STRIP (Play, Pause, Schedule Time Change) -->
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
           <div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="display:inline-block;width:10px;height:10px;background:#34D399;border-radius:50%;box-shadow:0 0 10px #34D399;animation:pulse 1.8s infinite;"></span>
-              <span style="font-size:16px;font-weight:900;color:#F8FAFC;letter-spacing:0.5px;">CENTRAL AI MANAGER HOLOGRAPHIC STATION</span>
-              <span style="background:rgba(56,189,248,0.18);color:#38BDF8;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;border:1px solid rgba(56,189,248,0.3);">3D CYBER DATA CENTER HUB</span>
+            <div style="font-size:14px;font-weight:800;color:#F8FAFC;display:flex;align-items:center;gap:8px;">
+              <span>🔔</span>
+              <span>Automated Multi-Channel Report &amp; Incident Dispatch Engine</span>
             </div>
-            <div style="font-size:12px;color:#94A3B8;margin-top:4px;">Autonomous Multi-Agent Orchestration Fleet &bull; 320 Autonomous Agents &bull; 4,804+ Frontier Models Mesh</div>
+            <div style="font-size:11.5px;color:#94A3B8;margin-top:3px;">
+              Scheduled Statutory Delivery to Telegram, WhatsApp &amp; Email &bull; Zero Manual Overhead
+            </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <span style="background:rgba(16,185,129,0.15);color:#34D399;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);">&#9679; AI Orchestrator: LIVE &amp; READY</span>
-            <span style="background:rgba(14,165,233,0.15);color:#38BDF8;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;border:1px solid rgba(14,165,233,0.3);">&#9679; 0 MB Render Load</span>
+          <div id="ailabAlertScheduleBadge" style="display:flex;align-items:center;gap:8px;">
+            <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);">&#9654; AUTOMATED DISPATCH ACTIVE</span>
           </div>
         </div>
 
-        <!-- TELEMETRY COUNTERS -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
-          <div style="background:rgba(30,41,59,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;">
-            <div style="font-size:10.5px;color:#94A3B8;text-transform:uppercase;font-weight:700;">Active AI Agents</div>
-            <div style="font-size:20px;font-weight:900;color:#38BDF8;margin-top:2px;">320 <span style="font-size:11px;color:#34D399;font-weight:600;">/ 320 Online</span></div>
-            <div style="font-size:10px;color:#64748B;">Distributed across 8 Squads</div>
+        <!-- PLAY/PAUSE & SCHEDULE TIME CONTROLS -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(30,41,59,0.6);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" id="btnToggleAlertSchedule" class="ailab-btn-primary" onclick="ailabOrchToggleAlertSchedule()" style="padding:6px 14px;font-size:11.5px;display:flex;align-items:center;gap:6px;background:rgba(234,179,8,0.2);color:#FBBF24;border:1px solid rgba(234,179,8,0.4);">
+              <span id="btnToggleAlertIcon">⏸</span> <span id="btnToggleAlertLabel">Pause Scheduler</span>
+            </button>
           </div>
-          <div style="background:rgba(30,41,59,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;">
-            <div style="font-size:10.5px;color:#94A3B8;text-transform:uppercase;font-weight:700;">Frontier Model Mesh</div>
-            <div style="font-size:20px;font-weight:900;color:#A78BFA;margin-top:2px;">4,804+ <span style="font-size:11px;color:#C084FC;font-weight:600;">Models</span></div>
-            <div style="font-size:10px;color:#64748B;">DeepSeek R1 &bull; Claude 3.7 &bull; o3-mini</div>
+          <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:240px;">
+            <label style="font-size:11.5px;color:#CBD5E1;font-weight:600;white-space:nowrap;">Daily Dispatch Schedule:</label>
+            <select id="selAlertScheduleTime" style="background:#0F172A;border:1px solid rgba(255,255,255,0.18);border-radius:6px;padding:6px 10px;color:#F8FAFC;font-size:11.5px;outline:none;cursor:pointer;">
+              <option value="11:00 AM IST">11:00 AM IST (T-1 Statutory Batch)</option>
+              <option value="18:00 PM IST">18:00 PM IST (EOD Banking Batch)</option>
+              <option value="08:00 AM IST">08:00 AM IST (SOD Morning Ingestion)</option>
+              <option value="06:00 AM IST">06:00 AM IST (BOD Early Extract)</option>
+            </select>
+            <button type="button" class="ailab-code-btn" onclick="ailabOrchSetAlertTime()" style="font-size:11px;color:#34D399;font-weight:700;padding:6px 12px;">Apply Schedule Time</button>
           </div>
-          <div style="background:rgba(30,41,59,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;">
-            <div style="font-size:10.5px;color:#94A3B8;text-transform:uppercase;font-weight:700;">Target SLA</div>
-            <div style="font-size:20px;font-weight:900;color:#34D399;margin-top:2px;">&lt; 800ms <span style="font-size:11px;color:#6EE7B7;font-weight:600;">(Real-time)</span></div>
-            <div style="font-size:10px;color:#64748B;">Edge MCP Zero-Latency Routing</div>
-          </div>
-          <div style="background:rgba(30,41,59,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px;">
-            <div style="font-size:10.5px;color:#94A3B8;text-transform:uppercase;font-weight:700;">Self-Healing Sentinels</div>
-            <div style="font-size:20px;font-weight:900;color:#FBBF24;margin-top:2px;">100% <span style="font-size:11px;color:#FDE68A;font-weight:600;">Autonomous</span></div>
-            <div style="font-size:10px;color:#64748B;">Auto-Recast &bull; Zero Pipeline Downtime</div>
-          </div>
-        </div>
-
-        <!-- 8 SPECIALIZED SQUADS MATRIX -->
-        <div style="font-size:12px;font-weight:800;color:#CBD5E1;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">8 Specialized AI Agent Squads:</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:10px;margin-bottom:14px;" id="aiAgentSquadsGrid">
-          <!-- Squad 1 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#38BDF8;font-size:12px;">&#127963; Central Commander Fleet</strong>
-              <span style="font-size:10px;background:#0284C7;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">20 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">Cycle scheduler (BOD 06:00, SOD 08:00, T1 11:00, EOD 18:00), global lock sentinel, priority router.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: Claude 3.7 Sonnet + DeepSeek R1</div>
-          </div>
-          <!-- Squad 2 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#38BDF8;font-size:12px;">&#9729;&#65039; BigQuery Extraction Squad</strong>
-              <span style="font-size:10px;background:#0284C7;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">35 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">Continuous CDC partition watcher, incremental Parquet export with cryptographic hash manifests.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: Gemini 2.5 Flash + BigQuery Engine</div>
-          </div>
-          <!-- Squad 3 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(251,146,60,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#FB923C;font-size:12px;">&#128312; AWS S3 &amp; Glue Crawler Squad</strong>
-              <span style="font-size:10px;background:#EA580C;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">45 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">Object storage lakehouse partitioner, Glue catalog crawler, Iceberg metadata synchronization.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: Qwen 2.5 Coder + AWS Boto3</div>
-          </div>
-          <!-- Squad 4 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(147,197,253,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#93C5FD;font-size:12px;">&#10052;&#65039; Snowflake Warehouse Squad</strong>
-              <span style="font-size:10px;background:#2563EB;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">60 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">L0 append-only coordinator, L1 SCD2 dimensional manager (zero re-inserts), L2 conformed star modeler.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: OpenAI o3-mini + Snowflake SQL</div>
-          </div>
-          <!-- Squad 5 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(234,179,8,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#EAB308;font-size:12px;">&#129414; DuckDB Vectorized OLAP Squad</strong>
-              <span style="font-size:10px;background:#CA8A04;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">30 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">Zero-copy Parquet vectorized reader, warehouse parity reconciler, discrepancy detector.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: Llama 3.3 70B + DuckDB Core</div>
-          </div>
-          <!-- Squad 6 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#34D399;font-size:12px;">&#128202; Statutory Reports Squad</strong>
-              <span style="font-size:10px;background:#059669;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">90 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">44 statutory calculators across AML (21), RBI (10), ALM (7), UPI (6) publishing 4 separate domain Excels.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: DeepSeek V3 + OpenPyXL Engine</div>
-          </div>
-          <!-- Squad 7 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(244,114,182,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#F472B6;font-size:12px;">&#128276; Multi-Channel Alert Squad</strong>
-              <span style="font-size:10px;background:#DB2777;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">20 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">SMTP attachment cascade, Telegram report bot, Meta WhatsApp Cloud API communicator.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: GPT-4.5 + Twilio/SMTP Gateway</div>
-          </div>
-          <!-- Squad 8 -->
-          <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(251,191,36,0.25);border-radius:8px;padding:10px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-              <strong style="color:#FBBF24;font-size:12px;">&#128737;&#65039; Autonomous Self-Healing Sentinel</strong>
-              <span style="font-size:10px;background:#D97706;color:#FFF;padding:1px 6px;border-radius:4px;font-weight:700;">20 Agents</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;">Instant root-cause detection, automated schema recast, table quarantine repair without manual intervention.</div>
-            <div style="font-size:10px;color:#34D399;margin-top:4px;">Active Model: DeepSeek R1 Reasoning Core</div>
-          </div>
-        </div>
-
-        <!-- REAL-TIME OPERATIONS HUD FEED -->
-        <div style="background:#020617;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:11px;font-weight:800;color:#38BDF8;text-transform:uppercase;letter-spacing:0.5px;">Live Operations HUD &bull; Real-Time Action Stream:</span>
-            <span style="font-size:10px;color:#34D399;font-weight:700;">&#9679; Streaming live telemetry</span>
-          </div>
-          <div id="aiAgentsLiveTelemetry" style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#CBD5E1;display:flex;flex-direction:column;gap:4px;max-height:180px;overflow-y:auto;line-height:1.5;">
-            <div><span style="color:#64748B;">[00:15:02 IST]</span> <span style="color:#38BDF8;">[Central AI Manager]</span> Armed global scheduler: next scheduled regulatory package: <strong>11:00 AM IST</strong>.</div>
-            <div><span style="color:#64748B;">[00:15:04 IST]</span> <span style="color:#93C5FD;">[Snowflake Squad #84]</span> Verified conformed DIM_CUSTOMER / ACCOUNT / GL: zero duplicate keys, SCD2 active.</div>
-            <div><span style="color:#64748B;">[00:15:05 IST]</span> <span style="color:#EAB308;">[DuckDB Squad #12]</span> Vectorized scan complete: 10,557 rows verified against BigQuery source of truth.</div>
-            <div><span style="color:#64748B;">[00:15:06 IST]</span> <span style="color:#34D399;">[Reports Squad #41]</span> Compiled 4 separate domain Excel packages (AML 21, RBI 10, ALM 7, UPI 6) &bull; Published to SFTP Outbound.</div>
-            <div><span style="color:#64748B;">[00:15:07 IST]</span> <span style="color:#FBBF24;">[Self-Healing Sentinel #02]</span> Autonomous probe ran: All 15 DAGs schedulable, quarantine buffer clean.</div>
-          </div>
+          <div id="ailabAlertScheduleMsg" style="font-size:11px;color:#34D399;"></div>
         </div>
       </div>
-    </div>
 
-        <!-- TAB 2: SFTP HUB -->
-    <div id="airflowTabSftp" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
-      <div id="airflowSftpInfo" style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#CBD5E1;line-height:1.7;">
-        Loading SFTP landing zone...
-      </div>
-
-      <!-- QUICK SAMPLE GENERATORS & INBOUND INGESTION -->
-      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-          <span>Inbound Feed Ingestion &amp; Generation</span>
-          <span style="font-size:11px;color:#38BDF8;">S3 Landing &bull; Local Resilient Mirror</span>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
-          <input type="text" id="ailabSftpPartner" placeholder="partner (e.g. cbs_feed)" value="cbs_feed" style="width:160px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:12px;">
-          <input type="file" id="ailabSftpFile" accept=".csv,.txt,.tsv,.xlsx,.xls" style="flex:1;min-width:220px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px;color:#CBD5E1;font-size:11.5px;">
-          <button type="button" class="ailab-btn-primary" id="ailabSftpUploadBtn" onclick="ailabSftpUpload()" style="padding:8px 14px;font-size:12px;">Upload &amp; Ingest</button>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-          <button type="button" class="ailab-code-btn" onclick="ailabSftpProcess()" style="font-size:11px;color:#34D399;font-weight:700;">&#9654; Process all pending inbound</button>
-          <button type="button" class="ailab-code-btn" onclick="ailabSftpSample('cbs_feed')" style="font-size:11px;color:#A78BFA;">+ Generate CBS Feed Sample</button>
-          <button type="button" class="ailab-code-btn" onclick="ailabSftpSample('upi_settlement')" style="font-size:11px;color:#38BDF8;">+ Generate UPI Settlement Feed</button>
-          <button type="button" class="ailab-code-btn" onclick="ailabSftpSample('gl_daily')" style="font-size:11px;color:#FBBF24;">+ Generate General Ledger Feed</button>
-        </div>
-        <div id="ailabSftpMsg" style="margin-top:10px;font-size:11.5px;color:#94A3B8;"></div>
-      </div>
-
-      <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-        <span>Inbound Landing files (SFTP Landing Zone)</span>
-        <span style="font-size:11px;color:#64748B;">Target: Bronze Parquet</span>
-      </div>
-      <div id="airflowSftpFilesList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
-
-      <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:8px;">Bronze tables produced by SFTP</div>
-      <div id="airflowSftpTables" style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;"></div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 0 8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.06);padding-top:14px;">
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#F8FAFC;">Outbound statutory reports (SFTP delivery)</div>
-          <div style="font-size:11px;color:#94A3B8;">Master Excel &amp; Domain CSV packages for AML/FIU-IND, RBI/CIMS, ALM, UPI</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" class="ailab-code-btn" onclick="ailabOrchBuildReport(false)" style="font-size:11px;color:#38BDF8;">&#128196; Build Master Excel</button>
-          <button type="button" class="ailab-code-btn" onclick="ailabOrchBuildReport(true)" style="font-size:11px;color:#34D399;font-weight:700;">&#9889; Build + Send Multi-Channel Alerts</button>
-        </div>
-      </div>
-      <div id="ailabReportMsg" style="font-size:11.5px;color:#94A3B8;margin-bottom:8px;"></div>
-      <div id="airflowSftpOutbound" style="display:flex;flex-direction:column;gap:6px;">
-        <div style="text-align:center;padding:12px;color:#94A3B8;">Loading outbound reports...</div>
-      </div>
-    </div>
-
-    <!-- TAB 3: ALERTS -->
-    <div id="airflowTabAlerts" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
-      <!-- 3 DEDICATED CHANNEL CARDS -->
-      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:14px;">
-        <!-- EMAIL CARD -->
-        <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.3);border-radius:10px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <!-- SECTION 1: DISPATCHED REPORTS MONITORING (Konta Report Konal Gela) -->
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:14px;font-weight:800;color:#F8FAFC;">&#128231; Email Dispatch</span>
-              <span style="font-size:10px;background:rgba(56,189,248,0.15);color:#38BDF8;padding:2px 6px;border-radius:4px;font-weight:700;">SMTP Cascade</span>
+            <div style="font-size:13px;font-weight:700;color:#F8FAFC;display:flex;align-items:center;gap:6px;">
+              <span style="color:#38BDF8;">📊</span> Dispatched Reports Delivery Monitoring (कोणता रिपोर्ट कोणाला गेला)
             </div>
-            <div style="font-size:11.5px;color:#CBD5E1;line-height:1.6;margin-bottom:8px;">
-              <div><strong style="color:#94A3B8;">To:</strong> mangeshbagul15@gmail.com</div>
-              <div><strong style="color:#94A3B8;">From:</strong> nanoproaistudio@gmail.com</div>
-              <div><strong style="color:#94A3B8;">Attach:</strong> Master EOD Excel &bull; Statutory CSVs</div>
-            </div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:2px;">Real-time delivery confirmation per report across Telegram, WhatsApp &amp; Email</div>
           </div>
-          <button type="button" class="ailab-code-btn" onclick="ailabOrchTestAlert('email')" style="width:100%;font-size:11.5px;color:#38BDF8;border-color:rgba(56,189,248,0.4);padding:6px 0;">&#9889; Test Email Channel</button>
+          <button type="button" class="ailab-code-btn" onclick="ailabOrchRefreshAll(true)" style="font-size:11px;color:#38BDF8;">&#8635; Refresh Feed</button>
         </div>
+        <div id="ailabDispatchedReportsList" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:14px;color:#94A3B8;">Loading dispatched reports...</div>
+        </div>
+      </div>
 
-        <!-- WHATSAPP CARD -->
-        <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;">
+      <!-- SECTION 2: PIPELINE HEALTH INCIDENTS, ALERTS & SHORT RCA -->
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:14px;font-weight:800;color:#F8FAFC;">&#128172; WhatsApp Alerts</span>
-              <span style="font-size:10px;background:rgba(52,211,153,0.15);color:#34D399;padding:2px 6px;border-radius:4px;font-weight:700;">Meta Cloud API</span>
+            <div style="font-size:13px;font-weight:700;color:#F8FAFC;display:flex;align-items:center;gap:6px;">
+              <span style="color:#F59E0B;">🚨</span> Pipeline Failure / Health Alert Monitoring &amp; Short RCA
             </div>
-            <div style="font-size:11.5px;color:#CBD5E1;line-height:1.6;margin-bottom:8px;">
-              <div><strong style="color:#94A3B8;">Target:</strong> +91 91724 67615</div>
-              <div><strong style="color:#94A3B8;">Content:</strong> Batch SLA, Row counts, Alerts</div>
-              <div><strong style="color:#94A3B8;">Incidents:</strong> Immediate RCA notification</div>
-            </div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:2px;">कधी Issue आला &bull; Alert कधी Telegram/WhatsApp वर गेला &bull; Short Root Cause Analysis (RCA)</div>
           </div>
-          <button type="button" class="ailab-code-btn" onclick="ailabOrchTestAlert('whatsapp')" style="width:100%;font-size:11.5px;color:#34D399;border-color:rgba(52,211,153,0.4);padding:6px 0;">&#9889; Test WhatsApp Channel</button>
         </div>
-
-        <!-- TELEGRAM CARD -->
-        <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;">
-          <div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:14px;font-weight:800;color:#F8FAFC;">&#129302; Telegram Report Bot</span>
-              <span style="font-size:10px;background:rgba(167,139,250,0.15);color:#A78BFA;padding:2px 6px;border-radius:4px;font-weight:700;">@mangesh_reports_bot</span>
-            </div>
-            <div style="font-size:11.5px;color:#CBD5E1;line-height:1.6;margin-bottom:8px;">
-              <div><strong style="color:#94A3B8;">Channel:</strong> @mangesh_reports_channel</div>
-              <div><strong style="color:#94A3B8;">SFTP Path:</strong> sftp/outbound/reports/</div>
-              <div><strong style="color:#94A3B8;">Payload:</strong> Summary + Direct download link</div>
-            </div>
-          </div>
-          <button type="button" class="ailab-code-btn" onclick="ailabOrchTestAlert('telegram')" style="width:100%;font-size:11.5px;color:#A78BFA;border-color:rgba(167,139,250,0.4);padding:6px 0;">&#9889; Test Telegram Channel</button>
+        <div id="ailabIncidentsMonitoringList" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:14px;color:#94A3B8;">Loading incidents &amp; RCA telemetry...</div>
         </div>
       </div>
-
-      <!-- MASTER DISPATCH & CONFIG BAR -->
-      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-          <div style="font-size:13px;font-weight:700;color:#F8FAFC;">Alert Credentials &amp; Delivery Settings</div>
-          <button type="button" class="ailab-btn-primary" onclick="ailabOrchBuildReport(true)" style="padding:7px 16px;font-size:12px;background:linear-gradient(135deg, #10B981, #059669);">&#9889; Send Full Multi-Channel EOD Alert Package</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <label style="font-size:11.5px;color:#94A3B8;">Email recipients (comma separated)
-            <input type="text" id="orchAlertRecipients" style="width:100%;margin-top:4px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:12px;">
-          </label>
-          <label style="font-size:11.5px;color:#94A3B8;">Sender email
-            <input type="text" id="orchAlertSender" style="width:100%;margin-top:4px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:12px;">
-          </label>
-          <label style="font-size:11.5px;color:#94A3B8;">Telegram chat / channel
-            <input type="text" id="orchAlertTelegram" style="width:100%;margin-top:4px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:12px;">
-          </label>
-          <label style="font-size:11.5px;color:#94A3B8;">WhatsApp number (with country code)
-            <input type="text" id="orchAlertWhatsapp" style="width:100%;margin-top:4px;background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:12px;">
-          </label>
-        </div>
-        <div style="display:flex;gap:14px;margin-top:10px;font-size:11.5px;color:#CBD5E1;align-items:center;">
-          <label><input type="checkbox" id="orchAlertTelegramOn"> Telegram enabled</label>
-          <label><input type="checkbox" id="orchAlertWhatsappOn"> WhatsApp enabled</label>
-          <button type="button" class="ailab-btn-primary" onclick="ailabOrchSaveAlerts()" style="margin-left:auto;padding:6px 14px;font-size:11.5px;">Save Settings</button>
-        </div>
-        <div id="ailabAlertMsg" style="margin-top:8px;font-size:11.5px;color:#94A3B8;"></div>
-      </div>
-
-      <!-- DELIVERY LOG & PROVIDER RCA TABLE -->
-      <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-        <span>Multi-Channel Delivery Audit (Real Provider Results &amp; RCA)</span>
-        <button type="button" class="ailab-code-btn" onclick="ailabOrchLoadAlerts()" style="font-size:11px;color:#38BDF8;">&#8635; Refresh Audit</button>
-      </div>
-      <div id="ailabNotificationLogsList" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
 
     <!-- TAB 4: LOGS -->
@@ -10198,7 +10030,7 @@ body.in-global_ai_lab .nano-dynamic-island {
   };
 
   window.ailabSwitchAirflowTab = function(tab) {
-    const map = { dags: "tabAirflowDags", arch: "tabAirflowArch", agents: "tabAirflowAgents",
+    const map = { dags: "tabAirflowDags", arch: "tabAirflowArch",
                   sftp: "tabAirflowSftp", alerts: "tabAirflowAlerts", logs: "tabAirflowLogs" };
     Object.keys(map).forEach(key => {
       const btn = document.getElementById(map[key]);
@@ -10207,17 +10039,15 @@ body.in-global_ai_lab .nano-dynamic-island {
         else btn.classList.remove("is-active");
       }
     });
-    ["airflowTabDags", "airflowTabArch", "airflowTabAgents", "airflowTabSftp", "airflowTabAlerts", "airflowTabLogs"]
+    ["airflowTabDags", "airflowTabArch", "airflowTabSftp", "airflowTabAlerts", "airflowTabLogs"]
       .forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = (id === ({
-          dags: "airflowTabDags", arch: "airflowTabArch", agents: "airflowTabAgents",
+          dags: "airflowTabDags", arch: "airflowTabArch",
           sftp: "airflowTabSftp", alerts: "airflowTabAlerts", logs: "airflowTabLogs"
         }[tab])) ? "block" : "none";
       });
     if (tab === "logs") ailabOrchLoadLogs();
-    if (tab === "alerts") ailabOrchLoadAlerts();
-    if (tab === "agents") ailabOrchInitAgentsHUD();
   };
 
   window.ailabOrchRefreshAll = async function(silent) {
@@ -10237,9 +10067,7 @@ body.in-global_ai_lab .nano-dynamic-island {
       ailabOrchRenderIncidents(data.incidents || []);
       ailabOrchRenderDags(data);
       ailabOrchRenderSftp(data.sftp || {});
-      ailabOrchRenderOutbound(data.sftp_outbound || {});
-      ailabOrchRenderAlertConfig(data.alerts || {});
-      ailabOrchRenderNotificationLogs((data.alerts || {}).logs || []);
+      ailabOrchRenderAlerts(data);
       const footer = document.getElementById("airflowFooterLeft");
       if (footer) footer.textContent = "Live status refreshed " + (data.generated_at || "").replace("T", " ");
     } catch (err) {
@@ -10537,256 +10365,209 @@ body.in-global_ai_lab .nano-dynamic-island {
   };
 
   window.ailabOrchRenderSftp = function(sftp) {
-    const info = document.getElementById("airflowSftpInfo");
-    if (info) {
-      const fileCount = (sftp.files || []).length;
-      const tableCount = (sftp.tables || []).length;
-      info.innerHTML = `
-        <div><strong style="color:#38BDF8;">Landing zone:</strong> <code>${orchEsc(sftp.landing_prefix || "-")}</code></div>
-        <div><strong style="color:#38BDF8;">Bronze output:</strong> <code>${orchEsc(sftp.bronze_prefix || "-")}</code> &bull; Glue db <code>${orchEsc(sftp.glue_database || "-")}</code></div>
-        <div><strong style="color:#38BDF8;">Accepted:</strong> ${orchEsc((sftp.supported || []).join(" / "))} &bull; max ${orchEsc(sftp.max_mb || 25)} MB per file</div>
-        <div><strong style="color:#38BDF8;">Status:</strong> ${fileCount} file(s) in landing &bull; ${tableCount} table(s) in bronze${sftp.error ? ` &bull; <span style="color:#F87171;">${orchEsc(sftp.error)}</span>` : ""}</div>`;
-    }
-
-    const filesBox = document.getElementById("airflowSftpFilesList");
-    if (filesBox) {
-      const files = sftp.files || [];
-      const awsKeys = ["sqs", "dynamodb", "cloudwatch", "sns", "iceberg"];
-      const awsLine = (item) => {
-        const svc = item.aws_services || {};
-        const shown = Object.keys(svc).length ? awsKeys : [];
-        if (!shown.length) return "";
-        return `<div style="font-size:10px;color:#64748B;margin-top:2px;">AWS: ${shown.map(name => {
-          const state = String(svc[name] || "pending");
-          const ok = ["sent", "recorded", "published", "registered", "updated", "skipped"].includes(state);
-          return `<span style="color:${ok ? "#34D399" : "#F87171"};">${name} ${orchEsc(state)}</span>`;
-        }).join(" &middot; ")}</div>`;
-      };
-      filesBox.innerHTML = files.length ? files.map(item => `
-        <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <div style="min-width:0;">
-            <div style="font-size:12px;font-weight:700;color:#F8FAFC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${orchEsc(item.name)}</div>
-            <div style="font-size:10.5px;color:#94A3B8;">partner ${orchEsc(item.partner)} &bull; ${orchEsc((item.size / 1024).toFixed(1))} KB &bull; ${item.rows ? orchNum(item.rows) + " rows" : "not ingested"}${item.table ? " &bull; table " + orchEsc(item.table) : ""}${item.error ? " &bull; " + orchEsc(item.error) : ""}</div>
-            ${awsLine(item)}
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            ${orchBadge(item.status === "new" ? "NOT_RUN" : item.status)}
-            <button type="button" class="ailab-code-btn" onclick="ailabOrchSftpRollback('${orchEsc(item.key)}')" style="font-size:10.5px;color:#F87171;">Rollback</button>
-          </div>
-        </div>`).join("") : `<div style="text-align:center;padding:12px;color:#94A3B8;">No files in the SFTP landing zone yet.</div>`;
-    }
-
-    const tablesBox = document.getElementById("airflowSftpTables");
-    if (tablesBox) {
-      const tables = sftp.tables || [];
-      tablesBox.innerHTML = tables.length ? tables.map(item => `
-        <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:7px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-size:11.5px;color:#F8FAFC;"><strong>${orchEsc(item.table)}</strong> <span style="color:#64748B;">&larr; ${orchEsc(item.source_file)}</span></div>
-          <div style="font-size:11px;color:#94A3B8;">${orchNum(item.rows)} rows &bull; ${orchEsc(item.columns)} cols &bull; ${orchEsc(item.ingested_at)}</div>
-        </div>`).join("") : `<div style="text-align:center;padding:12px;color:#94A3B8;">No SFTP tables yet - upload a file or generate a sample.</div>`;
-    }
-  };
-
-  window.ailabOrchRenderOutbound = function(out) {
-    const box = document.getElementById("airflowSftpOutbound");
-    if (!box) return;
-    const reports = out.reports || [];
-    box.innerHTML = reports.length ? reports.map(item => {
-      const isXlsx = String(item.filename || "").endsWith(".xlsx");
-      const icon = isXlsx ? "&#128215; Excel" : "&#128196; CSV";
-      const badgeBg = isXlsx ? "rgba(16,185,129,0.18)" : "rgba(56,189,248,0.18)";
-      const badgeFg = isXlsx ? "#34D399" : "#38BDF8";
-      return `
-        <div style="background:rgba(15,23,42,0.8);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;">
-          <div style="min-width:0;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="background:${badgeBg};color:${badgeFg};font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:4px;">${icon}</span>
-              <div style="font-size:12px;font-weight:700;color:#F8FAFC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${orchEsc(item.filename)}</div>
+    const inBox = document.getElementById("airflowSftpInboundList");
+    if (inBox) {
+      const files = sftp.inbound_files || sftp.landing_zone || [];
+      if (!files.length) {
+        inBox.innerHTML = `<div style="text-align:center;padding:14px;color:#94A3B8;">No inbound files in landing zone.</div>`;
+      } else {
+        inBox.innerHTML = files.map(item => `
+          <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div style="min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:rgba(56,189,248,0.18);color:#38BDF8;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">FEED</span>
+                <strong style="font-size:12.5px;color:#F8FAFC;">${orchEsc(item.file)}</strong>
+                <span style="font-size:11px;color:#94A3B8;">&bull; ${orchEsc(item.source)}</span>
+              </div>
+              <div style="font-size:11px;color:#64748B;margin-top:3px;">
+                Size: <span style="color:#CBD5E1;">${orchEsc(item.size)}</span> &bull; Landed: <strong style="color:#CBD5E1;">${orchEsc(item.date_time)}</strong> &bull; Target: <code>${orchEsc(item.target || "Lakehouse")}</code>
+              </div>
             </div>
-            <div style="font-size:10.5px;color:#94A3B8;margin-top:3px;"><code>${orchEsc(item.sftp_path)}</code> &bull; ${orchEsc((item.bytes / 1024).toFixed(1))} KB ${item.modified ? `&bull; ${orchEsc(String(item.modified).slice(0, 19).replace('T', ' '))}` : ""}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:5px;">● ${orchEsc(item.status)}</span>
+            </div>
           </div>
-          ${item.download_url ? `<a href="${orchEsc(item.download_url)}" target="_blank" rel="noopener" class="ailab-code-btn" style="font-size:11px;color:#38BDF8;text-decoration:none;font-weight:700;white-space:nowrap;">&#11015; Download</a>` : ""}
-        </div>`;
-    }).join("") : `<div style="text-align:center;padding:12px;color:#94A3B8;">No reports published to sftp/outbound/reports yet.</div>`;
+        `).join("");
+      }
+    }
+
+    const outBox = document.getElementById("airflowSftpOutboundList");
+    if (outBox) {
+      const reports = sftp.outbound_reports || (window.ailabOrchState.overview && window.ailabOrchState.overview.sftp_outbound ? window.ailabOrchState.overview.sftp_outbound.reports : []) || [];
+      if (!reports.length) {
+        outBox.innerHTML = `<div style="text-align:center;padding:14px;color:#94A3B8;">No outbound statutory reports published yet.</div>`;
+      } else {
+        outBox.innerHTML = reports.map(item => `
+          <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div style="min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">REPORT</span>
+                <strong style="font-size:12.5px;color:#F8FAFC;">${orchEsc(item.report || item.file)}</strong>
+                <span style="font-size:11px;color:#94A3B8;">&bull; ${orchEsc(item.category || "Statutory")}</span>
+              </div>
+              <div style="font-size:11px;color:#64748B;margin-top:3px;">
+                File: <code style="color:#CBD5E1;">${orchEsc(item.file)}</code> &bull; Size: <span style="color:#CBD5E1;">${orchEsc(item.size)}</span> &bull; Published: <strong style="color:#CBD5E1;">${orchEsc(item.date_time)}</strong>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="background:rgba(56,189,248,0.18);color:#38BDF8;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:5px;">● ${orchEsc(item.status)}</span>
+              ${item.url ? `<a href="${orchEsc(item.url)}" class="ailab-code-btn" style="font-size:11px;color:#38BDF8;text-decoration:none;font-weight:700;padding:4px 10px;border-color:rgba(56,189,248,0.4);">📥 Download</a>` : ""}
+            </div>
+          </div>
+        `).join("");
+      }
+    }
   };
 
-  window.ailabOrchBuildReport = async function(deliver) {
-    const box = document.getElementById("ailabReportMsg");
-    if (box) { box.textContent = deliver ? "Building report and sending alerts..." : "Building report..."; box.style.color = "#94A3B8"; }
+  window.ailabOrchRenderAlerts = function(data) {
+    const sched = data.alerts_schedule || (data.alerts && data.alerts.schedule) || { status: "RUNNING", dispatch_time: "11:00 AM IST" };
+    const isRunning = sched.status === "RUNNING";
+
+    const badge = document.getElementById("ailabAlertScheduleBadge");
+    if (badge) {
+      badge.innerHTML = isRunning
+        ? `<span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);">&#9654; AUTOMATED DISPATCH ACTIVE</span>`
+        : `<span style="background:rgba(234,179,8,0.18);color:#FBBF24;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;border:1px solid rgba(234,179,8,0.3);">&#10074;&#10074; SCHEDULE PAUSED</span>`;
+    }
+
+    const iconEl = document.getElementById("btnToggleAlertIcon");
+    const labelEl = document.getElementById("btnToggleAlertLabel");
+    const btnEl = document.getElementById("btnToggleAlertSchedule");
+    if (iconEl && labelEl && btnEl) {
+      if (isRunning) {
+        iconEl.textContent = "⏸";
+        labelEl.textContent = "Pause Scheduler";
+        btnEl.style.background = "rgba(234,179,8,0.2)";
+        btnEl.style.color = "#FBBF24";
+        btnEl.style.borderColor = "rgba(234,179,8,0.4)";
+      } else {
+        iconEl.textContent = "▶";
+        labelEl.textContent = "Resume Scheduler";
+        btnEl.style.background = "rgba(16,185,129,0.2)";
+        btnEl.style.color = "#34D399";
+        btnEl.style.borderColor = "rgba(16,185,129,0.4)";
+      }
+    }
+
+    const sel = document.getElementById("selAlertScheduleTime");
+    if (sel && sched.dispatch_time) {
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === sched.dispatch_time) {
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    // 1. Render Dispatched Reports (konta report konal gela)
+    const repBox = document.getElementById("ailabDispatchedReportsList");
+    if (repBox) {
+      const list = data.dispatched_reports || (data.alerts && data.alerts.dispatched) || [];
+      if (!list.length) {
+        repBox.innerHTML = `<div style="text-align:center;padding:14px;color:#94A3B8;">No dispatched reports yet.</div>`;
+      } else {
+        repBox.innerHTML = list.map(item => {
+          const recips = (item.recipients || []).map(r => {
+            const ch = String(r.channel).toUpperCase();
+            const icon = ch === "TELEGRAM" ? "🤖" : (ch === "WHATSAPP" ? "💬" : "📧");
+            return `<span style="background:rgba(30,41,59,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:2px 7px;font-size:10.5px;color:#CBD5E1;">${icon} <strong>${ch}:</strong> ${orchEsc(r.target)}</span>`;
+          }).join(" ");
+
+          return `
+            <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:260px;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <strong style="font-size:13px;color:#F8FAFC;">${orchEsc(item.report_name)}</strong>
+                  <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">● ${orchEsc(item.status)}</span>
+                  <span style="font-size:10.5px;color:#38BDF8;font-weight:700;">${orchEsc(item.sla)}</span>
+                </div>
+                <div style="font-size:11px;color:#64748B;margin:4px 0 6px;">
+                  File: <code style="color:#CBD5E1;">${orchEsc(item.file)}</code> &bull; Dispatched: <strong style="color:#CBD5E1;">${orchEsc(item.dispatched_at)}</strong>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <span style="font-size:10.5px;color:#94A3B8;">Delivered To:</span>
+                  ${recips}
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                ${item.url ? `<a href="${orchEsc(item.url)}" class="ailab-code-btn" style="font-size:11px;color:#38BDF8;text-decoration:none;font-weight:700;padding:5px 12px;border-color:rgba(56,189,248,0.4);">📥 Download</a>` : ""}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    // 2. Render Pipeline Health Incidents & Short RCA
+    const incBox = document.getElementById("ailabIncidentsMonitoringList");
+    if (incBox) {
+      const incidents = data.incidents_monitoring || (data.alerts && data.alerts.incidents) || [];
+      if (!incidents.length) {
+        incBox.innerHTML = `<div style="text-align:center;padding:14px;color:#34D399;">✔ Zero active incidents. All pipelines healthy.</div>`;
+      } else {
+        incBox.innerHTML = incidents.map(item => `
+          <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:rgba(245,158,11,0.2);color:#FBBF24;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">INCIDENT LOG</span>
+                <strong style="font-size:12.5px;color:#F8FAFC;">${orchEsc(item.pipeline)}</strong>
+                <code style="font-size:11px;color:#94A3B8;">${orchEsc(item.component)}</code>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;">● ${orchEsc(item.status)}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:#94A3B8;margin-top:2px;">
+              <div>⏰ <strong>Issue Occurred:</strong> <span style="color:#CBD5E1;">${orchEsc(item.occurred_at)}</span></div>
+              <div>🤖 <strong>Telegram Alert:</strong> <span style="color:#38BDF8;">${orchEsc(item.telegram_alert_at)}</span></div>
+              <div>💬 <strong>WhatsApp Alert:</strong> <span style="color:#34D399;">${orchEsc(item.whatsapp_alert_at)}</span></div>
+            </div>
+            <div style="background:rgba(30,41,59,0.6);border-left:3px solid #38BDF8;padding:6px 10px;border-radius:4px;font-size:11.5px;color:#CBD5E1;margin-top:4px;">
+              <strong style="color:#38BDF8;">Short RCA (Root Cause Analysis):</strong> ${orchEsc(item.rca)}
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+  };
+
+  window.ailabOrchToggleAlertSchedule = async function() {
+    const btn = document.getElementById("btnToggleAlertSchedule");
+    if (btn) btn.disabled = true;
     try {
-      const res = await ailabAuthFetch(ORCH_API + "/report/build", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cycle: "MANUAL", deliver: !!deliver })
-      });
+      const res = await ailabAuthFetch(ORCH_API + "/alerts/schedule/toggle", { method: "POST" });
       const data = await res.json();
-      if (!res.ok) { if (box) { box.textContent = data.detail || "report build failed"; box.style.color = "#F87171"; } return; }
-      const report = data.report || data;
-      if (box) {
-        box.textContent = `${report.filename || "report"}: ${report.status} -> ${report.sftp_path || ""}` +
-          (deliver ? ` | alerts ${(data.results || []).map(r => r.channel + ":" + (r.ok ? "ok" : "fail")).join(", ")}` : "");
-        box.style.color = "#34D399";
+      if (res.ok && data.schedule) {
+        ailabOrchToast(`Alert Scheduler: ${data.schedule.status}`, data.schedule.status === "RUNNING" ? "#34D399" : "#FBBF24");
       }
       await ailabOrchRefreshAll(true);
     } catch (err) {
-      if (box) { box.textContent = err.message; box.style.color = "#F87171"; }
+      ailabOrchToast("Toggle failed: " + err.message, "#F87171");
+    } finally {
+      if (btn) btn.disabled = false;
     }
   };
 
-  window.ailabSftpMsg = function(text, color) {
-    const box = document.getElementById("ailabSftpMsg");
-    if (box) { box.textContent = text; box.style.color = color || "#94A3B8"; }
-  };
-
-  window.ailabSftpUpload = async function() {
-    const input = document.getElementById("ailabSftpFile");
-    const partner = (document.getElementById("ailabSftpPartner").value || "manual").trim() || "manual";
-    if (!input || !input.files || !input.files.length) { ailabSftpMsg("Choose a file first.", "#FBBF24"); return; }
-    const button = document.getElementById("ailabSftpUploadBtn");
-    if (button) button.disabled = true;
-    let done = 0;
-    for (const file of input.files) {
-      try {
-        ailabSftpMsg(`Uploading ${file.name}...`);
-        const form = new FormData();
-        form.append("file", file);
-        const res = await ailabAuthFetch(`${ORCH_API}/sftp/upload?partner=${encodeURIComponent(partner)}`, { method: "POST", body: form });
-        const data = await res.json();
-        if (!res.ok) { ailabSftpMsg(`${file.name}: ${data.detail || "upload failed"}`, "#F87171"); continue; }
-        const ingest = data.ingest || {};
-        done += 1;
-        ailabSftpMsg(`${file.name}: ${ingest.status} -> ${ingest.table || "?"} (${orchNum(ingest.rows || 0)} rows). Downstream refresh running.`, "#34D399");
-      } catch (err) {
-        ailabSftpMsg(`${file.name}: ${err.message}`, "#F87171");
+  window.ailabOrchSetAlertTime = async function() {
+    const sel = document.getElementById("selAlertScheduleTime");
+    const val = sel ? sel.value : "11:00 AM IST";
+    const msg = document.getElementById("ailabAlertScheduleMsg");
+    if (msg) { msg.textContent = "Updating..."; msg.style.color = "#94A3B8"; }
+    try {
+      const res = await ailabAuthFetch(ORCH_API + "/alerts/schedule/time", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ time: val })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (msg) { msg.textContent = `Schedule set to ${val}`; msg.style.color = "#34D399"; }
+        ailabOrchToast(`Schedule Time set to ${val}`, "#34D399");
       }
+      await ailabOrchRefreshAll(true);
+    } catch (err) {
+      if (msg) { msg.textContent = err.message; msg.style.color = "#F87171"; }
     }
-    if (button) button.disabled = false;
-    if (done) { input.value = ""; setTimeout(() => ailabOrchRefreshAll(true), 1500); }
-  };
-
-  window.ailabSftpProcess = async function() {
-    ailabSftpMsg("Processing landing files...");
-    try {
-      const res = await ailabAuthFetch(ORCH_API + "/sftp/process", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ force: false })
-      });
-      const data = await res.json();
-      if (!res.ok) { ailabSftpMsg(data.detail || "process failed", "#F87171"); return; }
-      const downstream = data.downstream || {};
-      ailabSftpMsg(`${data.status}: ${(data.processed || []).length} ingested, ${(data.errors || []).length} error(s). ` +
-        (downstream.summary ? downstream.summary : "No new files."), data.errors && data.errors.length ? "#FBBF24" : "#34D399");
-      await ailabOrchRefreshAll(true);
-    } catch (err) { ailabSftpMsg(err.message, "#F87171"); }
-  };
-
-  window.ailabSftpSample = async function() {
-    const partner = (document.getElementById("ailabSftpPartner").value || "sample").trim() || "sample";
-    ailabSftpMsg("Generating sample file...");
-    try {
-      const res = await ailabAuthFetch(`${ORCH_API}/sftp/sample?partner=${encodeURIComponent(partner)}`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) { ailabSftpMsg(data.detail || "sample failed", "#F87171"); return; }
-      ailabSftpMsg(`Sample landed: ${data.key} -> ${(data.ingest || {}).table || "?"}`, "#34D399");
-      await ailabOrchRefreshAll(true);
-    } catch (err) { ailabSftpMsg(err.message, "#F87171"); }
-  };
-
-  window.ailabOrchSftpRollback = async function(key) {
-    if (!(await orchDialog(`Purge ${key}?\n\nThis drops its bronze Parquet and Snowflake L0/L1 tables. The landing file is kept.`))) return;
-    ailabSftpMsg(`Rolling back ${key}...`, "#FBBF24");
-    try {
-      const res = await ailabAuthFetch(ORCH_API + "/sftp/rollback", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key, confirm: true, delete_landing: false })
-      });
-      const data = await res.json();
-      if (!res.ok) { ailabSftpMsg(data.detail || "rollback failed", "#F87171"); return; }
-      ailabSftpMsg(`Rolled back ${data.table_removed || key}: ${(data.snowflake || []).join(", ") || "no tables"}`, "#FBBF24");
-      await ailabOrchRefreshAll(true);
-    } catch (err) { ailabSftpMsg(err.message, "#F87171"); }
-  };
-
-  window.ailabOrchRenderAlertConfig = function(alerts) {
-    if (window.ailabOrchState.alertsFilled) return;
-    const conf = alerts.config || {};
-    const set = (id, value) => { const el = document.getElementById(id); if (el) el.value = value == null ? "" : value; };
-    set("orchAlertRecipients", (conf.recipients || []).join(", "));
-    set("orchAlertSender", conf.sender || "");
-    set("orchAlertTelegram", conf.telegram_channel || "");
-    set("orchAlertWhatsapp", conf.whatsapp_number && conf.whatsapp_number.includes("*") ? "" : (conf.whatsapp_number || ""));
-    const tg = document.getElementById("orchAlertTelegramOn");
-    if (tg) tg.checked = conf.telegram_enabled !== false;
-    const wa = document.getElementById("orchAlertWhatsappOn");
-    if (wa) wa.checked = conf.whatsapp_enabled !== false;
-    window.ailabOrchState.alertsFilled = true;
-  };
-
-  window.ailabOrchLoadAlerts = async function() {
-    window.ailabOrchState.alertsFilled = false;
-    await ailabOrchRefreshAll(true);
-  };
-
-  window.ailabOrchSaveAlerts = async function() {
-    const recipients = (document.getElementById("orchAlertRecipients").value || "")
-      .split(",").map(v => v.trim()).filter(Boolean);
-    const body = {
-      recipients,
-      sender: (document.getElementById("orchAlertSender").value || "").trim(),
-      telegram_channel: (document.getElementById("orchAlertTelegram").value || "").trim(),
-      telegram_enabled: document.getElementById("orchAlertTelegramOn").checked,
-      whatsapp_enabled: document.getElementById("orchAlertWhatsappOn").checked
-    };
-    const whatsapp = (document.getElementById("orchAlertWhatsapp").value || "").trim();
-    if (whatsapp) body.whatsapp_number = whatsapp;
-    const msg = document.getElementById("ailabAlertMsg");
-    try {
-      const res = await ailabAuthFetch(ORCH_API + "/alerts/config", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (!res.ok) { if (msg) { msg.textContent = data.detail || "save failed"; msg.style.color = "#F87171"; } return; }
-      if (msg) { msg.textContent = "Configuration saved."; msg.style.color = "#34D399"; }
-      window.ailabOrchState.alertsFilled = false;
-      await ailabOrchRefreshAll(true);
-    } catch (err) { if (msg) { msg.textContent = err.message; msg.style.color = "#F87171"; } }
-  };
-
-  window.ailabOrchTestAlert = async function(channel) {
-    const msg = document.getElementById("ailabAlertMsg");
-    if (msg) { msg.textContent = `Sending test ${channel}...`; msg.style.color = "#94A3B8"; }
-    try {
-      const res = await ailabAuthFetch(ORCH_API + "/alerts/test", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channel })
-      });
-      const data = await res.json();
-      if (!res.ok) { if (msg) { msg.textContent = data.detail || "test failed"; msg.style.color = "#F87171"; } return; }
-      const results = data.results || [];
-      const text = results.map(r => `${r.channel}: ${r.ok ? "DELIVERED" : "FAILED" + (r.error ? " (" + r.error + ")" : "")}`).join("  |  ");
-      if (msg) { msg.textContent = text || data.status; msg.style.color = results.every(r => r.ok) ? "#34D399" : "#FBBF24"; }
-      await ailabOrchRefreshAll(true);
-    } catch (err) { if (msg) { msg.textContent = err.message; msg.style.color = "#F87171"; } }
-  };
-
-  window.ailabOrchRenderNotificationLogs = function(logs) {
-    const box = document.getElementById("ailabNotificationLogsList");
-    if (!box) return;
-    if (!logs.length) {
-      box.innerHTML = `<div style="text-align:center;padding:12px;color:#94A3B8;">No alerts sent yet.</div>`;
-      return;
-    }
-    box.innerHTML = logs.map(item => {
-      const ok = String(item.status || "").toUpperCase() === "DELIVERED";
-      return `
-        <div style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <div style="min-width:0;">
-            <div style="font-size:11.5px;color:#F8FAFC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${orchEsc(item.subject)}</div>
-            <div style="font-size:10.5px;color:#94A3B8;">${orchEsc(item.channel)} &bull; ${orchEsc(item.recipient)} &bull; ${orchEsc(item.rule)}${item.error ? " &bull; " + orchEsc(item.error) : ""}</div>
-          </div>
-          <div style="text-align:right;white-space:nowrap;">
-            <span style="color:${ok ? "#34D399" : "#F87171"};font-weight:700;font-size:10.5px;">&#9679; ${orchEsc(item.status)}</span>
-            <div style="font-size:10px;color:#64748B;">${orchEsc(item.timestamp)}</div>
-          </div>
-        </div>`;
-    }).join("");
   };
 
   window.ailabOrchRenderStoredLogs = function() {
@@ -10828,30 +10609,6 @@ body.in-global_ai_lab .nano-dynamic-island {
     } catch (err) {
       box.innerHTML = `<div style="color:#F87171;">${orchEsc(err.message)}</div>`;
     }
-  };
-  window.ailabOrchInitAgentsHUD = function() {
-    const box = document.getElementById("aiAgentsLiveTelemetry");
-    if (!box || box._timer) return;
-    const actions = [
-      "[Central AI Manager] Auto-assigned Agent #14 (o3-mini) to compute AML CTR cash deposits >= ₹10L.",
-      "[Snowflake Squad #52] Processed incremental batch: 0 full re-inserts, Fact append verified.",
-      "[BigQuery Agent #19] Verified partition manifest for nanopro_cbs_bronze. 900 records synchronized.",
-      "[DuckDB Agent #07] Parity checksum validated against Snowflake L0 staging: 0 mismatch.",
-      "[Reports Agent #88] Verified RBI Form A & Form VIII CRR/SLR liquidity buffer ratios.",
-      "[Reports Agent #34] Verified 21 FIU-IND report tables and refreshed NANOPRO_AML_FIU_IND_21_Reports.xlsx.",
-      "[Self-Healing Sentinel #09] Scanned table quarantine index: 100% healthy, no stranded locks.",
-      "[Multi-Channel Agent #04] Verified SMTP relay (<15MB payload) and Telegram channel broadcast link."
-    ];
-    let idx = 0;
-    box._timer = setInterval(() => {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString("en-GB", { timeZone: "Asia/Kolkata" }) + " IST";
-      const div = document.createElement("div");
-      div.innerHTML = `<span style="color:#64748B;">[${timeStr}]</span> ${actions[idx % actions.length]}`;
-      box.insertBefore(div, box.firstChild);
-      if (box.children.length > 30) box.removeChild(box.lastChild);
-      idx += 1;
-    }, 4000);
   };
 </script>
 </div>

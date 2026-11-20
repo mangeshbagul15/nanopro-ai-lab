@@ -16,7 +16,7 @@ from app.alerts_service import dispatch_telegram, dispatch_email, dispatch_whats
 from app.auth_manager import auth_manager, GOOGLE_CLIENT_ID
 from app.history_manager import history_manager
 from app.explorer_service import get_explorer_catalog, get_table_details
-from app.orchestrator_service import get_orchestrator_overview, DAGS_LIST
+from app.orchestrator_service import get_orchestrator_overview, DAGS_LIST, toggle_alert_schedule, update_alert_schedule_time
 from app.ui import get_ai_lab_html, get_login_page_html
 
 from app.core.ai_routing_engine import GLOBAL_AI_ROUTER
@@ -409,6 +409,30 @@ async def api_orchestrator_alert_test(req: AlertTestRequest):
 @app.post("/api/banking/orchestrator/alerts/config")
 async def api_orchestrator_alert_config(payload: Dict[str, Any] = Body(...)):
     return JSONResponse({"status": "success", "message": "Alert configuration updated.", "config": payload})
+
+@app.post("/api/banking/orchestrator/alerts/schedule/toggle")
+async def api_orchestrator_alert_toggle():
+    return JSONResponse(toggle_alert_schedule())
+
+@app.post("/api/banking/orchestrator/alerts/schedule/time")
+async def api_orchestrator_alert_set_time(payload: Dict[str, Any] = Body(...)):
+    new_time = payload.get("time", "")
+    return JSONResponse(update_alert_schedule_time(new_time))
+
+@app.get("/api/banking/orchestrator/sftp/files")
+async def api_orchestrator_sftp_files():
+    ov = get_orchestrator_overview()
+    return JSONResponse({"status": "success", "sftp": ov.get("sftp", {})})
+
+@app.get("/api/banking/orchestrator/alerts/monitoring")
+async def api_orchestrator_alerts_monitoring():
+    ov = get_orchestrator_overview()
+    return JSONResponse({
+        "status": "success",
+        "schedule": ov.get("alerts_schedule", {}),
+        "dispatched_reports": ov.get("dispatched_reports", []),
+        "incidents": ov.get("incidents_monitoring", [])
+    })
 
 @app.get("/api/banking/orchestrator/logs")
 async def api_orchestrator_logs(limit: int = 50):
