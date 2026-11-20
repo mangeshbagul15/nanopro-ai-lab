@@ -18,6 +18,15 @@ from app.core.agentic_chat_engine import process_agentic_chat
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
+# Groq supports multiple keys for rate-limit rotation. Groq's free tier
+# caps each key at ~30 RPM, so rotating across N keys gives ~N x 30 RPM
+# headroom and 429-resilience. Only keys that are actually set are used.
+GROQ_API_KEYS = [k for k in (
+    GROQ_API_KEY,
+    os.environ.get("GROQ_API_KEY_2", ""),
+    os.environ.get("GROQ_API_KEY_3", ""),
+) if k]
+
 
 def _build_system_prompt() -> str:
     """Enterprise NanoPro system prompt — drives the LLM to answer in fluent
@@ -72,16 +81,20 @@ class AIExecutionRouter:
     # ------------------------------------------------------------------
     def _provider_cascade(self, prompt: str, model_id: Optional[str] = None) -> List[Dict[str, Any]]:
         groq_model = (model_id if model_id and model_id.startswith(("qwen", "openai/gpt-oss", "llama")) else _groq_model_for(prompt))
-        return [
-            {
-                "name": "groq",
-                "label": "Groq LPU (Sub-300ms Deterministic)",
-                "api_key": GROQ_API_KEY,
+        cascade: List[Dict[str, Any]] = []
+        # Groq key rotation — one cascade entry per configured Groq key so a 429
+        # on key #1 automatically falls through to key #2, then #3.
+        for i, gkey in enumerate(GROQ_API_KEYS, start=1):
+            cascade.append({
+                "name": f"groq#{i}",
+                "label": f"Groq LPU Key#{i} (Sub-300ms Deterministic)",
+                "api_key": gkey,
                 "base_url": "https://api.groq.com/openai/v1",
                 "model": groq_model,
                 "timeout": 15.0,
                 "extra_headers": {},
-            },
+            })
+        cascade.extend([
             {
                 "name": "openrouter",
                 "label": "OpenRouter Unified Mesh",
@@ -115,7 +128,8 @@ class AIExecutionRouter:
                 "timeout": 15.0,
                 "extra_headers": {},
             },
-        ]
+        ])
+        return cascade
 
     async def _chat_completion(self, provider: Dict[str, Any], prompt: str, system_prompt: str) -> str:
         """Call an OpenAI-compatible /chat/completions endpoint. Raises on any failure
