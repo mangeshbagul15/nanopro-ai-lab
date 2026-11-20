@@ -4315,9 +4315,9 @@ body.in-global_ai_lab .nano-dynamic-island {
   </div>
 </div>
 
-<!-- AIRFLOW ORCHESTRATOR & SFTP HUB MODAL -->
-<div class="ailab-modal-backdrop" id="ailabAirflowModal" style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;background:rgba(3,7,18,0.92) !important;backdrop-filter:blur(14px) !important;display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;" onclick="ailabCloseAirflowModal(event)">
-  <div class="ailab-modal" style="max-width:1120px;max-height:92vh;width:1120px;border:1px solid rgba(56,189,248,0.22);box-shadow:0 25px 60px -15px rgba(0,0,0,0.85);" onclick="event.stopPropagation()">
+<!-- AIRFLOW ORCHESTRATOR & SFTP HUB FULLSCREEN MODAL -->
+<div class="ailab-modal-backdrop" id="ailabAirflowModal" style="position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;background:rgba(3,7,18,0.94) !important;backdrop-filter:blur(14px) !important;display:none;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;" onclick="ailabCloseAirflowModal(event)">
+  <div class="ailab-modal" style="width:98vw !important;max-width:1720px !important;height:96vh !important;max-height:96vh !important;border-radius:12px !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;border:1.5px solid rgba(56,189,248,0.35) !important;box-shadow:0 25px 80px -10px rgba(0,0,0,0.95), 0 0 50px rgba(56,189,248,0.15) !important;background:#0B132B !important;" onclick="event.stopPropagation()">
     <div class="ailab-modal-head" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 18px;">
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="font-size:24px;filter:drop-shadow(0 0 10px rgba(56,189,248,0.5));">&#9889;</span>
@@ -4335,13 +4335,13 @@ body.in-global_ai_lab .nano-dynamic-island {
     <div class="ailab-modal-pills" style="padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;flex-wrap:wrap;background:rgba(15,23,42,0.6);">
       <button type="button" class="ailab-pill is-active" id="tabAirflowDags" onclick="ailabSwitchAirflowTab('dags')">&#9889; <span id="orchDagCountTab">15 Airflow DAGs</span></button>
       <button type="button" class="ailab-pill" id="tabAirflowArch" onclick="ailabSwitchAirflowTab('arch')">&#128290; Airflow Topology Graph</button>
-      <button type="button" class="ailab-pill" id="tabAirflowSftp" onclick="ailabSwitchAirflowTab('sftp')">&#128194; SFTP Hub</button>
+      <button type="button" class="ailab-pill" id="tabAirflowSftp" onclick="ailabSwitchAirflowTab('sftp')">&#128194; SFTP Hub (<span id="orchSftpCountTab">49 Outbound</span>)</button>
       <button type="button" class="ailab-pill" id="tabAirflowAlerts" onclick="ailabSwitchAirflowTab('alerts')">&#128276; Multi-Channel Alerts</button>
       <button type="button" class="ailab-pill" id="tabAirflowLogs" onclick="ailabSwitchAirflowTab('logs')">&#128220; Logs &amp; Audit</button>
     </div>
 
     <!-- TAB 1: DAGS -->
-    <div id="airflowTabDags" style="padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
+    <div id="airflowTabDags" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
       <div id="airflowOverview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;"></div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;background:rgba(30,41,59,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;gap:10px;">
         <div id="airflowSchedulerLine" style="font-size:11.5px;color:#CBD5E1;line-height:1.5;">Loading scheduler state...</div>
@@ -4377,7 +4377,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 2: SFTP HUB -->
-    <div id="airflowTabSftp" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
+    <div id="airflowTabSftp" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
       <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
           <div style="font-size:14px;font-weight:800;color:#F8FAFC;display:flex;align-items:center;gap:8px;">
@@ -4404,19 +4404,42 @@ body.in-global_ai_lab .nano-dynamic-island {
       </div>
 
       <!-- OUTBOUND STATUTORY REPORTS -->
-      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;">
-        <div style="font-size:13px;font-weight:700;color:#F8FAFC;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-          <span style="display:flex;align-items:center;gap:6px;"><span style="color:#34D399;">📤</span> Outbound Regulatory Reports (sftp/outbound/reports/)</span>
-          <span style="font-size:11px;color:#38BDF8;font-weight:700;">● Published to Secure Drop &amp; Direct Download</span>
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#F8FAFC;display:flex;align-items:center;gap:8px;">
+              <span style="color:#34D399;">📤</span>
+              <span>Outbound Regulatory Reports (sftp/outbound/reports/)</span>
+              <span id="sftpOutboundTotalBadge" style="background:rgba(16,185,129,0.18);color:#34D399;font-size:11px;font-weight:800;padding:2px 8px;border-radius:4px;border:1px solid rgba(16,185,129,0.3);">49 Reports Available</span>
+            </div>
+            <div style="font-size:11.5px;color:#94A3B8;margin-top:3px;">
+              सर्व 49 वैधानिक व नियामक अहवाल मेलवर जाण्यापूर्वी SFTP ड्रॉपवर उपलब्ध असतात &bull; थेट 64KB Chunked Streaming द्वारे डाउनलोड करा (0 MB Render RAM)
+            </div>
+          </div>
+          <!-- Realtime Search Input -->
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="text" id="sftpOutboundSearchInput" placeholder="🔍 Search 49 statutory reports (CTR, CRILC, UPI, ALM, STR, Form A...)" oninput="ailabOrchFilterSftpReports()" style="width:320px;background:rgba(30,41,59,0.85);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:7px 12px;color:#F8FAFC;font-size:11.5px;outline:none;">
+          </div>
         </div>
-        <div id="airflowSftpOutboundList" style="display:flex;flex-direction:column;gap:8px;">
+
+        <!-- Category filter pills -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <button type="button" class="ailab-pill is-active" id="sftpFilterAll" onclick="ailabOrchFilterSftpCategory('all')">&#9889; All (49)</button>
+          <button type="button" class="ailab-pill" id="sftpFilterAml" onclick="ailabOrchFilterSftpCategory('aml')">&#128737;&#65039; AML &amp; FIU-IND (21)</button>
+          <button type="button" class="ailab-pill" id="sftpFilterRbi" onclick="ailabOrchFilterSftpCategory('rbi')">&#127963;&#65039; RBI ADF/CIMS (10)</button>
+          <button type="button" class="ailab-pill" id="sftpFilterAlm" onclick="ailabOrchFilterSftpCategory('alm')">&#128202; ALM Basel III (7)</button>
+          <button type="button" class="ailab-pill" id="sftpFilterCards" onclick="ailabOrchFilterSftpCategory('cards')">&#128179; UPI &amp; Cards (6)</button>
+          <button type="button" class="ailab-pill" id="sftpFilterExec" onclick="ailabOrchFilterSftpCategory('exec')">&#128081; Executive Governance (5)</button>
+        </div>
+
+        <div id="airflowSftpOutboundList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(460px, 1fr));gap:10px;">
           <div style="text-align:center;padding:14px;color:#94A3B8;">Loading outbound statutory reports...</div>
         </div>
       </div>
     </div>
 
     <!-- TAB 3: MULTI-CHANNEL ALERTS & MONITORING -->
-    <div id="airflowTabAlerts" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
+    <div id="airflowTabAlerts" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
       <!-- ALERT SCHEDULER & CONTROLS STRIP (Play, Pause, Schedule Time Change) -->
       <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
@@ -4488,7 +4511,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 4: LOGS -->
-    <div id="airflowTabLogs" style="display:none;padding:14px;overflow-y:auto;max-height:calc(92vh - 180px);">
+    <div id="airflowTabLogs" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="font-size:12.5px;font-weight:700;color:#F8FAFC;">Runtime + orchestrator audit log</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -4501,7 +4524,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 5: ARCHITECTURE -->
-    <div id="airflowTabArch" style="display:none;padding:16px;overflow-y:auto;max-height:calc(92vh - 180px);">
+    <div id="airflowTabArch" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
       <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:18px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
@@ -10055,7 +10078,7 @@ body.in-global_ai_lab .nano-dynamic-island {
         if (el) el.style.display = (id === ({
           dags: "airflowTabDags", arch: "airflowTabArch",
           sftp: "airflowTabSftp", alerts: "airflowTabAlerts", logs: "airflowTabLogs"
-        }[tab])) ? "block" : "none";
+        }[tab])) ? "flex" : "none";
       });
     if (tab === "logs") ailabOrchLoadLogs();
   };
@@ -10476,6 +10499,85 @@ body.in-global_ai_lab .nano-dynamic-island {
     } catch (err) { ailabOrchToast("Schedule error: " + err.message, "#F87171"); }
   };
 
+  window.ailabOrchSftpCurrentCat = "all";
+  window.ailabOrchSftpSearchQuery = "";
+
+  window.ailabOrchFilterSftpCategory = function(cat) {
+    window.ailabOrchSftpCurrentCat = cat || "all";
+    const pillMap = {
+      all: "sftpFilterAll",
+      aml: "sftpFilterAml",
+      rbi: "sftpFilterRbi",
+      alm: "sftpFilterAlm",
+      cards: "sftpFilterCards",
+      exec: "sftpFilterExec"
+    };
+    Object.entries(pillMap).forEach(([k, id]) => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (k === window.ailabOrchSftpCurrentCat) el.classList.add("is-active");
+        else el.classList.remove("is-active");
+      }
+    });
+    ailabOrchRenderSftpOutboundFiltered();
+  };
+
+  window.ailabOrchFilterSftpReports = function() {
+    const input = document.getElementById("sftpOutboundSearchInput");
+    window.ailabOrchSftpSearchQuery = input ? input.value.trim().toLowerCase() : "";
+    ailabOrchRenderSftpOutboundFiltered();
+  };
+
+  function ailabOrchRenderSftpOutboundFiltered() {
+    const outBox = document.getElementById("airflowSftpOutboundList");
+    if (!outBox) return;
+    const allReports = (window.ailabOrchState && window.ailabOrchState.sftpOutboundReports) || [];
+    const cat = window.ailabOrchSftpCurrentCat || "all";
+    const q = window.ailabOrchSftpSearchQuery || "";
+
+    const list = allReports.filter(item => {
+      const title = String(item.report || "").toLowerCase();
+      const file = String(item.file || "").toLowerCase();
+      const category = String(item.category || "").toLowerCase();
+
+      // Category filter check
+      if (cat === "aml" && !category.includes("aml") && !category.includes("fiu")) return false;
+      if (cat === "rbi" && !category.includes("rbi") && !category.includes("adf") && !category.includes("cims")) return false;
+      if (cat === "alm" && !category.includes("alm") && !category.includes("basel") && !category.includes("liquidity")) return false;
+      if (cat === "cards" && !category.includes("upi") && !category.includes("card") && !category.includes("payment")) return false;
+      if (cat === "exec" && !category.includes("exec") && !category.includes("governance") && !category.includes("portfolio")) return false;
+
+      // Query filter check
+      if (q && !title.includes(q) && !file.includes(q) && !category.includes(q)) return false;
+      return true;
+    });
+
+    if (!list.length) {
+      outBox.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; padding:24px; color:#94A3B8;">No statutory reports found matching current filter or search. <button type="button" class="ailab-code-btn" onclick="ailabOrchFilterSftpCategory('all')" style="margin-left:8px;color:#38BDF8;">Show All (${allReports.length})</button></div>`;
+      return;
+    }
+
+    outBox.innerHTML = list.map(item => `
+      <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(52,211,153,0.22);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;transition:border-color 0.15s ease;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+            <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:4px;">${orchEsc(item.category || "Statutory")}</span>
+            <span style="background:rgba(56,189,248,0.15);color:#38BDF8;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;">● ${orchEsc(item.status || "DELIVERED TO SFTP")}</span>
+          </div>
+          <strong style="font-size:13px;color:#F8FAFC;line-height:1.4;display:block;">${orchEsc(item.report || item.file)}</strong>
+          <div style="font-size:11px;color:#64748B;margin-top:5px;line-height:1.5;">
+            File: <code style="color:#CBD5E1;font-size:10.5px;">${orchEsc(item.file)}</code><br>
+            Size: <span style="color:#CBD5E1;font-weight:700;">${orchEsc(item.size)}</span> &bull; Published: <strong style="color:#CBD5E1;">${orchEsc(item.date_time)}</strong>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+          <span style="font-size:10px;color:#94A3B8;">sftp/outbound/reports/</span>
+          ${item.url ? `<a href="${orchEsc(item.url)}" class="ailab-code-btn" style="font-size:11px;color:#38BDF8;text-decoration:none;font-weight:700;padding:4px 12px;border-color:rgba(56,189,248,0.4);display:inline-flex;align-items:center;gap:4px;">📥 Download (.xlsx)</a>` : ""}
+        </div>
+      </div>
+    `).join("");
+  }
+
   window.ailabOrchRenderSftp = function(sftp) {
     const inBox = document.getElementById("airflowSftpInboundList");
     if (inBox) {
@@ -10504,32 +10606,16 @@ body.in-global_ai_lab .nano-dynamic-island {
       }
     }
 
-    const outBox = document.getElementById("airflowSftpOutboundList");
-    if (outBox) {
-      const reports = sftp.outbound_reports || (window.ailabOrchState.overview && window.ailabOrchState.overview.sftp_outbound ? window.ailabOrchState.overview.sftp_outbound.reports : []) || [];
-      if (!reports.length) {
-        outBox.innerHTML = `<div style="text-align:center;padding:14px;color:#94A3B8;">No outbound statutory reports published yet.</div>`;
-      } else {
-        outBox.innerHTML = reports.map(item => `
-          <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(52,211,153,0.25);border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <div style="min-width:0;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="background:rgba(16,185,129,0.18);color:#34D399;font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;">REPORT</span>
-                <strong style="font-size:12.5px;color:#F8FAFC;">${orchEsc(item.report || item.file)}</strong>
-                <span style="font-size:11px;color:#94A3B8;">&bull; ${orchEsc(item.category || "Statutory")}</span>
-              </div>
-              <div style="font-size:11px;color:#64748B;margin-top:3px;">
-                File: <code style="color:#CBD5E1;">${orchEsc(item.file)}</code> &bull; Size: <span style="color:#CBD5E1;">${orchEsc(item.size)}</span> &bull; Published: <strong style="color:#CBD5E1;">${orchEsc(item.date_time)}</strong>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="background:rgba(56,189,248,0.18);color:#38BDF8;font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:5px;">● ${orchEsc(item.status)}</span>
-              ${item.url ? `<a href="${orchEsc(item.url)}" class="ailab-code-btn" style="font-size:11px;color:#38BDF8;text-decoration:none;font-weight:700;padding:4px 10px;border-color:rgba(56,189,248,0.4);">📥 Download</a>` : ""}
-            </div>
-          </div>
-        `).join("");
-      }
-    }
+    const reports = sftp.outbound_reports || (window.ailabOrchState.overview && window.ailabOrchState.overview.sftp_outbound ? window.ailabOrchState.overview.sftp_outbound.reports : []) || [];
+    window.ailabOrchState = window.ailabOrchState || {};
+    window.ailabOrchState.sftpOutboundReports = reports;
+
+    const countTab = document.getElementById("orchSftpCountTab");
+    if (countTab) countTab.textContent = `${reports.length} Outbound`;
+    const totalBadge = document.getElementById("sftpOutboundTotalBadge");
+    if (totalBadge) totalBadge.textContent = `${reports.length} Reports Available`;
+
+    ailabOrchRenderSftpOutboundFiltered();
   };
 
   window.ailabOrchRenderAlerts = function(data) {
