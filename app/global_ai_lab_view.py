@@ -3743,6 +3743,82 @@ body.in-global_ai_lab .nano-dynamic-island {
 .ailab-btn-job-action.primary { background: #0284C7; border-color: #38BDF8; color: #FFF; }
 .ailab-btn-job-action.primary:hover { background: #0369A1; }
 
+/* ============================================================= */
+/* TRUE 100% EDGE-TO-EDGE FULLSCREEN AIRFLOW ORCHESTRATOR & SFTP */
+/* ============================================================= */
+#view-global_ai_lab #ailabAirflowModal {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #070B19 !important;
+  z-index: 999999 !important;
+  display: none;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  box-sizing: border-box !important;
+}
+#view-global_ai_lab #ailabAirflowModal.is-open {
+  display: flex !important;
+}
+#view-global_ai_lab #ailabAirflowModal .ailab-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: #070B19 !important;
+  box-shadow: none !important;
+}
+#view-global_ai_lab #ailabAirflowModal .ailab-modal-head {
+  padding: 14px 24px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #0B132B !important;
+  flex-shrink: 0 !important;
+}
+#view-global_ai_lab #ailabAirflowModal .ailab-modal-pills {
+  padding: 10px 24px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(15, 23, 42, 0.9) !important;
+  flex-shrink: 0 !important;
+}
+#view-global_ai_lab #ailabAirflowModal .orch-tab-pane {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 20px 24px !important;
+  box-sizing: border-box !important;
+  background: #070B19 !important;
+}
+#view-global_ai_lab #ailabAirflowModal .ailab-modal-footer {
+  padding: 10px 24px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #0B132B !important;
+  flex-shrink: 0 !important;
+}
+
 </style>
 
 <div class="ailab-app">
@@ -4315,9 +4391,9 @@ body.in-global_ai_lab .nano-dynamic-island {
   </div>
 </div>
 
-<!-- AIRFLOW ORCHESTRATOR & SFTP HUB FULLSCREEN MODAL -->
-<div class="ailab-modal-backdrop" id="ailabAirflowModal" style="position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;background:rgba(3,7,18,0.94) !important;backdrop-filter:blur(14px) !important;display:none;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;" onclick="ailabCloseAirflowModal(event)">
-  <div class="ailab-modal" style="width:98vw !important;max-width:1720px !important;height:96vh !important;max-height:96vh !important;border-radius:12px !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;border:1.5px solid rgba(56,189,248,0.35) !important;box-shadow:0 25px 80px -10px rgba(0,0,0,0.95), 0 0 50px rgba(56,189,248,0.15) !important;background:#0B132B !important;" onclick="event.stopPropagation()">
+<!-- AIRFLOW ORCHESTRATOR & SFTP HUB TRUE 100% FULLSCREEN MODAL -->
+<div class="ailab-modal-backdrop" id="ailabAirflowModal" style="position:fixed !important;inset:0 !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;background:#070B19 !important;display:none;align-items:stretch !important;justify-content:stretch !important;padding:0 !important;margin:0 !important;box-sizing:border-box;" onclick="ailabCloseAirflowModal(event)">
+  <div class="ailab-modal" style="width:100vw !important;max-width:100vw !important;height:100vh !important;max-height:100vh !important;border-radius:0 !important;border:none !important;margin:0 !important;padding:0 !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;background:#070B19 !important;box-shadow:none !important;" onclick="event.stopPropagation()">
     <div class="ailab-modal-head" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 18px;">
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="font-size:24px;filter:drop-shadow(0 0 10px rgba(56,189,248,0.5));">&#9889;</span>
@@ -4341,34 +4417,38 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 1: DAGS -->
-    <div id="airflowTabDags" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
-      <div id="airflowOverview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;background:rgba(30,41,59,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 12px;gap:10px;">
+    <div id="airflowTabDags" class="orch-tab-pane" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:20px 24px;box-sizing:border-box;">
+      <div id="airflowOverview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;flex-shrink:0;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:rgba(30,41,59,0.5);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;gap:12px;flex-shrink:0;">
         <div id="airflowSchedulerLine" style="font-size:11.5px;color:#CBD5E1;line-height:1.5;">Loading scheduler state...</div>
         <button type="button" class="ailab-code-btn" onclick="ailabOrchRefreshAll()" style="font-size:11px;color:#38BDF8;white-space:nowrap;">&#8635; Refresh</button>
       </div>
 
       <!-- FAULT ISOLATION & INCIDENTS (Non-blocking quarantine) -->
-      <div id="airflowIncidents" style="margin-bottom:14px;"></div>
+      <div id="airflowIncidents" style="margin-bottom:14px;flex-shrink:0;"></div>
 
-      <!-- ENGINE FILTER BAR (Google BigQuery, AWS S3/Glue, Snowflake L0-L2, DuckDB, Reports) -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;overflow-x:auto;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);">
-        <span style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-right:4px;">Engine Filter:</span>
-        <button type="button" class="ailab-pill is-active" id="dagFilterAll" onclick="ailabOrchFilterEngine('all')">&#9889; All (42)</button>
-        <button type="button" class="ailab-pill" id="dagFilterBigquery" onclick="ailabOrchFilterEngine('bigquery')">&#9729;&#65039; Google BigQuery (14)</button>
-        <button type="button" class="ailab-pill" id="dagFilterAws" onclick="ailabOrchFilterEngine('aws')">&#128312; AWS S3 / Glue (12)</button>
-        <button type="button" class="ailab-pill" id="dagFilterSnowflake" onclick="ailabOrchFilterEngine('snowflake')">&#10052;&#65039; Snowflake L0-L2 (8)</button>
-        <button type="button" class="ailab-pill" id="dagFilterDuckdb" onclick="ailabOrchFilterEngine('duckdb')">&#129414; DuckDB (2)</button>
-        <button type="button" class="ailab-pill" id="dagFilterReports" onclick="ailabOrchFilterEngine('reports')">&#128202; Reports &amp; Alerts (6)</button>
-      </div>
-
-      <!-- FREE / NO-CARD DATA MESH CAPABILITIES STRIP -->
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding:6px 12px;background:rgba(30,41,59,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:6px;font-size:10.5px;color:#94A3B8;overflow-x:auto;">
-        <span style="color:#38BDF8;font-weight:700;">🛡️ 100% Free / No-Card Tier Mesh:</span>
-        <span>☁️ <strong>BigQuery Sandbox</strong> (10GB Free Storage &bull; 1TB/mo Free Query)</span>
-        <span>🔸 <strong>AWS S3 Standard</strong> (5GB Free &bull; Zero Inbound Egress)</span>
-        <span>❄️ <strong>Snowflake Lakehouse</strong> (L0 Staging &rarr; L1 Cleansed &rarr; L2 Star Schema)</span>
-        <span>🦆 <strong>DuckDB Local</strong> (In-Memory Columnar Cache &bull; &lt;5ms SLA)</span>
+      <!-- ENGINE FILTER BAR & SOVEREIGN MESH (NEVER OVERLAPPING) -->
+      <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 16px;margin-bottom:16px;flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11.5px;font-weight:800;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;">Engine Filter</span>
+            <span style="font-size:11px;color:#64748B;">&bull; Select pipeline engine to filter DAGs</span>
+          </div>
+          <div style="font-size:11px;color:#38BDF8;font-weight:600;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span>☁️ BigQuery (10GB Free Storage &bull; 1TB Query)</span>
+            <span>🔸 AWS S3 Standard (5GB Free)</span>
+            <span>❄️ Snowflake L0-L2</span>
+            <span>🦆 DuckDB Local (&lt;5ms SLA)</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="ailab-pill is-active" id="dagFilterAll" onclick="ailabOrchFilterEngine('all')" style="padding:6px 14px;font-size:12px;font-weight:700;">⚡ All (86)</button>
+          <button type="button" class="ailab-pill" id="dagFilterBigquery" onclick="ailabOrchFilterEngine('bigquery')" style="padding:6px 14px;font-size:12px;font-weight:700;">☁️ Google BigQuery (14)</button>
+          <button type="button" class="ailab-pill" id="dagFilterAws" onclick="ailabOrchFilterEngine('aws')" style="padding:6px 14px;font-size:12px;font-weight:700;">🔸 AWS S3 / Glue (12)</button>
+          <button type="button" class="ailab-pill" id="dagFilterSnowflake" onclick="ailabOrchFilterEngine('snowflake')" style="padding:6px 14px;font-size:12px;font-weight:700;">❄️ Snowflake L0-L2 (8)</button>
+          <button type="button" class="ailab-pill" id="dagFilterDuckdb" onclick="ailabOrchFilterEngine('duckdb')" style="padding:6px 14px;font-size:12px;font-weight:700;">🦆 DuckDB (2)</button>
+          <button type="button" class="ailab-pill" id="dagFilterReports" onclick="ailabOrchFilterEngine('reports')" style="padding:6px 14px;font-size:12px;font-weight:700;">📊 Reports &amp; Alerts (50)</button>
+        </div>
       </div>
 
       <div id="airflowDagsList" style="display:flex;flex-direction:column;gap:10px;">
@@ -4377,7 +4457,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 2: SFTP HUB -->
-    <div id="airflowTabSftp" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
+    <div id="airflowTabSftp" class="orch-tab-pane" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:20px 24px;box-sizing:border-box;">
       <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
         <div>
           <div style="font-size:14px;font-weight:800;color:#F8FAFC;display:flex;align-items:center;gap:8px;">
@@ -4439,7 +4519,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 3: MULTI-CHANNEL ALERTS & MONITORING -->
-    <div id="airflowTabAlerts" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
+    <div id="airflowTabAlerts" class="orch-tab-pane" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:20px 24px;box-sizing:border-box;">
       <!-- ALERT SCHEDULER & CONTROLS STRIP (Play, Pause, Schedule Time Change) -->
       <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(56,189,248,0.28);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
@@ -4511,7 +4591,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
 
     <!-- TAB 4: LOGS -->
-    <div id="airflowTabLogs" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
+    <div id="airflowTabLogs" class="orch-tab-pane" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:20px 24px;box-sizing:border-box;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="font-size:12.5px;font-weight:700;color:#F8FAFC;">Runtime + orchestrator audit log</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -4520,11 +4600,11 @@ body.in-global_ai_lab .nano-dynamic-island {
           <button type="button" class="ailab-code-btn" onclick="ailabOrchLoadLogs()" style="font-size:11px;color:#38BDF8;">&#8635; Refresh</button>
         </div>
       </div>
-      <div id="airflowOrchLogs" style="background:#090D16;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;font-size:11px;max-height:440px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;color:#CBD5E1;"></div>
+      <div id="airflowOrchLogs" style="background:#090D16;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:16px;font-family:ui-monospace,Menlo,Monaco,Consolas,monospace;font-size:11.5px;flex:1;min-height:550px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;color:#CBD5E1;"></div>
     </div>
 
     <!-- TAB 5: ARCHITECTURE -->
-    <div id="airflowTabArch" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:16px 20px;box-sizing:border-box;">
+    <div id="airflowTabArch" class="orch-tab-pane" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:20px 24px;box-sizing:border-box;">
       <div style="background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:18px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
