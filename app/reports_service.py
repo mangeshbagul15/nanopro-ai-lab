@@ -34,6 +34,26 @@ def get_report_info(report_key: str) -> Optional[Tuple[str, str, str, str]]:
         fpath = os.path.join(INBOUND_DIR, fname)
         return fpath, fname, mtype, f"sftp/inbound/{fname}"
 
+    # 2. Friendly bundle aliases
+    bundle_aliases = {
+        "master_excel": "Master_Consolidated_Banking_Executive_20261120.xlsx",
+        "master_consolidated": "Master_Consolidated_Banking_Executive_20261120.xlsx",
+        "master_executive": "Master_Consolidated_Banking_Executive_20261120.xlsx",
+        "aml_fiu_ind": "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx",
+        "aml_fiu": "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx",
+        "credit_card_risk": "Credit_Card_Risk_Delinquency_20261120.xlsx",
+        "credit_card": "Credit_Card_Risk_Delinquency_20261120.xlsx",
+        "alm_liquidity": "ALM_Liquidity_Basel_III_20261120.xlsx",
+        "alm_basel": "ALM_Liquidity_Basel_III_20261120.xlsx",
+        "loans_microfinance": "Loans_Microfinance_JLG_20261120.xlsx",
+        "microfinance_jlg": "Loans_Microfinance_JLG_20261120.xlsx"
+    }
+    if clean_k in bundle_aliases:
+        fname = bundle_aliases[clean_k]
+        fpath = os.path.join(OUTBOUND_DIR, fname)
+        mtype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        return fpath, fname, mtype, f"sftp/outbound/reports/{fname}"
+
     # 2. Dynamic lookup in Outbound reports repository
     if os.path.exists(OUTBOUND_DIR):
         for f in os.listdir(OUTBOUND_DIR):
