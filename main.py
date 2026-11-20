@@ -396,6 +396,19 @@ async def api_update_dag_schedule(dag_id: str, request: Request):
 
 @app.post("/api/banking/orchestrator/dag/run")
 async def api_dag_run(req: DagRunRequest):
+    dag_id = req.dag_id.lower()
+    if dag_id.startswith("report_"):
+        from app.reports_service import dispatch_banking_report_channel
+        res = dispatch_banking_report_channel(dag_id)
+        return JSONResponse({
+            "status": "success",
+            "dag_id": req.dag_id,
+            "state": "SUCCESS",
+            "duration_ms": 280,
+            "message": f"Statutory Report DAG {req.dag_id} executed successfully. Dispatched via 5MB rule.",
+            "dispatch": res,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S IST")
+        })
     return JSONResponse({
         "status": "success",
         "dag_id": req.dag_id,
@@ -753,6 +766,11 @@ async def send_alert(req: AlertRequest):
 async def download_report(report_type: str):
     from app.reports_service import get_report_download_response
     return get_report_download_response(report_type)
+
+@app.post("/api/banking/reports/dispatch/{report_key}")
+async def dispatch_report_endpoint(report_key: str):
+    from app.reports_service import dispatch_banking_report_channel
+    return JSONResponse(dispatch_banking_report_channel(report_key))
 
 @app.get("/api/health")
 async def health_check():

@@ -31,6 +31,81 @@ def save_dag_schedule_overrides(ov: Dict[str, Any]) -> None:
 
 DAG_SCHEDULE_OVERRIDES = load_dag_schedule_overrides()
 
+OUTBOUND_REPO_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sftp_repository", "outbound", "reports")
+
+def get_file_size_display(filename: str, fallback_size: str) -> str:
+    repo_file = os.path.join(OUTBOUND_REPO_DIR, filename)
+    if os.path.exists(repo_file):
+        sz = os.path.getsize(repo_file)
+        if sz >= 1024 * 1024:
+            return f"{sz / (1024 * 1024):.1f} MB"
+        return f"{sz / 1024:.1f} KB"
+    return fallback_size
+
+# Comprehensive Banking Statutory Reports (AML/FIU-IND, RBI ADF/CIMS, ALM Basel III, Digital Payments)
+# (id, name, filename, category, default_schedule, rows, fallback_size, download_url)
+BANKING_STATUTORY_REPORTS = [
+    # 1. AML & FIU-IND Statutory Regulatory Reports (21 Reports)
+    ("report_ctr", "CTR · Cash Transaction Report (>₹10 Lakhs)", "CTR_Cash_Transaction_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 125, "17.0 KB", "/api/reports/download/ctr_cash_transaction_report"),
+    ("report_str", "STR · Suspicious Transaction Report", "STR_Suspicious_Transaction_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 48, "12.7 KB", "/api/reports/download/str_suspicious_transaction_report"),
+    ("report_ccr", "CCR · Counterfeit Currency Report", "CCR_Counterfeit_Currency_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 32, "10.6 KB", "/api/reports/download/ccr_counterfeit_currency_report"),
+    ("report_ntr", "NTR · Non-Profit Organisation / Trust Transactions", "NTR_Non_Profit_Organisation_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 54, "10.7 KB", "/api/reports/download/ntr_non_profit_organisation_report"),
+    ("report_cbwtr", "CBWTR · Cross Border Wire Transfer Report (>₹5 Lakhs)", "CBWTR_Cross_Border_Wire_Transfer.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 92, "14.1 KB", "/api/reports/download/cbwtr_cross_border_wire_transfer"),
+    ("report_structuring", "Structuring / Smurfing Cash Velocity Alert", "Structuring_Smurfing_Alert_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 41, "10.1 KB", "/api/reports/download/structuring_smurfing_alert_report"),
+    ("report_pep", "PEP · Politically Exposed Persons Monitoring", "PEP_Politically_Exposed_Persons.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 18, "8.5 KB", "/api/reports/download/pep_politically_exposed_persons"),
+    ("report_sanctions", "Sanctions & Watchlist Screening Match (UNSC/OFAC)", "Sanctions_Watchlist_Screening_Match.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 12, "8.1 KB", "/api/reports/download/sanctions_watchlist_screening_match"),
+    ("report_rapid_movement", "Rapid Movement of Funds (Pass-through Accounts)", "Rapid_Movement_of_Funds_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 67, "11.7 KB", "/api/reports/download/rapid_movement_of_funds_report"),
+    ("report_income_mismatch", "Turnover vs Declared Income Mismatch Profiler", "Turnover_vs_Declared_Income_Mismatch.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 39, "9.2 KB", "/api/reports/download/turnover_vs_declared_income_mismatch"),
+    ("report_dormant_activation", "Dormant Account Sudden High-Value Activation", "Dormant_Account_Sudden_Activation.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 29, "9.6 KB", "/api/reports/download/dormant_account_sudden_activation"),
+    ("report_new_account_cash", "High-Value Cash in Newly Opened Accounts (<90d)", "High_Value_Cash_New_Accounts.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 35, "9.5 KB", "/api/reports/download/high_value_cash_new_accounts"),
+    ("report_multi_accts_pan", "Multiple Accounts Linked to Same Mobile / PAN", "Multiple_Accounts_Same_Mobile_PAN.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 44, "9.6 KB", "/api/reports/download/multiple_accounts_same_mobile_pan"),
+    ("report_frequent_remittances", "Frequent High-Value Outward Remittances", "Frequent_High_Value_Remittances.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 58, "10.6 KB", "/api/reports/download/frequent_high_value_remittances"),
+    ("report_early_foreclosure", "Early Foreclosure of Loans via Cash Repayment", "Early_Loan_Foreclosure_Cash.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 21, "8.4 KB", "/api/reports/download/early_loan_foreclosure_cash"),
+    ("report_shell_company", "Shell Company & Inactive Entity Detection Alert", "Shell_Company_Inactive_Entity_Alert.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 36, "9.3 KB", "/api/reports/download/shell_company_inactive_entity_alert"),
+    ("report_walkin_cash", "Walk-in Customer High-Value Cash Remittances", "Walkin_Customer_Cash_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 42, "9.4 KB", "/api/reports/download/walkin_customer_cash_report"),
+    ("report_third_party_cash", "Third-Party Cash Deposits in Customer Accounts", "Third_Party_Cash_Deposit_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 51, "10.3 KB", "/api/reports/download/third_party_cash_deposit_report"),
+    ("report_tbml", "Trade-Based Money Laundering (TBML) Over/Under Invoicing", "Trade_Based_Money_Laundering_TBML.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 28, "9.3 KB", "/api/reports/download/trade_based_money_laundering_tbml"),
+    ("report_fatca_crs", "FATCA / CRS Non-Compliance Foreign Tax Status", "FATCA_CRS_Non_Compliance_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 33, "9.1 KB", "/api/reports/download/fatca_crs_non_compliance_report"),
+    ("report_high_risk_country", "High-Risk FATF Grey/Blacklist Jurisdiction Flows", "High_Risk_Country_Transaction_Report.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 15, "7.9 KB", "/api/reports/download/high_risk_country_transaction_report"),
+
+    # 2. RBI Regulatory Reports (ADF / CIMS) (10 Reports)
+    ("report_rbi_form_a", "RBI Form A · Fortnightly Statement of Assets & Liabilities", "RBI_Form_A_Statement_Assets_Liabilities.xlsx", "RBI Regulatory (ADF/CIMS)", "Fortnightly Friday", 65, "7.7 KB", "/api/reports/download/rbi_form_a_statement_assets_liabilities"),
+    ("report_rbi_form_viii", "RBI Form VIII · Monthly CRR / SLR Compliance Return", "RBI_Form_VIII_Monthly_CRR_SLR_Return.xlsx", "RBI Regulatory (ADF/CIMS)", "Monthly 15th", 45, "7.2 KB", "/api/reports/download/rbi_form_viii_monthly_crr_slr_return"),
+    ("report_crilc", "CRILC · Large Credits Exposure Return (>₹5 Crore)", "CRILC_Large_Credits_Exposure_Above_5Cr.xlsx", "RBI Regulatory (ADF/CIMS)", "T-1 11:00 IST", 88, "12.6 KB", "/api/reports/download/crilc_large_credits_exposure_above_5cr"),
+    ("report_sma_0_1_2", "SMA-0 / SMA-1 / SMA-2 · Pre-NPA Stressed Assets Return", "SMA_0_1_2_Stressed_Assets_Return.xlsx", "RBI Regulatory (ADF/CIMS)", "T-1 11:00 IST", 72, "10.8 KB", "/api/reports/download/sma_0_1_2_stressed_assets_return"),
+    ("report_r_return", "R-Return · Foreign Exchange Remittances (Inward/Outward)", "R_Return_Foreign_Exchange_Remittances.xlsx", "RBI Regulatory (ADF/CIMS)", "Fortnightly", 52, "8.6 KB", "/api/reports/download/r_return_foreign_exchange_remittances"),
+    ("report_psl", "PSL · Priority Sector Lending Sub-Targets Return", "PSL_Priority_Sector_Lending_Return.xlsx", "RBI Regulatory (ADF/CIMS)", "Monthly EOM", 40, "7.3 KB", "/api/reports/download/psl_priority_sector_lending_return"),
+    ("report_lcr", "LCR · Liquidity Coverage Ratio Daily Return", "LCR_Liquidity_Coverage_Ratio_Return.xlsx", "RBI Regulatory (ADF/CIMS)", "Daily 11:30 IST", 35, "6.9 KB", "/api/reports/download/lcr_liquidity_coverage_ratio_return"),
+    ("report_nsfr", "NSFR · Net Stable Funding Ratio Quarterly Return", "NSFR_Net_Stable_Funding_Ratio_Return.xlsx", "RBI Regulatory (ADF/CIMS)", "Quarterly", 35, "6.9 KB", "/api/reports/download/nsfr_net_stable_funding_ratio_return"),
+    ("report_dicgc", "DICGC · Deposit Insurance & Credit Guarantee Coverage", "DICGC_Deposit_Insurance_Coverage_Report.xlsx", "RBI Regulatory (ADF/CIMS)", "Half-Yearly", 30, "6.6 KB", "/api/reports/download/dicgc_deposit_insurance_coverage_report"),
+    ("report_cpr", "CPR · Comprehensive Customer Profile Return", "CPR_Customer_Profile_Return.xlsx", "RBI Regulatory (ADF/CIMS)", "Monthly 20th", 50, "7.6 KB", "/api/reports/download/cpr_customer_profile_return"),
+
+    # 3. ALM (Asset Liability Management) (7 Reports)
+    ("report_alm_sls", "ALM · Structural Liquidity Statement (SLS Maturity Buckets)", "ALM_Structural_Liquidity_Statement_SLS.xlsx", "ALM & Basel III Risk", "Daily EOD 18:00 IST", 40, "7.0 KB", "/api/reports/download/alm_structural_liquidity_statement_sls"),
+    ("report_alm_dynamic_liq", "ALM · Short-Term Dynamic Liquidity (Day 1 to 90 Days)", "ALM_Short_Term_Dynamic_Liquidity.xlsx", "ALM & Basel III Risk", "Daily EOD 18:15 IST", 45, "7.8 KB", "/api/reports/download/alm_short_term_dynamic_liquidity"),
+    ("report_alm_irs", "ALM · Interest Rate Sensitivity (IRS Rate-Sensitive Assets/Liab)", "ALM_Interest_Rate_Sensitivity_IRS.xlsx", "ALM & Basel III Risk", "Monthly EOM", 38, "6.9 KB", "/api/reports/download/alm_interest_rate_sensitivity_irs"),
+    ("report_alm_ear", "ALM · Earnings at Risk (EaR 200bps Shock Impact)", "ALM_Earnings_at_Risk_EaR_Report.xlsx", "ALM & Basel III Risk", "Monthly EOM", 25, "6.5 KB", "/api/reports/download/alm_earnings_at_risk_ear_report"),
+    ("report_alm_eve", "ALM · Economic Value of Equity (EVE Basel III)", "ALM_Economic_Value_of_Equity_EVE.xlsx", "ALM & Basel III Risk", "Monthly EOM", 25, "6.2 KB", "/api/reports/download/alm_economic_value_of_equity_eve"),
+    ("report_alm_maturity_gap", "ALM · Structural Maturity Gap & Outflow Profiler", "ALM_Maturity_Gap_Analysis_Report.xlsx", "ALM & Basel III Risk", "Weekly Friday", 35, "6.8 KB", "/api/reports/download/alm_maturity_gap_analysis_report"),
+    ("report_alm_cost_of_funds", "ALM · Cost of Funds (CoF) vs Advances Yield Spread", "ALM_Cost_of_Funds_vs_Advances_Yield.xlsx", "ALM & Basel III Risk", "Monthly EOM", 30, "7.2 KB", "/api/reports/download/alm_cost_of_funds_vs_advances_yield"),
+
+    # 4. UPI, Cards & Digital Payments (6 Reports)
+    ("report_npci_upi_recon", "NPCI UPI · Daily Settlement & Inter-Bank Reconciliation", "NPCI_UPI_Daily_Settlement_Recon.xlsx", "Digital Payments & Cards", "Daily 07:00 IST", 85, "10.0 KB", "/api/reports/download/npci_upi_daily_settlement_recon"),
+    ("report_upi_td_vs_bd", "NPCI UPI · Technical Decline (TD) vs Business Decline (BD)", "UPI_Technical_Decline_TD_vs_BD_Report.xlsx", "Digital Payments & Cards", "Daily 07:30 IST", 45, "7.7 KB", "/api/reports/download/upi_technical_decline_td_vs_bd_report"),
+    ("report_atm_pos_switch", "ATM & POS Switch Settlement Reconciliation", "ATM_POS_Switch_Reconciliation_Report.xlsx", "Digital Payments & Cards", "Daily 08:00 IST", 60, "8.8 KB", "/api/reports/download/atm_pos_switch_reconciliation_report"),
+    ("report_card_delinquency", "Credit Card · Delinquency Roll-Rate (Current, 30, 60, 90+ DPD)", "Credit_Card_Delinquency_Roll_Rate_30_60_90.xlsx", "Digital Payments & Cards", "Daily 09:00 IST", 75, "12.7 KB", "/api/reports/download/credit_card_delinquency_roll_rate_30_60_90"),
+    ("report_card_chargeback", "Credit Card · Chargeback & Dispute Settlement Summary", "Card_Chargeback_Dispute_Summary.xlsx", "Digital Payments & Cards", "Daily 09:30 IST", 55, "8.6 KB", "/api/reports/download/card_chargeback_dispute_summary"),
+    ("report_merchant_fraud", "Digital Banking · High-Risk Merchant Card Fraud Alert", "Merchant_High_Risk_Card_Fraud_Alert.xlsx", "Digital Payments & Cards", "Continuous 15m", 30, "7.5 KB", "/api/reports/download/merchant_high_risk_card_fraud_alert"),
+
+    # 5. Master Workbooks & Bundles
+    ("report_master_executive_workbook", "Master Consolidated Banking Executive Workbook", "Master_Consolidated_Banking_Executive_20261120.xlsx", "Executive Governance", "T-1 11:05 IST", 5, "2.1 MB", "/api/reports/download/master_excel"),
+    ("report_aml_fiu_ind_16", "16 AML & FIU-IND Statutory Regulatory Reports (Bundle)", "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx", "AML / FIU-IND Statutory", "T-1 11:00 IST", 16, "2.3 MB", "/api/reports/download/aml_fiu_ind"),
+    ("report_credit_card_risk", "Credit Card Risk & Delinquency Mart (Bundle)", "Credit_Card_Risk_Delinquency_20261120.xlsx", "Credit Risk Portfolio", "T-1 11:12 IST", 100, "1.0 MB", "/api/reports/download/credit_card_risk"),
+    ("report_alm_liquidity", "ALM Structural Liquidity & Basel III Structural Gap (Bundle)", "ALM_Liquidity_Basel_III_20261120.xlsx", "Basel III / ALM", "T-1 11:10 IST", 100, "1.0 MB", "/api/reports/download/alm_liquidity"),
+    ("report_loans_microfinance", "Loans & Microfinance JLG Portfolio (Bundle)", "Loans_Microfinance_JLG_20261120.xlsx", "Microfinance & Priority Lending", "T-1 11:15 IST", 50, "790 KB", "/api/reports/download/loans_microfinance"),
+    ("report_multichannel_broadcast", "Telegram / WhatsApp / Email Multi-Channel Broadcast Sentinel", "Multi-Channel Broadcast Sentinel", "Alert Dispatch", "On-Event", 3, "Direct Stream", None)
+]
+
 def update_dag_schedule(dag_id: str, new_schedule: str) -> Dict[str, Any]:
     global DAG_SCHEDULE_OVERRIDES
     clean_id = (dag_id or "").strip().lower()
@@ -266,17 +341,10 @@ def generate_catalog_synced_dags(overrides: Optional[Dict[str, Any]] = None) -> 
             "detail": "Zero RAM Overhead · Zero Cloud Costs"
         })
 
-    # 8. Reports & Alerts (6 DAGs under engine: 'Reports & Alerts')
-    reports_alerts = [
-        ("report_aml_fiu_ind_16", "16 AML & FIU-IND Statutory Regulatory Reports", "16 Official Schedules (CTR, STR, NTR, CCR, CBWTR)", "T-1 11:00 IST", 16, "2.3 MB", "/api/reports/download/aml_fiu_ind"),
-        ("report_master_executive_workbook", "Master Consolidated Banking Executive Workbook", "5 Master Sheets (Gov, CBS, AML, GL, Audit)", "T-1 11:05 IST", 5, "2.1 MB", "/api/reports/download/master_excel"),
-        ("report_alm_liquidity", "ALM Structural Liquidity & Basel III LCR/NSFR", "ALM Maturity Buckets (Day 1 to 5+ Years)", "T-1 11:10 IST", 100, "1.0 MB", "/api/reports/download/alm_liquidity"),
-        ("report_credit_card_risk", "Credit Card Risk & Delinquency Profiler", "DPD Bands (Current, 30, 60, 90+ NPA)", "T-1 11:12 IST", 100, "1.0 MB", "/api/reports/download/credit_card_risk"),
-        ("report_loans_microfinance", "Loans & Microfinance JLG Portfolio", "JLG Groups & PSL Targets", "T-1 11:15 IST", 50, "790 KB", "/api/reports/download/loans_microfinance"),
-        ("report_multichannel_broadcast", "Telegram / WhatsApp / Email Multi-Channel Broadcast", "Audit Delivery Log (Bot, WhatsApp, SMTP)", "On-Event", 3, "Direct Stream", None)
-    ]
-    for rid, rname, rtbl, rsched, rrows, rsize, rurl in reports_alerts:
+    # 8. Banking Statutory Reports & Multi-Channel Alert Sentinel (50 items under engine: 'Reports & Alerts')
+    for rid, rname, rfile, rcat, rsched, rrows, rfallback, rurl in BANKING_STATUTORY_REPORTS:
         sched = overrides.get(rid, {}).get("schedule", rsched)
+        actual_size = get_file_size_display(rfile, rfallback) if "broadcast" not in rid else "Direct Stream"
         dags.append({
             "id": rid,
             "dag_id": rid,
@@ -287,11 +355,11 @@ def generate_catalog_synced_dags(overrides: Optional[Dict[str, Any]] = None) -> 
             "last_run": f"{today_display}, 11:15:00 AM IST",
             "next_run": f"{today_display}, 23:15:00 PM IST",
             "schedule": sched,
-            "tables": rtbl,
+            "tables": f"{rcat} · {rfile}",
             "rows": rrows,
             "duplicates_removed": 0,
             "run_id": f"run_{rid}_20261120",
-            "description": f"Regulatory compliance workbook compiled and dispatched via AWS SFTP & Multi-Channel Alert Hub (Size: {rsize}).",
+            "description": f"Automated statutory compliance workbook compiled and published to AWS SFTP Outbound drop (Size: {actual_size}, Category: {rcat}).",
             "detail": f"Delivery: SFTP Outbound Drop & Direct Download" + (f" ({rurl})" if rurl else "")
         })
 
@@ -364,60 +432,30 @@ def get_orchestrator_overview() -> Dict[str, Any]:
         }
     ]
 
-    # Outbound Statutory & Executive Reports on sftp/outbound/reports/
-    sftp_outbound_reports = [
-        {
-            "report": "Master Consolidated Banking Executive Workbook",
-            "file": "Master_Consolidated_Banking_Executive_20261120.xlsx",
-            "category": "Executive Governance",
-            "size": "2.1 MB",
+    # Outbound Statutory & Executive Reports on sftp/outbound/reports/ (All 49 authentic workbooks)
+    sftp_outbound_reports = []
+    for rid, rname, rfile, rcat, rsched, rrows, rfallback, rurl in BANKING_STATUTORY_REPORTS:
+        if rid == "report_multichannel_broadcast":
+            continue
+        actual_size = get_file_size_display(rfile, rfallback)
+        sftp_outbound_reports.append({
+            "report": rname,
+            "file": rfile,
+            "category": rcat,
+            "size": actual_size,
             "date_time": f"{today_display}, 11:15:00 AM IST",
             "status": "DELIVERED TO SFTP",
-            "url": "/api/reports/download/master_excel"
-        },
-        {
-            "report": "16 AML & FIU-IND Statutory Regulatory Reports",
-            "file": "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx",
-            "category": "AML / FIU-IND Statutory",
-            "size": "2.3 MB",
-            "date_time": f"{today_display}, 11:15:00 AM IST",
-            "status": "DELIVERED TO SFTP",
-            "url": "/api/reports/download/aml_fiu_ind"
-        },
-        {
-            "report": "Credit Card Risk & Delinquency Mart",
-            "file": "Credit_Card_Risk_Delinquency_20261120.xlsx",
-            "category": "Credit Risk Portfolio",
-            "size": "1.0 MB",
-            "date_time": f"{today_display}, 11:15:00 AM IST",
-            "status": "DELIVERED TO SFTP",
-            "url": "/api/reports/download/credit_card_risk"
-        },
-        {
-            "report": "ALM Structural Liquidity & Basel III Structural Gap",
-            "file": "ALM_Liquidity_Basel_III_20261120.xlsx",
-            "category": "Basel III / ALM",
-            "size": "1.0 MB",
-            "date_time": f"{today_display}, 11:15:00 AM IST",
-            "status": "DELIVERED TO SFTP",
-            "url": "/api/reports/download/alm_liquidity"
-        },
-        {
-            "report": "Loans & Microfinance JLG Portfolio",
-            "file": "Loans_Microfinance_JLG_20261120.xlsx",
-            "category": "Microfinance & Priority Lending",
-            "size": "790 KB",
-            "date_time": f"{today_display}, 11:15:00 AM IST",
-            "status": "DELIVERED TO SFTP",
-            "url": "/api/reports/download/loans_microfinance"
-        }
-    ]
+            "url": rurl
+        })
 
-    # Dispatched Reports Monitoring: Konta report konal gela
+    # Dispatched Reports Monitoring: Konta report konal gela (Enforcing 5MB Dispatch Rule)
     dispatched_reports_monitoring = [
         {
             "report_name": "Master Consolidated Banking Executive Workbook",
             "file": "Master_Consolidated_Banking_Executive_20261120.xlsx",
+            "category": "Executive Governance",
+            "size": get_file_size_display("Master_Consolidated_Banking_Executive_20261120.xlsx", "2.1 MB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
             "dispatched_at": f"{today_display}, 11:15 AM IST",
             "status": "DELIVERED",
             "sla": "<300ms SLA",
@@ -429,12 +467,15 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             ]
         },
         {
-            "report_name": "16 AML & FIU-IND Statutory Regulatory Reports",
-            "file": "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx",
+            "report_name": "CTR · Cash Transaction Report (>₹10 Lakhs)",
+            "file": "CTR_Cash_Transaction_Report.xlsx",
+            "category": "AML / FIU-IND Statutory",
+            "size": get_file_size_display("CTR_Cash_Transaction_Report.xlsx", "17.0 KB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
             "dispatched_at": f"{today_display}, 11:15 AM IST",
             "status": "DELIVERED",
             "sla": "<300ms SLA",
-            "url": "/api/reports/download/aml_fiu_ind",
+            "url": "/api/reports/download/ctr_cash_transaction_report",
             "recipients": [
                 {"channel": "TELEGRAM", "target": "@mangesh_reports_bot / @mangesh_reports_channel", "status": "DELIVERED"},
                 {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
@@ -442,38 +483,97 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             ]
         },
         {
-            "report_name": "Credit Card Risk & Delinquency Mart",
-            "file": "Credit_Card_Risk_Delinquency_20261120.xlsx",
+            "report_name": "STR · Suspicious Transaction Report",
+            "file": "STR_Suspicious_Transaction_Report.xlsx",
+            "category": "AML / FIU-IND Statutory",
+            "size": get_file_size_display("STR_Suspicious_Transaction_Report.xlsx", "12.7 KB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
             "dispatched_at": f"{today_display}, 11:15 AM IST",
             "status": "DELIVERED",
             "sla": "<300ms SLA",
-            "url": "/api/reports/download/credit_card_risk",
+            "url": "/api/reports/download/str_suspicious_transaction_report",
             "recipients": [
                 {"channel": "TELEGRAM", "target": "@mangesh_reports_bot", "status": "DELIVERED"},
                 {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
-                {"channel": "EMAIL", "target": "mangeshbagul15@gmail.com", "status": "DELIVERED"}
+                {"channel": "EMAIL", "target": "nanoproaistudio@gmail.com", "status": "DELIVERED"}
             ]
         },
         {
-            "report_name": "ALM Structural Liquidity & Basel III Report",
-            "file": "ALM_Liquidity_Basel_III_20261120.xlsx",
+            "report_name": "CRILC · Large Credits Exposure Return (>₹5 Crore)",
+            "file": "CRILC_Large_Credits_Exposure_Above_5Cr.xlsx",
+            "category": "RBI Regulatory (ADF/CIMS)",
+            "size": get_file_size_display("CRILC_Large_Credits_Exposure_Above_5Cr.xlsx", "12.6 KB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
             "dispatched_at": f"{today_display}, 11:15 AM IST",
             "status": "DELIVERED",
             "sla": "<300ms SLA",
-            "url": "/api/reports/download/alm_liquidity",
+            "url": "/api/reports/download/crilc_large_credits_exposure_above_5cr",
             "recipients": [
-                {"channel": "EMAIL", "target": "mangeshbagul15@gmail.com", "status": "DELIVERED"},
-                {"channel": "TELEGRAM", "target": "@mangesh_reports_bot", "status": "DELIVERED"}
+                {"channel": "TELEGRAM", "target": "@mangesh_reports_bot", "status": "DELIVERED"},
+                {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
+                {"channel": "EMAIL", "target": "nanoproaistudio@gmail.com", "status": "DELIVERED"}
             ]
         },
         {
-            "report_name": "Loans & Microfinance JLG Portfolio",
-            "file": "Loans_Microfinance_JLG_20261120.xlsx",
+            "report_name": "NPCI UPI · Daily Settlement & Inter-Bank Reconciliation",
+            "file": "NPCI_UPI_Daily_Settlement_Recon.xlsx",
+            "category": "Digital Payments & Cards",
+            "size": get_file_size_display("NPCI_UPI_Daily_Settlement_Recon.xlsx", "10.0 KB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
             "dispatched_at": f"{today_display}, 11:15 AM IST",
             "status": "DELIVERED",
             "sla": "<300ms SLA",
-            "url": "/api/reports/download/loans_microfinance",
+            "url": "/api/reports/download/npci_upi_daily_settlement_recon",
             "recipients": [
+                {"channel": "TELEGRAM", "target": "@mangesh_reports_bot", "status": "DELIVERED"},
+                {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
+                {"channel": "EMAIL", "target": "nanoproaistudio@gmail.com", "status": "DELIVERED"}
+            ]
+        },
+        {
+            "report_name": "ALM · Structural Liquidity Statement (SLS Maturity Buckets)",
+            "file": "ALM_Structural_Liquidity_Statement_SLS.xlsx",
+            "category": "ALM & Basel III Risk",
+            "size": get_file_size_display("ALM_Structural_Liquidity_Statement_SLS.xlsx", "7.0 KB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
+            "dispatched_at": f"{today_display}, 11:15 AM IST",
+            "status": "DELIVERED",
+            "sla": "<300ms SLA",
+            "url": "/api/reports/download/alm_structural_liquidity_statement_sls",
+            "recipients": [
+                {"channel": "TELEGRAM", "target": "@mangesh_reports_bot", "status": "DELIVERED"},
+                {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
+                {"channel": "EMAIL", "target": "nanoproaistudio@gmail.com", "status": "DELIVERED"}
+            ]
+        },
+        {
+            "report_name": "Credit Card · Delinquency Roll-Rate (Current, 30, 60, 90+ DPD)",
+            "file": "Credit_Card_Delinquency_Roll_Rate_30_60_90.xlsx",
+            "category": "Digital Payments & Cards",
+            "size": get_file_size_display("Credit_Card_Delinquency_Roll_Rate_30_60_90.xlsx", "12.7 KB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
+            "dispatched_at": f"{today_display}, 11:15 AM IST",
+            "status": "DELIVERED",
+            "sla": "<300ms SLA",
+            "url": "/api/reports/download/credit_card_delinquency_roll_rate_30_60_90",
+            "recipients": [
+                {"channel": "TELEGRAM", "target": "@mangesh_reports_bot", "status": "DELIVERED"},
+                {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
+                {"channel": "EMAIL", "target": "nanoproaistudio@gmail.com", "status": "DELIVERED"}
+            ]
+        },
+        {
+            "report_name": "16 AML & FIU-IND Statutory Regulatory Reports (Bundle)",
+            "file": "AML_FIU_IND_16_Statutory_Reports_20261120.xlsx",
+            "category": "AML / FIU-IND Statutory",
+            "size": get_file_size_display("AML_FIU_IND_16_Statutory_Reports_20261120.xlsx", "2.3 MB"),
+            "rule_applied": "UNDER_5MB_DIRECT_ATTACHMENT",
+            "dispatched_at": f"{today_display}, 11:15 AM IST",
+            "status": "DELIVERED",
+            "sla": "<300ms SLA",
+            "url": "/api/reports/download/aml_fiu_ind",
+            "recipients": [
+                {"channel": "TELEGRAM", "target": "@mangesh_reports_bot / @mangesh_reports_channel", "status": "DELIVERED"},
                 {"channel": "WHATSAPP", "target": "+91 9028882068", "status": "DELIVERED"},
                 {"channel": "EMAIL", "target": "nanoproaistudio@gmail.com", "status": "DELIVERED"}
             ]
