@@ -27,6 +27,7 @@ from app.core.global_ai_catalog import (
 from app.core.chat_bigquery_admin import maybe_handle as maybe_admin
 from app.core.chat_bigquery_ddl import maybe_handle as maybe_ddl
 from app.core.chat_bigquery_data import maybe_handle as maybe_data
+from app.core.agentic_chat_engine import process_agentic_chat
 
 app = FastAPI(
     title="NanoPro AI Lab Production",
@@ -554,6 +555,12 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
     """Executes AI prompt with BigQuery DDL/Admin intercept, sub-300ms inference, and mathematical telemetry."""
     try:
         prompt = payload.get("prompt", "")
+
+        # 0. Autonomous Agentic Chat Engine Intercept (Schedules, Real Telemetry, Diagrams, Models, Runs)
+        agentic_result = process_agentic_chat(prompt)
+        if agentic_result is not None:
+            agentic_result["user"] = "Super Admin (Mangesh Bagul)"
+            return JSONResponse(agentic_result)
 
         # 1. Intercept Explorer admin instructions ("VCT rename", "drop table", etc.)
         admin_result = maybe_admin(prompt)
