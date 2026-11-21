@@ -1308,34 +1308,98 @@ class ChatPersistenceConnector:
 
     @classmethod
     def list_sessions_and_projects(cls, user_key: str = "admin") -> Dict[str, Any]:
-        """Lists active projects and recent chat sessions with real-time message counts."""
+        """Lists active projects and recent chat sessions filtered by user_key across PostgreSQL & DuckDB."""
         cls.init_tables()
         sessions = []
         projects = []
+        is_admin = str(user_key or "").lower() in ("admin", "nanopro")
 
+        # 1. Try Render PostgreSQL first
+        try:
+            p_sql = """
+            SELECT session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key
+            FROM nanopro_chat_sessions
+            """
+            if not is_admin:
+                safe_u = str(user_key).replace("'", "''")
+                p_sql += f" WHERE user_key = '{safe_u}'"
+            p_sql += " ORDER BY is_pinned DESC, updated_at DESC LIMIT 50;"
+            
+            res = RenderPostgresConnector.execute_and_commit(p_sql)
+            if res.get("status") == "success" and res.get("rows"):
+                sessions = res["rows"]
+
+            proj_sql = "SELECT project_id, name, description, created_at, updated_at, user_key FROM nanopro_projects"
+            if not is_admin:
+                safe_u = str(user_key).replace("'", "''")
+                proj_sql += f" WHERE user_key = '{safe_u}'"
+            proj_sql += " ORDER BY updated_at DESC LIMIT 20;"
+            p_res = RenderPostgresConnector.execute_and_commit(proj_sql)
+            if p_res.get("status") == "success" and p_res.get("rows"):
+                projects = p_res["rows"]
+        except Exception:
+            pass
+
+        # 2. DuckDB fallback or merge
         con = DuckDBFederatedConnector.get_connection(read_only=True)
         try:
             cur = con.cursor()
-            cur.execute("""
-            SELECT session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at
-            FROM nanopro_chat_sessions
-            ORDER BY is_pinned DESC, updated_at DESC
-            LIMIT 50
-            """)
+            if is_admin:
+                cur.execute("""
+                SELECT session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key
+                FROM nanopro_chat_sessions
+                ORDER BY is_pinned DESC, updated_at DESC
+                LIMIT 50
+                """)
+            else:
+                cur.execute("""
+                SELECT session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key
+                FROM nanopro_chat_sessions
+                WHERE user_key = ?
+                ORDER BY is_pinned DESC, updated_at DESC
+                LIMIT 50
+                """, (user_key,))
             cols = [d[0] for d in cur.description]
-            sessions = [_json_safe(dict(zip(cols, r))) for r in cur.fetchall()]
+            duck_sessions = [_json_safe(dict(zip(cols, r))) for r in cur.fetchall()]
 
-            cur.execute("""
-            SELECT project_id, name, description, created_at, updated_at
-            FROM nanopro_projects
-            ORDER BY updated_at DESC
-            LIMIT 20
-            """)
+            if is_admin:
+                cur.execute("""
+                SELECT project_id, name, description, created_at, updated_at, user_key
+                FROM nanopro_projects
+                ORDER BY updated_at DESC
+                LIMIT 20
+                """)
+            else:
+                cur.execute("""
+                SELECT project_id, name, description, created_at, updated_at, user_key
+                FROM nanopro_projects
+                WHERE user_key = ?
+                ORDER BY updated_at DESC
+                LIMIT 20
+                """, (user_key,))
             p_cols = [d[0] for d in cur.description]
-            projects = [_json_safe(dict(zip(p_cols, r))) for r in cur.fetchall()]
+            duck_projects = [_json_safe(dict(zip(p_cols, r))) for r in cur.fetchall()]
             con.close()
+
+            # Merge with existing sessions (dedup by session_id)
+            seen_sess = {s.get("session_id") for s in sessions if s.get("session_id")}
+            for ds in duck_sessions:
+                s_id = ds.get("session_id")
+                if s_id and s_id not in seen_sess:
+                    seen_sess.add(s_id)
+                    sessions.append(ds)
+
+            seen_proj = {p.get("project_id") for p in projects if p.get("project_id")}
+            for dp in duck_projects:
+                p_id = dp.get("project_id")
+                if p_id and p_id not in seen_proj:
+                    seen_proj.add(p_id)
+                    projects.append(dp)
         except Exception:
-            con.close()
+            try:
+                con.close()
+            except Exception:
+                pass
 
         return {
             "status": "success",
@@ -1364,14 +1428,65 @@ class ChatPersistenceConnector:
 
         try:
             safe_title = title.replace("'", "''")
+            safe_u = str(user_key).replace("'", "''")
             RenderPostgresConnector.execute_and_commit(f"""
             INSERT INTO nanopro_chat_sessions (session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key)
-            VALUES ('{s_id}', '{p_id}', '{safe_title}', '{model}', 0, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '{user_key}');
+            VALUES ('{s_id}', '{p_id}', '{safe_title}', '{model}', 0, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '{safe_u}');
             """)
         except Exception:
             pass
 
-        return {"status": "success", "session_id": s_id, "title": title, "project_id": p_id}
+        return {"status": "success", "session_id": s_id, "title": title, "project_id": p_id, "user_key": user_key}
+
+    @classmethod
+    def delete_session(cls, session_id: str, user_key: str = "admin") -> Dict[str, Any]:
+        """Deletes a session and all its messages across DuckDB and Render PostgreSQL."""
+        cls.init_tables()
+        try:
+            con = DuckDBFederatedConnector.get_connection(read_only=False)
+            con.execute("DELETE FROM nanopro_chat_messages WHERE session_id = ?", (session_id,))
+            con.execute("DELETE FROM nanopro_chat_sessions WHERE session_id = ?", (session_id,))
+            con.close()
+        except Exception:
+            pass
+        try:
+            safe_id = session_id.replace("'", "''")
+            RenderPostgresConnector.execute_and_commit(f"""
+            DELETE FROM nanopro_chat_messages WHERE session_id = '{safe_id}';
+            DELETE FROM nanopro_chat_sessions WHERE session_id = '{safe_id}';
+            """)
+        except Exception:
+            pass
+        return {"status": "success", "deleted_session_id": session_id}
+
+    @classmethod
+    def update_session(cls, session_id: str, title: Optional[str] = None, is_pinned: Optional[bool] = None, project_id: Optional[str] = None, user_key: str = "admin") -> Dict[str, Any]:
+        """Updates session title, pin status, or project association across DuckDB and PostgreSQL."""
+        cls.init_tables()
+        try:
+            con = DuckDBFederatedConnector.get_connection(read_only=False)
+            if title is not None:
+                con.execute("UPDATE nanopro_chat_sessions SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ?", (title, session_id))
+            if is_pinned is not None:
+                con.execute("UPDATE nanopro_chat_sessions SET is_pinned = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ?", (bool(is_pinned), session_id))
+            if project_id is not None:
+                con.execute("UPDATE nanopro_chat_sessions SET project_id = ?, updated_at = CURRENT_TIMESTAMP WHERE session_id = ?", (project_id, session_id))
+            con.close()
+        except Exception:
+            pass
+        try:
+            safe_id = session_id.replace("'", "''")
+            if title is not None:
+                safe_t = title.replace("'", "''")
+                RenderPostgresConnector.execute_and_commit(f"UPDATE nanopro_chat_sessions SET title = '{safe_t}', updated_at = CURRENT_TIMESTAMP WHERE session_id = '{safe_id}';")
+            if is_pinned is not None:
+                RenderPostgresConnector.execute_and_commit(f"UPDATE nanopro_chat_sessions SET is_pinned = {bool(is_pinned)}, updated_at = CURRENT_TIMESTAMP WHERE session_id = '{safe_id}';")
+            if project_id is not None:
+                safe_p = project_id.replace("'", "''")
+                RenderPostgresConnector.execute_and_commit(f"UPDATE nanopro_chat_sessions SET project_id = '{safe_p}', updated_at = CURRENT_TIMESTAMP WHERE session_id = '{safe_id}';")
+        except Exception:
+            pass
+        return {"status": "success", "session_id": session_id}
 
     @classmethod
     def create_project(cls, name: str, description: str = "", user_key: str = "admin") -> Dict[str, Any]:

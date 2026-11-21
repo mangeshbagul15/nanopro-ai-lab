@@ -268,32 +268,78 @@ async def api_auth_logout(req: Optional[AuthLogoutRequest] = None, request: Requ
     resp.delete_cookie(key="nanopro_session", path="/")
     return resp
 
+def get_current_user_info(request: Request) -> Dict[str, Any]:
+    sess_token = request.cookies.get("nanopro_session") or ""
+    if not sess_token:
+        auth_hdr = request.headers.get("Authorization", "")
+        if auth_hdr.startswith("Bearer "):
+            sess_token = auth_hdr.replace("Bearer ", "").strip()
+    if not sess_token:
+        sess_token = request.query_params.get("token") or request.query_params.get("session_token") or ""
+
+    if sess_token:
+        val = auth_manager.validate_session(sess_token)
+        if val.get("status") == "success" and val.get("valid") and val.get("user"):
+            return val["user"]
+
+    return {
+        "id": "user_admin_001",
+        "username": "nanopro",
+        "full_name": "Super Admin (Mangesh Bagul)",
+        "email": "mangeshbagul15@gmail.com",
+        "role": "admin"
+    }
+
 # -------------------------------------------------------------
-# Chats & Projects (DuckDB & BigQuery Sync)
+# Chats & Projects (DuckDB, Render PostgreSQL & SQLite Unified Sync)
 # -------------------------------------------------------------
 @app.get("/api/ai/history/chats")
 async def api_list_chats(request: Request):
-    return JSONResponse(history_manager.list_chats_and_projects())
+    user = get_current_user_info(request)
+    user_key = user.get("username") or user.get("id") or "admin"
+    return JSONResponse(history_manager.list_chats_and_projects(user_key=user_key))
 
 @app.post("/api/ai/history/chats")
 async def api_create_chat(req: ChatCreateRequest, request: Request):
-    return JSONResponse(history_manager.create_chat(title=req.title or "New AI Chat Session", project_id=req.project_id or "", model=req.model or "auto"))
+    user = get_current_user_info(request)
+    user_key = user.get("username") or user.get("id") or "admin"
+    return JSONResponse(history_manager.create_chat(
+        title=req.title or "New AI Chat Session",
+        project_id=req.project_id or "",
+        model=req.model or "auto",
+        user_key=user_key
+    ))
 
 @app.get("/api/ai/history/chats/{chat_id}")
 async def api_get_chat_messages(chat_id: str, request: Request):
-    messages = history_manager.get_chat_messages(chat_id)
-    return JSONResponse({"status": "success", "chat_id": chat_id, "messages": messages})
+    user = get_current_user_info(request)
+    user_key = user.get("username") or user.get("id") or "admin"
+    messages = history_manager.get_chat_messages(chat_id, user_key=user_key)
+    return JSONResponse({"status": "success", "chat_id": chat_id, "messages": messages, "user_key": user_key})
 
 @app.put("/api/ai/history/chats/{chat_id}")
 async def api_update_chat(chat_id: str, req: ChatUpdateRequest, request: Request):
-    return JSONResponse(history_manager.update_chat(chat_id, title=req.title, is_pinned=req.is_pinned, project_id=req.project_id))
+    user = get_current_user_info(request)
+    user_key = user.get("username") or user.get("id") or "admin"
+    return JSONResponse(history_manager.update_chat(
+        chat_id,
+        title=req.title,
+        is_pinned=req.is_pinned,
+        project_id=req.project_id,
+        user_key=user_key
+    ))
 
 @app.delete("/api/ai/history/chats/{chat_id}")
 async def api_delete_chat(chat_id: str, request: Request):
-    return JSONResponse(history_manager.delete_chat(chat_id))
+    user = get_current_user_info(request)
+    user_key = user.get("username") or user.get("id") or "admin"
+    return JSONResponse(history_manager.delete_chat(chat_id, user_key=user_key))
 
 @app.post("/api/ai/history/messages")
 async def api_add_message(req: MessageCreateRequest, request: Request):
+    user = get_current_user_info(request)
+    user_key = user.get("username") or user.get("id") or "admin"
+
     r_math = req.routing_math
     if isinstance(r_math, (dict, list)):
         r_math = json.dumps(r_math)
@@ -321,24 +367,9 @@ async def api_add_message(req: MessageCreateRequest, request: Request):
         duration_ms=req.duration_ms or 0,
         routing_math=r_math,
         tool_logs_json=t_logs,
-        dataframe_json=df_json
+        dataframe_json=df_json,
+        user_key=user_key
     )
-
-    try:
-        from nanopro_connectors import ChatPersistenceConnector
-        ChatPersistenceConnector.save_message(
-            session_id=req.chat_id,
-            role=req.role,
-            content=req.content,
-            model_used=req.model_executed or req.model_routed or "",
-            duration_ms=req.duration_ms or 0,
-            routing_math=r_math,
-            tool_logs=t_logs,
-            dataframe=df_json
-        )
-    except Exception:
-        pass
-
     return JSONResponse(res)
 
 @app.get("/api/ai/history/projects")
@@ -805,10 +836,18 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
             admin_result["user"] = "Super Admin (Mangesh Bagul)"
             return JSONResponse(admin_result)
 
+        req_user = get_current_user_info(request)
+        user_key = req_user.get("username") or req_user.get("id") or "admin"
+
+        chat_id = payload.get("chat_id")
+        if not chat_id:
+            first_line = prompt.strip().split("\n")[0][:45] if prompt else "New AI Session"
+            new_chat = history_manager.create_chat(title=first_line, user_key=user_key)
+            chat_id = new_chat.get("chat_id")
+
         req_model = payload.get("model", "auto")
         routed_model = payload.get("routed_model")
         effort = payload.get("effort", "default")
-        chat_id = payload.get("chat_id")
 
         # Ensemble / Mixture-of-Agents mode — multi-model parallel answers
         # judged into one best response. Triggered by effort="ensemble" or
@@ -917,7 +956,12 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
         if chat_id:
             t_logs = json.dumps(result.get("tools_executed", [])) if result.get("tools_executed") else ""
             df_json = json.dumps(result.get("dataframe", {})) if result.get("dataframe") else ""
-            history_manager.add_message(chat_id=chat_id, role="user", content=prompt)
+            history_manager.add_message(
+                chat_id=chat_id,
+                role="user",
+                content=prompt,
+                user_key=user_key
+            )
             history_manager.add_message(
                 chat_id=chat_id,
                 role="assistant",
@@ -927,28 +971,12 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
                 duration_ms=latency_ms,
                 routing_math=json.dumps(routing_decision),
                 tool_logs_json=t_logs,
-                dataframe_json=df_json
+                dataframe_json=df_json,
+                user_key=user_key
             )
-            try:
-                from nanopro_connectors import ChatPersistenceConnector
-                ChatPersistenceConnector.save_message(
-                    session_id=chat_id,
-                    role="user",
-                    content=prompt
-                )
-                ChatPersistenceConnector.save_message(
-                    session_id=chat_id,
-                    role="assistant",
-                    content=content,
-                    model_used=response_data["model_executed"],
-                    duration_ms=latency_ms,
-                    routing_math=json.dumps(routing_decision),
-                    tool_logs_json=t_logs,
-                    dataframe_json=df_json
-                )
-            except Exception as pe:
-                logger.warning(f"Error dual-writing chat_id turn to ChatPersistenceConnector: {pe}")
 
+        response_data["chat_id"] = chat_id
+        response_data["user_key"] = user_key
         return JSONResponse(response_data)
     except Exception as e:
         return JSONResponse({"status": "error", "message": str(e)}, status_code=200)

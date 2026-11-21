@@ -22,6 +22,17 @@ DB_PATH = os.path.join(DB_DIR, "auth.db")
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "866606165083-aujos8q7sncrs8h66q53l2fkpv0bor44.apps.googleusercontent.com")
 
+def _fire_async(coro):
+    try:
+        import asyncio
+        loop = asyncio.get_running_loop()
+        loop.create_task(coro)
+    except RuntimeError:
+        try:
+            coro.close()
+        except Exception:
+            pass
+
 class AuthManager:
     def __init__(self, db_path: str = DB_PATH):
         self.db_path = db_path
@@ -74,6 +85,121 @@ class AuthManager:
                 is_used INTEGER DEFAULT 0
             )""")
             conn.commit()
+
+        # Replicate & Ground User Schema in DuckDB & Render PostgreSQL
+        try:
+            from nanopro_connectors import DuckDBFederatedConnector
+            dcon = DuckDBFederatedConnector.get_connection(read_only=False)
+            dcon.execute("""
+            CREATE TABLE IF NOT EXISTS nanopro_user_accounts (
+                id VARCHAR PRIMARY KEY,
+                username VARCHAR NOT NULL,
+                full_name VARCHAR NOT NULL,
+                email VARCHAR NOT NULL,
+                phone_number VARCHAR DEFAULT '',
+                password_hash VARCHAR NOT NULL,
+                salt VARCHAR NOT NULL,
+                role VARCHAR NOT NULL DEFAULT 'user',
+                status VARCHAR NOT NULL DEFAULT 'ACTIVE',
+                created_at DOUBLE NOT NULL,
+                last_login_at DOUBLE,
+                last_active_at DOUBLE
+            );
+            CREATE TABLE IF NOT EXISTS nanopro_user_sessions (
+                session_token VARCHAR PRIMARY KEY,
+                user_id VARCHAR NOT NULL,
+                username VARCHAR NOT NULL,
+                role VARCHAR NOT NULL,
+                login_time DOUBLE NOT NULL,
+                last_activity DOUBLE NOT NULL,
+                ip_address VARCHAR DEFAULT '',
+                user_agent VARCHAR DEFAULT '',
+                is_active BOOLEAN DEFAULT TRUE
+            );
+            """)
+            dcon.close()
+        except Exception:
+            pass
+
+        try:
+            from nanopro_connectors import RenderPostgresConnector
+            RenderPostgresConnector.execute_and_commit("""
+            CREATE TABLE IF NOT EXISTS nanopro_user_accounts (
+                id VARCHAR(64) PRIMARY KEY,
+                username VARCHAR(64) NOT NULL,
+                full_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone_number VARCHAR(32) DEFAULT '',
+                password_hash VARCHAR(255) NOT NULL,
+                salt VARCHAR(255) NOT NULL,
+                role VARCHAR(32) NOT NULL DEFAULT 'user',
+                status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
+                created_at DOUBLE PRECISION NOT NULL,
+                last_login_at DOUBLE PRECISION,
+                last_active_at DOUBLE PRECISION
+            );
+            CREATE TABLE IF NOT EXISTS nanopro_user_sessions (
+                session_token VARCHAR(128) PRIMARY KEY,
+                user_id VARCHAR(64) NOT NULL,
+                username VARCHAR(64) NOT NULL,
+                role VARCHAR(32) NOT NULL,
+                login_time DOUBLE PRECISION NOT NULL,
+                last_activity DOUBLE PRECISION NOT NULL,
+                ip_address VARCHAR(64) DEFAULT '',
+                user_agent VARCHAR(255) DEFAULT '',
+                is_active BOOLEAN DEFAULT TRUE
+            );
+            """)
+        except Exception:
+            pass
+
+    def _mirror_user_and_session(self, user: Dict[str, Any], session_token: str = '', ip: str = 'Unknown', ua: str = 'Unknown'):
+        now = time.time()
+        u_id = user.get('id') or f"user_{uuid.uuid4().hex[:12]}"
+        u_name = user.get('username') or 'user'
+        f_name = user.get('full_name') or u_name
+        email = user.get('email') or f"{u_name}@nanopro.ai"
+        phone = user.get('phone_number') or ''
+        pwd_hash = user.get('password_hash') or ''
+        salt = user.get('salt') or ''
+        role = user.get('role') or 'user'
+        status = user.get('status') or 'ACTIVE'
+        c_at = float(user.get('created_at') or now)
+
+        try:
+            from nanopro_connectors import DuckDBFederatedConnector
+            dcon = DuckDBFederatedConnector.get_connection(read_only=False)
+            dcon.execute("""
+            INSERT OR REPLACE INTO nanopro_user_accounts (id, username, full_name, email, phone_number, password_hash, salt, role, status, created_at, last_login_at, last_active_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (u_id, u_name, f_name, email, phone, pwd_hash, salt, role, status, c_at, now, now))
+            if session_token:
+                dcon.execute("""
+                INSERT OR REPLACE INTO nanopro_user_sessions (session_token, user_id, username, role, login_time, last_activity, ip_address, user_agent, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)
+                """, (session_token, u_id, u_name, role, now, now, ip, ua))
+            dcon.close()
+        except Exception:
+            pass
+
+        try:
+            from nanopro_connectors import RenderPostgresConnector
+            safe_u = u_name.replace("'", "''")
+            safe_fn = f_name.replace("'", "''")
+            safe_em = email.replace("'", "''")
+            RenderPostgresConnector.execute_and_commit(f"""
+            INSERT INTO nanopro_user_accounts (id, username, full_name, email, phone_number, password_hash, salt, role, status, created_at, last_login_at, last_active_at)
+            VALUES ('{u_id}', '{safe_u}', '{safe_fn}', '{safe_em}', '{phone}', '{pwd_hash}', '{salt}', '{role}', '{status}', {c_at}, {now}, {now})
+            ON CONFLICT (id) DO UPDATE SET last_login_at = {now}, last_active_at = {now};
+            """)
+            if session_token:
+                RenderPostgresConnector.execute_and_commit(f"""
+                INSERT INTO nanopro_user_sessions (session_token, user_id, username, role, login_time, last_activity, ip_address, user_agent, is_active)
+                VALUES ('{session_token}', '{u_id}', '{safe_u}', '{role}', {now}, {now}, '{ip}', '{ua}', TRUE)
+                ON CONFLICT (session_token) DO UPDATE SET last_activity = {now}, is_active = TRUE;
+                """)
+        except Exception:
+            pass
 
     def _hash_password(self, password: str, salt: Optional[str] = None) -> Tuple[str, str]:
         if not salt:
@@ -148,10 +274,14 @@ class AuthManager:
             """, (session_token, user["id"], user["username"], user["role"], now, now, ip, ua))
             c.execute("UPDATE users SET last_login_at=?, last_active_at=? WHERE id=?", (now, now, user["id"]))
             conn.commit()
+            try:
+                self._mirror_user_and_session(dict(user), session_token, ip, ua)
+            except Exception:
+                pass
 
         time_str = time.strftime('%d-%m-%Y %I:%M:%S %p', time.localtime(now))
         import asyncio
-        asyncio.create_task(dispatch_telegram(
+        _fire_async(dispatch_telegram(
             f"🔐 <b>NanoPro Direct Login Alert</b>\n"
             f"👤 <b>User:</b> {user['username']} ({user['full_name']})\n"
             f"👑 <b>Role:</b> {user['role'].upper()}\n"
@@ -214,10 +344,18 @@ class AuthManager:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
             """, (session_token, user_id, username, role, now, now, ip, ua))
             conn.commit()
+            try:
+                self._mirror_user_and_session({"id": user_id, "username": username, "full_name": full_name, "email": email, "role": role, "created_at": now}, session_token, ip, ua)
+            except Exception:
+                pass
+            try:
+                self._mirror_user_and_session({"id": user_id, "username": username, "full_name": full_name, "email": email, "role": role, "created_at": now}, session_token, ip, ua)
+            except Exception:
+                pass
 
         time_str = time.strftime('%d-%m-%Y %I:%M:%S %p', time.localtime(now))
         import asyncio
-        asyncio.create_task(dispatch_telegram(
+        _fire_async(dispatch_telegram(
             f"🌐 <b>NanoPro Google SSO Login Alert</b>\n"
             f"👤 <b>User:</b> {username} ({full_name})\n"
             f"📧 <b>Email:</b> {email}\n"
@@ -260,8 +398,8 @@ class AuthManager:
         # Dispatch via WhatsApp and Telegram
         import asyncio
         msg_text = f"⚡ NanoPro Login OTP: {otp_code} (Valid for 5 minutes). Do not share."
-        asyncio.create_task(dispatch_whatsapp(text=msg_text))
-        asyncio.create_task(dispatch_telegram(
+        _fire_async(dispatch_whatsapp(text=msg_text))
+        _fire_async(dispatch_telegram(
             f"📲 <b>NanoPro WhatsApp OTP Generated</b>\n"
             f"📱 <b>Target:</b> {clean_phone}\n"
             f"🔑 <b>Code:</b> <code>{otp_code}</code>\n"
@@ -362,9 +500,13 @@ class AuthManager:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?)
             """, (user_id, u, fn, e, p, pwd_hash, salt, role, now, now, now))
             conn.commit()
+            try:
+                self._mirror_user_and_session({"id": user_id, "username": u, "full_name": fn, "email": e, "phone_number": p, "password_hash": pwd_hash, "salt": salt, "role": role, "created_at": now}, "", ip, ua)
+            except Exception:
+                pass
 
         import asyncio
-        asyncio.create_task(dispatch_telegram(
+        _fire_async(dispatch_telegram(
             f"👤 <b>NanoPro New User Registered</b>\n"
             f"🔑 <b>Username:</b> {u}\n"
             f"📛 <b>Name:</b> {fn}\n"
@@ -389,6 +531,44 @@ class AuthManager:
             """, (token.strip(),))
             row = c.fetchone()
             if not row:
+                # Fallback to persistent DuckDB / Render PostgreSQL session store
+                try:
+                    from nanopro_connectors import DuckDBFederatedConnector
+                    dcon = DuckDBFederatedConnector.get_connection(read_only=True)
+                    dcur = dcon.cursor()
+                    dcur.execute("""
+                    SELECT s.session_token, s.user_id, s.username, s.role, s.login_time, s.last_activity, u.full_name, u.email
+                    FROM nanopro_user_sessions s
+                    LEFT JOIN nanopro_user_accounts u ON s.user_id = u.id
+                    WHERE s.session_token = ? AND s.is_active = TRUE
+                    LIMIT 1
+                    """, (token.strip(),))
+                    drow = dcur.fetchone()
+                    dcon.close()
+                    if drow:
+                        s_token, u_id, u_name, u_role, l_time, l_act, f_name, u_email = drow
+                        c.execute("""
+                        INSERT OR IGNORE INTO users (id, username, full_name, email, phone_number, password_hash, salt, role, status, created_at, last_login_at, last_active_at)
+                        VALUES (?, ?, ?, ?, '', '', '', ?, 'ACTIVE', ?, ?, ?)
+                        """, (u_id, u_name, f_name or u_name, u_email or f"{u_name}@nanopro.ai", u_role, l_time, time.time(), time.time()))
+                        c.execute("""
+                        INSERT OR REPLACE INTO user_sessions (session_token, user_id, username, role, login_time, last_activity, is_active)
+                        VALUES (?, ?, ?, ?, ?, ?, 1)
+                        """, (s_token, u_id, u_name, u_role, l_time, time.time()))
+                        conn.commit()
+                        return {
+                            "status": "success",
+                            "valid": True,
+                            "user": {
+                                "id": u_id,
+                                "username": u_name,
+                                "full_name": f_name or u_name,
+                                "email": u_email or f"{u_name}@nanopro.ai",
+                                "role": u_role
+                            }
+                        }
+                except Exception:
+                    pass
                 return {"status": "error", "valid": False}
 
             c.execute("UPDATE user_sessions SET last_activity = ? WHERE session_token = ?", (time.time(), token))

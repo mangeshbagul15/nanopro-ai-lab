@@ -6337,7 +6337,7 @@ body.in-global_ai_lab .nano-dynamic-island {
   function ailabClearOwnedCache() {
     try {
       Object.keys(localStorage).forEach(k => {
-        if (k.indexOf("nanopro_duckdb_chat_") === 0 || k === "nanopro_ailab_chats" || k === "nanopro_ailab_projects" || k === "nanopro_deleted_chat_ids") {
+        if (k === "nanopro_ailab_chats" || k === "nanopro_ailab_projects" || k === "nanopro_deleted_chat_ids") {
           localStorage.removeItem(k);
         }
       });
@@ -6346,10 +6346,27 @@ body.in-global_ai_lab .nano-dynamic-island {
   }
 
   function ailabHydrateLocalStorage() {
-    // Chat and project lists are server-authoritative (DuckDB + BigQuery, scoped to the
-    // signed-in account). Only the per-chat message cache survives a reload.
-    AILAB.chats = [];
-    AILAB.projects = [];
+    // Pre-populate sidebar from local cache immediately on tab open / reload
+    let cachedUser = null;
+    try { cachedUser = JSON.parse(localStorage.getItem("nanopro_user") || "{}"); } catch(_) {}
+    const userKey = (cachedUser && (cachedUser.username || cachedUser.id)) ? (cachedUser.username || cachedUser.id) : "admin";
+    try {
+      const savedChats = localStorage.getItem("nanopro_ailab_chats_" + userKey) || localStorage.getItem("nanopro_ailab_chats");
+      if (savedChats) {
+        AILAB.chats = JSON.parse(savedChats) || [];
+      } else {
+        AILAB.chats = [];
+      }
+      const savedProjects = localStorage.getItem("nanopro_ailab_projects_" + userKey) || localStorage.getItem("nanopro_ailab_projects");
+      if (savedProjects) {
+        AILAB.projects = JSON.parse(savedProjects) || [];
+      } else {
+        AILAB.projects = [];
+      }
+    } catch (_) {
+      AILAB.chats = [];
+      AILAB.projects = [];
+    }
     ailabRenderSidebar();
   }
 
@@ -6429,29 +6446,42 @@ body.in-global_ai_lab .nano-dynamic-island {
     }
     try {
       const data = await res.json();
+      const ownerKey = data.owner || AILAB.storageOwner || "admin";
       if (data.owner && AILAB.storageOwner && data.owner !== AILAB.storageOwner) {
-        ailabClearOwnedCache();
         AILAB.activeChatId = null;
         AILAB.messages = [];
       }
-      AILAB.storageOwner = data.owner || AILAB.storageOwner;
+      AILAB.storageOwner = ownerKey;
       AILAB.chats = data.chats || [];
       AILAB.projects = data.projects || [];
       AILAB.historyStorage = data.storage || null;
       try {
         localStorage.setItem("nanopro_ailab_chats", JSON.stringify(AILAB.chats));
+        localStorage.setItem("nanopro_ailab_chats_" + ownerKey, JSON.stringify(AILAB.chats));
         localStorage.setItem("nanopro_ailab_projects", JSON.stringify(AILAB.projects));
+        localStorage.setItem("nanopro_ailab_projects_" + ownerKey, JSON.stringify(AILAB.projects));
       } catch (_) {}
       ailabRenderSidebar();
       ailabRenderActiveProjectTag();
       ailabRenderHistoryStatus();
-      if (AILAB.activeChatId && !AILAB.chats.some(c => c.id === AILAB.activeChatId)) {
+
+      // Seamless Auto-Restore of Last Active Chat (Claude Code / Gemini / Antigravity style)
+      const lastActiveId = localStorage.getItem("nanopro_last_chat_" + ownerKey) || localStorage.getItem("nanopro_last_chat");
+      let targetChatId = null;
+      if (lastActiveId && AILAB.chats.some(c => c.id === lastActiveId)) {
+        targetChatId = lastActiveId;
+      } else if (AILAB.activeChatId && AILAB.chats.some(c => c.id === AILAB.activeChatId)) {
+        targetChatId = AILAB.activeChatId;
+      } else if (AILAB.chats.length > 0) {
+        targetChatId = AILAB.chats[0].id;
+      }
+
+      if (targetChatId) {
+        ailabSelectChat(targetChatId);
+      } else {
         AILAB.activeChatId = null;
         AILAB.messages = [];
         ailabRenderMessages();
-      }
-      if (!AILAB.activeChatId && AILAB.chats.length > 0) {
-        ailabSelectChat(AILAB.chats[0].id);
       }
       const restore = data.restore || {};
       if (restore.status === "pending" && AILAB.restoreRetries < 3) {
@@ -6968,6 +6998,12 @@ body.in-global_ai_lab .nano-dynamic-island {
       ailabCloseMobileDrawers();
     }
     AILAB.activeChatId = chatId;
+    const ownerKey = AILAB.storageOwner || "admin";
+    try {
+      localStorage.setItem("nanopro_last_chat_" + ownerKey, chatId);
+      localStorage.setItem("nanopro_last_chat", chatId);
+    } catch (_) {}
+
     const activeChat = AILAB.chats.find(c => c.id === chatId);
     if (activeChat) {
       AILAB.activeProjectId = activeChat.project_id || null;
@@ -7009,7 +7045,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     if (!foundInCache && container) {
       const hero = AILAB.heroNode || $id("ailabEmptyHero");
       if (hero) AILAB.heroNode = hero;
-      container.innerHTML = '<div style="text-align:center;padding:25px;color:#A78BFA;font-size:13px;"><span class="ailab-pulse-dot" style="display:inline-block;margin-right:6px;"></span>⚡ Reading DuckDB Indexed Partition...</div>';
+      container.innerHTML = '<div style="text-align:center;padding:25px;color:#A78BFA;font-size:13px;"><span class="ailab-pulse-dot" style="display:inline-block;margin-right:6px;"></span>⚡ Restoring complete full-turn history from database...</div>';
     }
 
     // 2. ULTRA-FAST ASYNC BACKGROUND SYNC (< 3ms from Cloudflare Edge / DuckDB)
@@ -7018,18 +7054,12 @@ body.in-global_ai_lab .nano-dynamic-island {
       if (res.ok) {
         const data = await res.json();
         const serverMessages = data.messages || [];
-        AILAB.messages = serverMessages;
-        AILAB.chatIndexCache[chatId] = serverMessages;
-        try { localStorage.setItem("nanopro_duckdb_chat_" + chatId, JSON.stringify(serverMessages)); } catch (_) {}
-        ailabRenderMessages();
-      } else if (res.status === 404) {
-        AILAB.chats = AILAB.chats.filter(c => c.id !== chatId);
-        if (AILAB.activeChatId === chatId) {
-          AILAB.activeChatId = null;
-          AILAB.messages = [];
+        if (serverMessages.length > 0 || !foundInCache) {
+          AILAB.messages = serverMessages;
+          AILAB.chatIndexCache[chatId] = serverMessages;
+          try { localStorage.setItem("nanopro_duckdb_chat_" + chatId, JSON.stringify(serverMessages)); } catch (_) {}
           ailabRenderMessages();
         }
-        ailabRenderSidebar();
       }
     } catch (_) {
       if (!foundInCache && AILAB.messages && AILAB.messages.length > 0) {
@@ -7822,10 +7852,19 @@ body.in-global_ai_lab .nano-dynamic-island {
         container.appendChild(ailabCreateMessageNode(cuaMsg));
         container.scrollTop = container.scrollHeight;
         ailabRenderMermaidBlocks();
+        if (execData && execData.chat_id) {
+          AILAB.activeChatId = execData.chat_id;
+        }
         if (AILAB.activeChatId) {
           AILAB.chatIndexCache[AILAB.activeChatId] = AILAB.messages;
           try { localStorage.setItem("nanopro_duckdb_chat_" + AILAB.activeChatId, JSON.stringify(AILAB.messages)); } catch (_) {}
           localStorage.setItem("nanopro_ailab_chats", JSON.stringify(AILAB.chats));
+          const ownerKey = AILAB.storageOwner || "admin";
+          try {
+            localStorage.setItem("nanopro_ailab_chats_" + ownerKey, JSON.stringify(AILAB.chats));
+            localStorage.setItem("nanopro_last_chat_" + ownerKey, AILAB.activeChatId);
+            localStorage.setItem("nanopro_last_chat", AILAB.activeChatId);
+          } catch (_) {}
         }
         ailabSaveMessage(cuaMsg).then(() => ailabRefreshHistory());
         return;
@@ -8035,6 +8074,7 @@ body.in-global_ai_lab .nano-dynamic-island {
             model: targetModelToExecute,
             routed_model: routedModel,
             effort: AILAB.selectedEffort,
+            chat_id: AILAB.activeChatId,
             messages: AILAB.messages.map(m => ({ role: m.role, content: m.content }))
           })
         });
