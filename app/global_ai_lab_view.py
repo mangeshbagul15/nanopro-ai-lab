@@ -7642,6 +7642,9 @@ body.in-global_ai_lab .nano-dynamic-island {
   // ACTIONS: NEW CHAT, NEW PROJECT, PIN, EXPORT
   // -------------------------------------------------------------
   window.ailabNewChat = async function(projectId) {
+    if (window.innerWidth <= 900 && typeof ailabCloseMobileDrawers === "function") {
+      ailabCloseMobileDrawers();
+    }
     try {
       const res = await fetch("/api/ai/history/chats", {
         method: "POST",
@@ -7654,12 +7657,22 @@ body.in-global_ai_lab .nano-dynamic-island {
         })
       });
       const data = await res.json();
-      if (!res.ok || !data.chat) {
+      if (!res.ok || (!data.chat && !data.chat_id)) {
         ailabSetHistoryStatus("error", data.message || `Could not create chat (HTTP ${res.status}).`);
         if (res.status === 401) alert("Session expired — please log in again.");
         return false;
       }
-      const chatObj = data.chat;
+      const chatObj = data.chat || {
+        id: data.chat_id,
+        title: data.title || "New AI Chat Session",
+        project_id: data.project_id || projectId || null,
+        model: AILAB.selectedModel || "auto",
+        effort: AILAB.selectedEffort || "default",
+        is_pinned: false,
+        message_count: 0,
+        created_at: Date.now() / 1000,
+        updated_at: Date.now() / 1000
+      };
       AILAB.chats.unshift(chatObj);
       AILAB.activeChatId = chatObj.id;
       AILAB.activeProjectId = chatObj.project_id || null;
@@ -7670,8 +7683,13 @@ body.in-global_ai_lab .nano-dynamic-island {
       ailabRenderSidebar();
       ailabRenderActiveProjectTag();
       ailabRenderMessages();
-      $id("ailabActiveTitle").textContent = chatObj.title;
-      $id("ailabPromptInput").focus();
+      const titleEl = $id("ailabActiveTitle");
+      if (titleEl) titleEl.textContent = chatObj.title;
+      const inputEl = $id("ailabPromptInput");
+      if (inputEl) {
+        inputEl.value = "";
+        inputEl.focus();
+      }
       ailabRefreshHistory();
       return true;
     } catch (e) {
@@ -7683,7 +7701,7 @@ body.in-global_ai_lab .nano-dynamic-island {
 
   window.ailabNewProject = async function() {
     const name = prompt("Enter Project Name (e.g. Real-Time Analytics Lakehouse):");
-    if (!name) return;
+    if (!name || !name.trim()) return;
     try {
       const res = await fetch("/api/ai/history/projects", {
         method: "POST",
@@ -7691,12 +7709,20 @@ body.in-global_ai_lab .nano-dynamic-island {
         body: JSON.stringify({ name: name.trim() })
       });
       const data = await res.json();
-      if (data.project) {
-        AILAB.projects.unshift(data.project);
-        AILAB.expandedProjects[data.project.id] = true;
-        AILAB.activeProjectId = data.project.id;
+      const projectObj = data.project || (data.project_id ? {
+        id: data.project_id,
+        name: data.name || name.trim(),
+        description: "",
+        created_at: Date.now() / 1000,
+        updated_at: Date.now() / 1000
+      } : null);
+      if (projectObj) {
+        AILAB.projects.unshift(projectObj);
+        AILAB.expandedProjects[projectObj.id] = true;
+        AILAB.activeProjectId = projectObj.id;
         try { localStorage.setItem("nanopro_ailab_projects", JSON.stringify(AILAB.projects)); } catch (_) {}
         ailabRenderSidebar();
+        ailabRefreshHistory();
       } else {
         alert(data.message || "Could not create the project.");
       }

@@ -129,7 +129,18 @@ class HistoryManager:
             VALUES (?, ?, ?, ?, 'default', 0, 0, ?, ?, ?)
             """, (chat_id, project_id, title, model, now, now, user_key))
             conn.commit()
-        return {"status": "success", "chat_id": chat_id, "title": title, "project_id": project_id}
+        chat_obj = {
+            "id": chat_id,
+            "project_id": project_id,
+            "title": title,
+            "model": model,
+            "effort": "default",
+            "is_pinned": False,
+            "message_count": 0,
+            "created_at": now,
+            "updated_at": now
+        }
+        return {"status": "success", "chat_id": chat_id, "title": title, "project_id": project_id, "chat": chat_obj}
 
     def get_chat_messages(self, chat_id: str, user_key: str = "admin") -> List[Dict[str, Any]]:
         with self._get_conn() as conn:
@@ -181,7 +192,14 @@ class HistoryManager:
             VALUES (?, ?, ?, ?, ?, ?)
             """, (proj_id, name, description, now, now, user_key))
             conn.commit()
-        return {"status": "success", "project_id": proj_id, "name": name}
+        proj_obj = {
+            "id": proj_id,
+            "name": name,
+            "description": description,
+            "created_at": now,
+            "updated_at": now
+        }
+        return {"status": "success", "project_id": proj_id, "name": name, "project": proj_obj}
 
     def update_project(self, project_id: str, name: Optional[str] = None, description: Optional[str] = None) -> Dict[str, Any]:
         now = time.time()
