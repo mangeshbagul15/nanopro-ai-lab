@@ -18,11 +18,16 @@ EMAIL_RELAY_URL = os.environ.get("EMAIL_RELAY_URL", "")
 EMAIL_RELAY_SECRET = os.environ.get("EMAIL_RELAY_SECRET", "")
 EMAIL_RELAY_TO = os.environ.get("EMAIL_RELAY_TO", "nanoproaistudio@gmail.com")
 
+# Supabase Cloud Postgres Database Configuration
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://tbovdmdihmhzgjvsrixo.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_X7kBO5-SaeWbJYkQV4ELMQ_rZy7oRJY")
+SUPABASE_PROJECT_ID = os.environ.get("SUPABASE_PROJECT_ID", "tbovdmdihmhzgjvsrixo")
+
 TOTAL_MODELS_COUNT = 4804
 TOTAL_PROVIDERS_COUNT = 25
 TOTAL_DAGS_COUNT = 86
 TOTAL_REPORTS_COUNT = 49
-TOTAL_DATABASES_COUNT = 5
+TOTAL_DATABASES_COUNT = 6
 TOTAL_AGENTS_COUNT = 320
 
 SYSTEM_IDENTITY = {
@@ -34,5 +39,5 @@ SYSTEM_IDENTITY = {
     "memory_overhead": "Live Edge Execution (Zero-Copy Buffer)",
     "total_dags": 86,
     "total_reports": 49,
-    "total_databases": 5
+    "total_databases": 6
 }

@@ -2370,13 +2370,50 @@ body.in-global_ai_lab .nano-dynamic-island {
 #view-global_ai_lab .ailab-conn-badge {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
-  font-size: 11px !important;
-  color: #8B949E !important;
-  background: #21262D !important;
-  border: 1px solid #30363D !important;
-  border-radius: 4px !important;
-  padding: 2px 7px !important;
+  gap: 6px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  color: #F8FAFC !important;
+  background: rgba(139, 92, 246, 0.16) !important;
+  border: 1.5px solid rgba(139, 92, 246, 0.45) !important;
+  border-radius: 8px !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+}
+#view-global_ai_lab .ailab-conn-badge:hover {
+  background: rgba(139, 92, 246, 0.3) !important;
+  border-color: #A78BFA !important;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.45) !important;
+}
+#view-global_ai_lab .ailab-reg-short-label,
+#view-global_ai_lab .ailab-reg-mini-label {
+  display: none !important;
+}
+#view-global_ai_lab .ailab-reg-full-label {
+  display: inline !important;
+}
+
+#view-global_ai_lab .ailab-sidebar-registry-banner {
+  margin: 6px 10px 8px 10px;
+  padding: 8px 10px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 11.5px;
+  transition: all 0.2s ease;
+}
+#view-global_ai_lab .ailab-sidebar-registry-banner:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: #A78BFA;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.35);
 }
 
 #view-global_ai_lab .ailab-topbar-center {
@@ -3140,7 +3177,13 @@ body.in-global_ai_lab .nano-dynamic-island {
 
 /* Comprehensive Mobile & Tablet Responsive Adjustments */
 @media (max-width: 1220px) {
-  #view-global_ai_lab .ailab-conn-badge { display: none !important; }
+  #view-global_ai_lab .ailab-conn-badge {
+    display: inline-flex !important;
+    padding: 3px 8px !important;
+  }
+  #view-global_ai_lab .ailab-reg-full-label { display: none !important; }
+  #view-global_ai_lab .ailab-reg-short-label { display: inline !important; }
+  #view-global_ai_lab .ailab-reg-mini-label { display: none !important; }
   #view-global_ai_lab .ailab-input-tags .ailab-mode-pill,
   #view-global_ai_lab #ailabSlaLabel { display: none; }
 }
@@ -3332,8 +3375,13 @@ body.in-global_ai_lab .nano-dynamic-island {
     font-size: 11px !important;
   }
   #view-global_ai_lab .ailab-conn-badge {
-    display: none !important;
+    display: inline-flex !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
   }
+  #view-global_ai_lab .ailab-reg-full-label { display: none !important; }
+  #view-global_ai_lab .ailab-reg-short-label { display: none !important; }
+  #view-global_ai_lab .ailab-reg-mini-label { display: inline !important; }
   #view-global_ai_lab .ailab-topbar-sync-btn {
     display: none !important;
   }
@@ -3902,10 +3950,13 @@ body.in-global_ai_lab .nano-dynamic-island {
       <div class="ailab-brand">
         <span>🧠 NanoPro AI Lab</span>
       </div>
-      <div class="ailab-conn-badge" id="ailabConnBadge" onclick="ailabOpenModelCatalogModal()" style="cursor:pointer;" title="Click to view 4,804+ Live Frontier AI Models">
-        <span class="ailab-pulse-dot"></span>
-        <span id="ailabConnText">4,804+ models</span>
-      </div>
+      <button type="button" class="ailab-conn-badge" id="ailabConnBadge" onclick="ailabOpenModelCatalogModal()" title="Open Global Frontier AI Model Registry (4,804+ Unified Mesh)">
+        <span class="ailab-pulse-dot" style="background:#10B981;box-shadow:0 0 8px #10B981;"></span>
+        <span class="ailab-reg-icon">🌐</span>
+        <span class="ailab-reg-full-label" id="ailabConnText">Global Frontier Model Registry (4,804+)</span>
+        <span class="ailab-reg-short-label">Registry (4,804+)</span>
+        <span class="ailab-reg-mini-label">4,804+</span>
+      </button>
       <div class="ailab-live-routed-badge" id="ailabLiveRoutedBadge" style="display:none;align-items:center;gap:6px;background:rgba(16,185,129,0.12);border:1.5px solid #10B981;box-shadow:0 0 12px rgba(16,185,129,0.3);border-radius:8px;padding:3px 10px;font-size:12px;color:#10B981;font-weight:700;white-space:nowrap;transition:all 0.3s ease;" title="Active Sovereign Model dynamically routed by Pareto + Thompson Bandit algorithm"></div>
     </div>
 
@@ -4131,6 +4182,14 @@ body.in-global_ai_lab .nano-dynamic-island {
         </div>
       </div>
       <div id="ailabHistoryStatus" style="font-size:10.5px;color:#64748B;padding:0 12px 6px;line-height:1.35;">Loading your chats…</div>
+      <!-- Quick Frontier Model Registry Launcher in Sidebar -->
+      <div class="ailab-sidebar-registry-banner" onclick="ailabOpenModelCatalogModal()" title="Open Global Frontier AI Model Registry (4,804+ Unified Mesh)">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span style="font-size:13px;">🌐</span>
+          <span style="font-weight:700;color:#F8FAFC;letter-spacing:0.2px;">Frontier Model Registry</span>
+        </div>
+        <span style="background:rgba(139,92,246,0.25);border:1px solid rgba(139,92,246,0.45);border-radius:4px;padding:2px 7px;font-size:10.5px;color:#C084FC;font-weight:700;">4,804+</span>
+      </div>
 
       <div class="ailab-sidebar-scroll" id="ailabSidebarScroll">
         <!-- Pinned Chats -->
@@ -4188,7 +4247,7 @@ body.in-global_ai_lab .nano-dynamic-island {
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:14px;">🗄️</span>
           <span class="ailab-explorer-title">Explorer</span>
-          <span class="ailab-explorer-badge" id="ailabExplorerCount">4 Databases</span>
+          <span class="ailab-explorer-badge" id="ailabExplorerCount">6 Databases</span>
         </div>
         <div class="ailab-explorer-tools">
           <button class="ailab-iconbtn" onclick="ailabLoadExplorer(true)" title="Rescan Lakehouses">
@@ -4208,7 +4267,7 @@ body.in-global_ai_lab .nano-dynamic-island {
       </div>
       <div class="ailab-explorer-foot">
         <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-          <span style="font-size:10.5px;color:#10B981;">🦆 DuckDB • ❄️ Snowflake • ☁️ BigQuery • 🟧 AWS</span>
+          <span style="font-size:10.5px;color:#10B981;">🦆 DuckDB • ❄️ Snowflake • ☁️ BigQuery • 🟧 AWS • ⚡ Supabase</span>
         </div>
       </div>
       <div class="ailab-grip-v" id="ailabExplorerGrip" title="Drag to resize Explorer"></div>
@@ -5010,6 +5069,10 @@ body.in-global_ai_lab .nano-dynamic-island {
     if (!tree) return;
     const filter = ($id("ailabExplorerFilter")?.value || "").toLowerCase().trim();
     const dbs = AILAB_EXPLORER.catalog || [];
+    const countBadge = $id("ailabExplorerCount");
+    if (countBadge && dbs.length) {
+      countBadge.textContent = dbs.length + " Databases";
+    }
 
     if (dbs.length === 0) {
       tree.innerHTML = '<div style="padding:15px;text-align:center;color:#64748B;font-size:12px;">No databases loaded.</div>';
@@ -8585,6 +8648,7 @@ body.in-global_ai_lab .nano-dynamic-island {
   window.ailabOpenModelCatalogModal = function() {
     const modal = $id("ailabModelModal");
     if (modal) {
+      modal.style.display = "flex";
       modal.classList.add("is-open");
       ailabRenderModelCatalog();
       setTimeout(() => {
@@ -8595,8 +8659,12 @@ body.in-global_ai_lab .nano-dynamic-island {
   };
 
   window.ailabCloseModelCatalogModal = function(e) {
+    if (e && e.target !== e.currentTarget && !(e.target.classList && e.target.classList.contains("ailab-modal-close"))) return;
     const modal = $id("ailabModelModal");
-    if (modal) modal.classList.remove("is-open");
+    if (modal) {
+      modal.classList.remove("is-open");
+      modal.style.display = "none";
+    }
   };
 
   window.ailabFilterModels = function() {

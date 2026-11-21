@@ -375,6 +375,24 @@ async def api_explorer_table(database: Optional[str] = None, db: Optional[str] =
     target_db = database or db or "pipe_bigquery"
     return JSONResponse(get_table_details(target_db, schema, table))
 
+
+@app.get("/api/ai/explorer/supabase/sql")
+async def api_supabase_sql():
+    from app.explorer_service import get_supabase_sample_sql
+    return JSONResponse({"status": "success", "sql": get_supabase_sample_sql()})
+
+@app.post("/api/ai/explorer/supabase/insert")
+async def api_supabase_insert(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    table = body.get("table", "nanopro_sample_store")
+    record = body.get("record")
+    from app.explorer_service import insert_supabase_record
+    res = insert_supabase_record(table, record)
+    return JSONResponse(res)
+
 @app.get("/api/ai/explorer/schema")
 async def api_explorer_schema(db: str = "bigquery", schema: str = "nanopro_cbs_bronze"):
     return JSONResponse({"status": "success", "db": db, "schema": schema, "tables": ["CMG", "GAM", "HTD", "SOL", "SWIFT_MSG", "TAM_LAM", "UBO", "VCT"]})
