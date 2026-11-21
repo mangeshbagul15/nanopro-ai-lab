@@ -24,7 +24,25 @@ def _static_catalog() -> List[Dict[str, Any]]:
                 {"name": "AML_ALERT", "type": "table", "rows": 100, "columns": ["ALERT_ID", "RULE_CODE", "ACCOUNT_NO", "SCORE", "STATUS"]},
                 {"name": "AML_CASE", "type": "table", "rows": 100, "columns": ["CASE_ID", "CASE_TYPE", "FIU_FLAG", "ANALYST", "RISK_TIER"]},
                 {"name": "ATM_SWITCH", "type": "table", "rows": 100, "columns": ["TXN_SEQ", "TERMINAL_ID", "CARD_BIN", "TXN_STATUS", "RESPONSE_CODE"]},
-                {"name": "BORROWER_ENTITY", "type": "table", "rows": 100, "columns": ["LEI_CODE", "COMPANY_NAME", "SECTOR", "CREDIT_RATING", "EXPOSURE_AMT"]}]}]},
+                {"name": "BORROWER_ENTITY", "type": "table", "rows": 100, "columns": ["LEI_CODE", "COMPANY_NAME", "SECTOR", "CREDIT_RATING", "EXPOSURE_AMT"]}]},
+            {"name": "nanopro_cbs_silver", "tables": [
+                {"name": "SILV_CUSTOMER_360", "type": "table", "rows": 100, "columns": ["CUST_KEY", "CUST_ID", "SEGMENT", "LTV", "CLV_SCORE"]},
+                {"name": "SILV_ACCOUNT_DIM", "type": "table", "rows": 100, "columns": ["ACCT_KEY", "FORACID", "ACCT_TYPE", "OPEN_DATE", "STATUS"]},
+                {"name": "SILV_TXN_FACT", "type": "table", "rows": 900, "columns": ["TXN_KEY", "TRAN_ID", "AMOUNT", "CHANNEL", "VALUE_DATE"]},
+                {"name": "SILV_BRANCH_DIM", "type": "table", "rows": 150, "columns": ["BRANCH_KEY", "SOL_ID", "CITY", "REGION", "MANAGER"]},
+                {"name": "SILV_PRODUCT_DIM", "type": "table", "rows": 40, "columns": ["PROD_KEY", "PROD_CODE", "PROD_NAME", "RISK_WEIGHT"]}]},
+            {"name": "nanopro_aml_fiu", "tables": [
+                {"name": "AML_CTR_AGG", "type": "table", "rows": 21, "columns": ["CTR_ID", "CUST_ID", "CASH_AMT", "BRANCH", "FILED_TS"]},
+                {"name": "AML_STR_CASES", "type": "table", "rows": 16, "columns": ["STR_ID", "ACCOUNT", "SCORE", "NARRATIVE", "FIU_REF"]},
+                {"name": "AML_SANC_SCREEN", "type": "table", "rows": 100, "columns": ["SCREEN_ID", "ENTITY", "LIST_SOURCE", "MATCH_SCORE", "STATUS"]},
+                {"name": "AML_PEP_REGISTER", "type": "table", "rows": 100, "columns": ["PEP_ID", "NAME", "POSITION", "COUNTRY", "REVIEW_DATE"]},
+                {"name": "AML_VELOCITY_ALERTS", "type": "table", "rows": 150, "columns": ["ALERT_ID", "ACCT_ID", "VELOCITY_IDX", "THRESHOLD", "ACTION"]}]},
+            {"name": "nanopro_regulatory", "tables": [
+                {"name": "RBI_CRL_CRILC", "type": "table", "rows": 100, "columns": ["BORROWER_ID", "EXPOSURE", "RATING", "REVIEW_DATE"]},
+                {"name": "RBI_SMA_BUCKETS", "type": "table", "rows": 100, "columns": ["ACCT_ID", "DPD", "SMA_STAGE", "PROVISION"]},
+                {"name": "RBI_LCR_NSRF", "type": "table", "rows": 100, "columns": ["BUCKET", "HQLA", "OUTFLOW", "LCR_RATIO"]},
+                {"name": "FIU_IND_FILING", "type": "table", "rows": 21, "columns": ["FILING_ID", "FORM_TYPE", "PERIOD", "STATUS", "ACK_NO"]},
+                {"name": "BASEL_RWA_CALC", "type": "table", "rows": 100, "columns": ["ASSET_CLASS", "RWA", "CAPITAL_RATIO", "BUCKET"]}]}]},
         {"id": "pipe_duckdb", "pipe": True, "name": "DUCKDB IN-MEMORY · fast analytical cache", "kind": "duckdb", "icon": "🦆", "status": "live", "detail": "Local zero-latency execution & working set persistence", "error": "", "schemas": [
             {"name": "main", "tables": [
                 {"name": "CHATS", "type": "table", "rows": 31, "columns": ["ID", "TITLE", "MODEL", "EFFORT", "PINNED", "MSG_COUNT"]},
@@ -39,12 +57,20 @@ def _static_catalog() -> List[Dict[str, Any]]:
                 {"name": "FACT_TRANSACTIONS", "type": "table", "rows": 900, "columns": ["SK_TXN", "AMOUNT", "CHANNEL"]}]},
             {"name": "L2_REPORTING_MARTS", "tables": [
                 {"name": "MART_AML_CTR_STR", "type": "table", "rows": 16, "columns": ["REPORT_ID", "RECORD_COUNT", "FIU_STATUS"]},
-                {"name": "MART_ALM_BASEL_III", "type": "table", "rows": 5, "columns": ["GAP_BUCKET", "LCR_RATIO", "NSFR"]}]}]},
+                {"name": "MART_ALM_BASEL_III", "type": "table", "rows": 5, "columns": ["GAP_BUCKET", "LCR_RATIO", "NSFR"]},
+                {"name": "MART_CARD_DELINQUENCY", "type": "table", "rows": 100, "columns": ["CARD_ID", "DPD", "NPA_FLAG", "PROVISION"]},
+                {"name": "MART_UPI_SETTLEMENT", "type": "table", "rows": 900, "columns": ["UPI_REF", "AMOUNT", "RRN", "SETTLE_DATE"]},
+                {"name": "MART_GL_DAILY", "type": "table", "rows": 100, "columns": ["GL_CODE", "DEBIT", "CREDIT", "BALANCE"]},
+                {"name": "MART_SWIFT_MT103", "type": "table", "rows": 100, "columns": ["MSG_REF", "SENDER_BIC", "AMOUNT", "VALUE_DATE"]}]}]},
         {"id": "pipe_s3", "pipe": True, "name": "AWS S3 / GLUE · medallion storage", "kind": "s3", "icon": "🟧", "status": "live", "detail": "nanopro-data-lake-765865641438 (ap-southeast-2)", "error": "", "schemas": [
             {"name": "nanopro-data-lake", "tables": [
                 {"name": "bronze_cbs_raw", "type": "external", "rows": 900, "columns": ["_PARTITION_DATE", "PAYLOAD"]},
                 {"name": "silver_curated_parquet", "type": "external", "rows": 900, "columns": ["CUSTOMER_ID", "TXN_DATE"]},
-                {"name": "gold_fiu_ind_workbooks", "type": "external", "rows": 21, "columns": ["REPORT_NAME", "S3_URI"]}]}]},
+                {"name": "gold_fiu_ind_workbooks", "type": "external", "rows": 21, "columns": ["REPORT_NAME", "S3_URI"]},
+                {"name": "gold_alm_basel_marts", "type": "external", "rows": 7, "columns": ["REPORT_NAME", "S3_URI"]},
+                {"name": "gold_card_risk_marts", "type": "external", "rows": 6, "columns": ["REPORT_NAME", "S3_URI"]},
+                {"name": "silver_cleansed_txns", "type": "external", "rows": 900, "columns": ["TXN_ID", "AMOUNT", "CHANNEL"]},
+                {"name": "silver_dim_customers", "type": "external", "rows": 100, "columns": ["CUST_ID", "SEGMENT", "RISK"]}]}]},
         {"id": "pipe_sftp", "pipe": True, "name": "SFTP HUB · Regulatory & FIU-IND Exchanges", "kind": "sftp", "icon": "📂", "status": "live", "detail": "Automated inbound landing zone & outbound secure drop", "error": "", "schemas": [
             {"name": "sftp_zones", "tables": [
                 {"name": "INBOUND_LANDING", "type": "feed", "rows": 2, "columns": ["FILE_NAME", "FILE_SIZE", "LANDED_TS"]},
