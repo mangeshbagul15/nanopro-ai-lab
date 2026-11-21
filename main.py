@@ -371,8 +371,9 @@ async def api_explorer_catalog():
     return JSONResponse(get_explorer_catalog())
 
 @app.get("/api/ai/explorer/table")
-async def api_explorer_table(db: str = "bigquery", schema: str = "nanopro_cbs_bronze", table: str = "CMG"):
-    return JSONResponse(get_table_details(db, schema, table))
+async def api_explorer_table(database: Optional[str] = None, db: Optional[str] = None, schema: str = "nanopro_cbs_bronze", table: str = "CMG"):
+    target_db = database or db or "pipe_bigquery"
+    return JSONResponse(get_table_details(target_db, schema, table))
 
 @app.get("/api/ai/explorer/schema")
 async def api_explorer_schema(db: str = "bigquery", schema: str = "nanopro_cbs_bronze"):
@@ -564,7 +565,7 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
         _p_low = prompt.strip().lower()
         _explicit_sql = (
             _p_low.startswith("execute bigquery query:")
-            or "duckdb" in _p_low
+            or bool(re.search(r"^\s*(?:duckdb\s*:|duckdb\s+select|/duckdb|duckdb\s+sync)", _p_low))
             or bool(re.search(r"```(?:sql)?\s*(select|with|insert|update|delete)\b", prompt, re.IGNORECASE))
             or bool(re.match(r"^\s*(select|with)\b", prompt.strip(), re.IGNORECASE))
         )

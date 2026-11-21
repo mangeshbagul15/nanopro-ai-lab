@@ -396,11 +396,22 @@ def get_explorer_catalog() -> Dict[str, Any]:
 
 
 def get_table_details(db_id: str, schema: str, table: str) -> Dict[str, Any]:
-    """Real column metadata when the store is reachable, else the columns
-    already documented in the explorer catalog (never blank)."""
-    # 0. BigQuery live introspection FIRST — the service-account client knows
-    #    the true column list (22 cols) vs the 6-col documented subset.
-    if db_id == "pipe_bigquery":
+    """Real column metadata and authentic sample rows when the store is reachable,
+    else the columns already documented in the explorer catalog."""
+    norm_id = (db_id or "").lower()
+    if norm_id in ("bigquery", "pipe_bigquery"):
+        norm_id = "pipe_bigquery"
+    elif norm_id in ("duckdb", "pipe_duckdb"):
+        norm_id = "pipe_duckdb"
+    elif norm_id in ("snowflake", "pipe_snowflake"):
+        norm_id = "pipe_snowflake"
+    elif norm_id in ("s3", "pipe_s3", "pipe_aws"):
+        norm_id = "pipe_s3"
+    elif norm_id in ("sftp", "pipe_sftp"):
+        norm_id = "pipe_sftp"
+
+    # 0. BigQuery live introspection FIRST with authentic sample rows
+    if norm_id == "pipe_bigquery":
         try:
             from app.core.live_catalog import _bigquery_client
             client, auth = _bigquery_client()
@@ -409,11 +420,43 @@ def get_table_details(db_id: str, schema: str, table: str) -> Dict[str, Any]:
                 cols = [{"name": f.name, "type": str(getattr(f, "field_type", "STRING")),
                          "nullable": getattr(f, "mode", "NULLABLE") != "REQUIRED",
                          "is_pk": False} for f in getattr(tbl, "schema", []) or []]
+                sample_rows = []
+                try:
+                    q_job = client.query(f"SELECT * FROM `{client.project}.{schema}.{table}` LIMIT 10")
+                    for r in q_job.result(timeout=10.0):
+                        sample_rows.append({k: str(v) if v is not None else None for k, v in r.items()})
+                except Exception:
+                    pass
                 if cols:
-                    return {"status": "success", "database": db_id, "schema": schema,
+                    return {"status": "success", "database": norm_id, "schema": schema,
                             "table": table, "row_count": int(getattr(tbl, "num_rows", 0) or 0),
-                            "columns": cols, "sample_rows": [], "live": True,
+                            "columns": cols, "sample_rows": sample_rows, "live": True,
                             "source": "bigquery_live", "auth": auth}
+        except Exception:
+            pass
+
+    # 0b. DuckDB live introspection with authentic sample rows
+    if norm_id == "pipe_duckdb":
+        try:
+            if os.path.exists(DUCKDB_PATH):
+                import duckdb
+                con = duckdb.connect(DUCKDB_PATH, read_only=True)
+                sample_rows = []
+                cols = []
+                try:
+                    res = con.execute(f"SELECT * FROM {schema}.{table} LIMIT 10").fetchall()
+                    cols_desc = [d[0] for d in con.description]
+                    cols = [{"name": c, "type": "VARCHAR", "nullable": True, "is_pk": False} for c in cols_desc]
+                    for r in res:
+                        sample_rows.append({cols_desc[i]: str(r[i]) if r[i] is not None else None for i in range(len(cols_desc))})
+                except Exception:
+                    pass
+                con.close()
+                if cols:
+                    return {"status": "success", "database": norm_id, "schema": schema,
+                            "table": table, "row_count": len(sample_rows),
+                            "columns": cols, "sample_rows": sample_rows, "live": True,
+                            "source": "duckdb_live"}
         except Exception:
             pass
     # 1. Catalog lookup — the explorer already knows each table's columns.

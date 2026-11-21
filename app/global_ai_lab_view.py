@@ -5057,7 +5057,8 @@ body.in-global_ai_lab .nano-dynamic-island {
               <div class="ailab-tree-row" data-ailab-kind="table" data-db="${escapeHtml(db.id)}" data-schema="${escapeHtml(sc.name)}" data-table="${escapeHtml(tb.name)}" onclick="ailabClickExplorerTable('${escapeHtml(db.id)}', '${escapeHtml(sc.name)}', '${escapeHtml(tb.name)}', '${escapeHtml(tbKey)}')">
                 <span class="ailab-tree-arrow ${isTbOpen ? 'is-expanded' : ''}">▶</span>
                 <span style="font-size:11px;">📄</span>
-                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(tb.name)}</span>
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="Click to view details or query">${escapeHtml(tb.name)}</span>
+                <button onclick="event.stopPropagation(); ailabOpenDataPreview('${escapeHtml(db.id)}', '${escapeHtml(sc.name)}', '${escapeHtml(tb.name)}');" title="View Real Data Rows" style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#34D399;font-size:9.5px;padding:1px 6px;border-radius:4px;cursor:pointer;margin-right:4px;font-weight:700;">👁️ Data</button>
                 <span class="ailab-tree-badge" style="background:rgba(59,130,246,0.15);color:#93C5FD;">${tb.rows ? tb.rows.toLocaleString() + 'r' : ''}</span>
               </div>
               ${colsHtml}
@@ -5148,7 +5149,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     const fullPath = `${dbId}.${schema}.${table}`;
     const input = $id("ailabPromptInput");
     if (input) {
-      input.value = `Analyze table \`${fullPath}\` with schema optimization, CDC deduplication, and DuckDB/BigQuery performance.`;
+      input.value = `SELECT * FROM \`${schema}.${table}\` LIMIT 10;`;
       input.focus();
     }
   };
@@ -5197,6 +5198,130 @@ body.in-global_ai_lab .nano-dynamic-island {
     `;
     document.head.appendChild(style);
   }
+
+
+  // -------------------------------------------------------------
+  // REAL DATA VIEWER MODAL
+  // -------------------------------------------------------------
+  window.ailabOpenDataPreview = async function(dbId, schema, table) {
+    ailabEnsureCtxStyles();
+    const existing = document.getElementById('ailabDataPreviewModal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'ailabDataPreviewModal';
+    overlay.className = 'ailab-dlg-overlay';
+    overlay.style.zIndex = '100010';
+    overlay.innerHTML = `
+      <div class="ailab-dlg" style="width:min(900px, 94vw); max-height:86vh; display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #1E293B; padding-bottom:10px; margin-bottom:12px;">
+          <div>
+            <div class="ailab-dlg-title" style="display:flex; align-items:center; gap:8px;">
+              <span>📊 \${escapeHtml(schema)}.\${escapeHtml(table)}</span>
+              <span id="npDataStatusBadge" style="font-size:10px; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.4); color:#A5B4FC; padding:2px 7px; border-radius:4px; font-weight:700;">Loading...</span>
+            </div>
+            <div class="ailab-dlg-sub" id="npDataSubMeta">Fetching authentic data rows from \${escapeHtml(dbId)}...</div>
+          </div>
+          <button id="npCloseDataPreview" style="background:none; border:none; color:#94A3B8; font-size:18px; cursor:pointer;" title="Close">✕</button>
+        </div>
+        <div id="npDataPreviewBody" style="flex:1; overflow:auto; min-height:180px;">
+          <div style="padding:40px; text-align:center; color:#94A3B8; font-size:13px;">
+            <span style="display:inline-block; animation:spin 1s linear infinite; margin-right:8px;">⚡</span>
+            Reading live lakehouse storage...
+          </div>
+        </div>
+        <div class="ailab-dlg-actions" style="margin-top:12px; border-top:1px solid #1E293B; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:#64748B;">Showing first 10 sample records from live catalog driver</span>
+          <div style="display:flex; gap:8px;">
+            <button class="ailab-btn primary" id="npQueryFromPreview">⚡ Query in AI Lab</button>
+            <button class="ailab-btn" id="npCloseDataPreviewBtn">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', ev => { if (ev.target === overlay) close(); });
+    overlay.querySelector('#npCloseDataPreview').onclick = close;
+    overlay.querySelector('#npCloseDataPreviewBtn').onclick = close;
+    overlay.querySelector('#npQueryFromPreview').onclick = () => {
+      close();
+      const input = $id("ailabPromptInput");
+      if (input) {
+        input.value = `SELECT * FROM \\`\${schema}.\${table}\\` LIMIT 10;`;
+        input.focus();
+        try { if (window.ailabSendMessage) window.ailabSendMessage(); } catch(_) {}
+      }
+    };
+
+    try {
+      const qs = new URLSearchParams({ database: dbId, schema: schema, table: table });
+      const res = await ailabAuthFetch(`/api/ai/explorer/table?\${qs.toString()}`, { cache: "no-store" });
+      const data = res.ok ? await res.json() : {};
+      const badge = overlay.querySelector('#npDataStatusBadge');
+      const sub = overlay.querySelector('#npDataSubMeta');
+      const body = overlay.querySelector('#npDataPreviewBody');
+
+      if (!res.ok || data.status !== 'success') {
+        if (badge) { badge.textContent = 'ERROR'; badge.style.color = '#F87171'; }
+        if (body) { body.innerHTML = `<div style="padding:30px; text-align:center; color:#F87171;">Failed to load data: \${escapeHtml(data.message || ('HTTP ' + res.status))}</div>`; }
+        return;
+      }
+
+      const rows = data.sample_rows || [];
+      const cols = data.columns || [];
+      const colNames = cols.length ? cols.map(c => c.name) : (rows.length ? Object.keys(rows[0]) : []);
+
+      if (badge) {
+        badge.textContent = data.live ? 'LIVE ONLINE' : 'CATALOG READY';
+        badge.style.color = data.live ? '#34D399' : '#FBBF24';
+        badge.style.borderColor = data.live ? 'rgba(52,211,153,0.4)' : 'rgba(251,191,36,0.4)';
+      }
+      if (sub) {
+        sub.textContent = `\${colNames.length} columns · \${Number(data.row_count || 0).toLocaleString()} total records in lakehouse`;
+      }
+
+      if (!rows.length && !colNames.length) {
+        if (body) body.innerHTML = '<div style="padding:30px; text-align:center; color:#94A3B8;">No records found in this table.</div>';
+        return;
+      }
+
+      if (!rows.length) {
+        let colsListHtml = `<div style="padding:15px; color:#94A3B8; font-size:12px;">Table schema loaded (\${colNames.length} columns), but no sample rows returned. Click 'Query in AI Lab' to query directly.</div><div style="display:flex; flex-wrap:wrap; gap:6px; padding:10px 15px;">`;
+        cols.forEach(c => {
+          colsListHtml += `<span style="background:#0F172A; border:1px solid #334155; padding:3px 8px; border-radius:5px; font-size:11px; font-family:monospace; color:#E2E8F0;">\${escapeHtml(c.name)} <span style="color:#64748B;">\${escapeHtml(c.type)}</span></span>`;
+        });
+        colsListHtml += `</div>`;
+        if (body) body.innerHTML = colsListHtml;
+        return;
+      }
+
+      let tableHtml = `<table style="width:100%; border-collapse:collapse; font-size:11.5px; font-family:monospace; text-align:left;">`;
+      tableHtml += `<thead><tr style="background:#0F172A; position:sticky; top:0; z-index:2; border-bottom:1px solid #334155;">`;
+      colNames.forEach(c => {
+        tableHtml += `<th style="padding:8px 10px; color:#93C5FD; white-space:nowrap; border-right:1px solid #1E293B; font-weight:700;">\${escapeHtml(c)}</th>`;
+      });
+      tableHtml += `</tr></thead><tbody>`;
+
+      rows.forEach((r, idx) => {
+        const bg = idx % 2 === 0 ? 'transparent' : 'rgba(30,41,59,0.3)';
+        tableHtml += `<tr style="background:\${bg}; border-bottom:1px solid #1E293B;">`;
+        colNames.forEach(c => {
+          const val = r[c];
+          const valStr = val === null || val === undefined ? '<span style="color:#64748B; font-style:italic;">NULL</span>' : escapeHtml(String(val));
+          tableHtml += `<td style="padding:7px 10px; color:#E2E8F0; white-space:nowrap; border-right:1px solid #1E293B; max-width:280px; overflow:hidden; text-overflow:ellipsis;">\${valStr}</td>`;
+        });
+        tableHtml += `</tr>`;
+      });
+      tableHtml += `</tbody></table>`;
+      if (body) body.innerHTML = tableHtml;
+
+    } catch(err) {
+      const body = overlay.querySelector('#npDataPreviewBody');
+      if (body) body.innerHTML = `<div style="padding:30px; text-align:center; color:#F87171;">Error reading table data: \${escapeHtml(err.message || String(err))}</div>`;
+    }
+  };
 
   window.ailabNotify = function(message, kind) {
     ailabEnsureCtxStyles();
@@ -5644,6 +5769,8 @@ body.in-global_ai_lab .nano-dynamic-island {
       const cols = (tb && tb.columns) || [];
       meta = cols.length ? `${cols.length} columns · ${Number(tb.rows || 0).toLocaleString()} rows` : 'Counting columns & rows…';
       items = [
+        ['preview', '👁️', 'View Real Data Rows'],
+        ['query', '⚡', 'Query in Chat (SELECT * )'],
         ['rename', '✏️', 'Rename table'],
         ['addcol', '➕', 'Add column'],
         ['coltype', '🔤', 'Change column type'],
@@ -5678,7 +5805,15 @@ body.in-global_ai_lab .nano-dynamic-island {
       if (!item) return;
       const act = item.getAttribute('data-act');
       ailabCloseExplorerMenu();
-      if (act === 'rename') ailabRenameDialog(kind, dbId, schema, table);
+      if (act === 'preview') { ailabOpenDataPreview(dbId, schema, table); }
+      else if (act === 'query') {
+        const input = $id("ailabPromptInput");
+        if (input) {
+          input.value = `SELECT * FROM \`${schema}.${table}\` LIMIT 10;`;
+          input.focus();
+        }
+      }
+      else if (act === 'rename') ailabRenameDialog(kind, dbId, schema, table);
       else if (act === 'delete') ailabDeleteDialog(kind, dbId, schema, table);
       else if (act === 'addcol') ailabAddColumnDialog(dbId, schema, table);
       else if (act === 'coltype') ailabColumnTypeDialog(dbId, schema, table, column);
