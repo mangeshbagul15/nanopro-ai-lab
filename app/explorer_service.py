@@ -398,6 +398,24 @@ def get_explorer_catalog() -> Dict[str, Any]:
 def get_table_details(db_id: str, schema: str, table: str) -> Dict[str, Any]:
     """Real column metadata when the store is reachable, else the columns
     already documented in the explorer catalog (never blank)."""
+    # 0. BigQuery live introspection FIRST — the service-account client knows
+    #    the true column list (22 cols) vs the 6-col documented subset.
+    if db_id == "pipe_bigquery":
+        try:
+            from app.core.live_catalog import _bigquery_client
+            client, auth = _bigquery_client()
+            if auth != "nanopro_live_catalog_resilience":
+                tbl = client.get_table(f"{client.project}.{schema}.{table}")
+                cols = [{"name": f.name, "type": str(getattr(f, "field_type", "STRING")),
+                         "nullable": getattr(f, "mode", "NULLABLE") != "REQUIRED",
+                         "is_pk": False} for f in getattr(tbl, "schema", []) or []]
+                if cols:
+                    return {"status": "success", "database": db_id, "schema": schema,
+                            "table": table, "row_count": int(getattr(tbl, "num_rows", 0) or 0),
+                            "columns": cols, "sample_rows": [], "live": True,
+                            "source": "bigquery_live", "auth": auth}
+        except Exception:
+            pass
     # 1. Catalog lookup — the explorer already knows each table's columns.
     try:
         catalog = get_explorer_catalog()
