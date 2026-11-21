@@ -1746,33 +1746,43 @@ body.in-global_ai_lab .nano-dynamic-island {
   text-overflow: ellipsis;
 }
 
-/* ---------------- Model Catalog Discovery Modal ---------------- */
+/* ---------------- Model Catalog Discovery Modal (Always on Top Fullscreen Backdrop) ---------------- */
 #view-global_ai_lab .ailab-modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(3, 7, 18, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(3, 7, 18, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-  padding: 20px;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
 }
 #view-global_ai_lab .ailab-modal-backdrop.is-open {
   display: flex !important;
 }
 #view-global_ai_lab .ailab-modal {
-  width: 100%;
-  max-width: 840px;
-  max-height: 85vh;
-  background: #0B132B;
-  border: 1.5px solid #8B5CF6;
-  border-radius: 14px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(139, 92, 246, 0.3);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  width: 95vw !important;
+  max-width: 920px !important;
+  max-height: 88vh !important;
+  height: 88vh !important;
+  background: #0B132B !important;
+  border: 1.5px solid #8B5CF6 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 40px rgba(139, 92, 246, 0.4) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: relative !important;
+  z-index: 1000000 !important;
 }
 #view-global_ai_lab .ailab-modal-head {
   padding: 14px 18px;
@@ -3302,24 +3312,43 @@ body.in-global_ai_lab .nano-dynamic-island {
   }
 }
 
+@media (max-width: 1080px) {
+  #view-global_ai_lab .ailab-live-routed-badge {
+    display: none !important;
+  }
+  #view-global_ai_lab .ailab-effort-wrap {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   #view-global_ai_lab .ailab-topbar {
-    padding: 0 8px !important;
-    gap: 6px !important;
+    padding: 0 6px !important;
+    gap: 4px !important;
+    height: 42px !important;
+    min-height: 42px !important;
   }
   #view-global_ai_lab .ailab-brand span {
-    font-size: 12px !important;
+    font-size: 11px !important;
+  }
+  #view-global_ai_lab .ailab-conn-badge {
+    display: none !important;
+  }
+  #view-global_ai_lab .ailab-topbar-sync-btn {
+    display: none !important;
   }
   #view-global_ai_lab .ailab-topbar-new-chat-btn span {
     display: none !important;
   }
   #view-global_ai_lab .ailab-topbar-new-chat-btn {
-    padding: 0 8px !important;
-    min-width: 32px !important;
-    height: 30px !important;
+    padding: 0 6px !important;
+    min-width: 28px !important;
+    height: 28px !important;
   }
   #view-global_ai_lab .ailab-model-selector-wrap {
-    max-width: 125px !important;
+    min-width: 110px !important;
+    max-width: 135px !important;
+    height: 28px !important;
   }
   #view-global_ai_lab .ailab-effort-wrap {
     display: none !important;
@@ -3327,18 +3356,9 @@ body.in-global_ai_lab .nano-dynamic-island {
   #view-global_ai_lab .ailab-live-routed-badge {
     display: none !important;
   }
-  #view-global_ai_lab #ailabUserBadge {
-    max-width: 75px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
   #view-global_ai_lab .ailab-cua-toggle-btn {
-    width: 28px;
-    padding: 0 !important;
-    justify-content: center;
+    display: none !important;
   }
-  #view-global_ai_lab .ailab-cua-toggle-btn .lbl { display: none; }
   #view-global_ai_lab .ailab-canvas-head .ailab-code-btn .lbl { display: none; }
   #view-global_ai_lab .ailab-followup-chips {
     flex-wrap: nowrap;
@@ -3834,7 +3854,7 @@ body.in-global_ai_lab .nano-dynamic-island {
       <div class="ailab-brand">
         <span>🧠 NanoPro AI Lab</span>
       </div>
-      <div class="ailab-conn-badge" id="ailabConnBadge" title="OpenRouter + DuckDB + BigQuery Active">
+      <div class="ailab-conn-badge" id="ailabConnBadge" onclick="ailabOpenModelCatalogModal()" style="cursor:pointer;" title="Click to view 4,804+ Live Frontier AI Models">
         <span class="ailab-pulse-dot"></span>
         <span id="ailabConnText">4,804+ models</span>
       </div>
@@ -4024,9 +4044,6 @@ body.in-global_ai_lab .nano-dynamic-island {
       <button class="ailab-iconbtn" onclick="ailabOpenAirflowModal()" title="Airflow Orchestrator &amp; SFTP Hub">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
       </button>
-      <button class="ailab-iconbtn" onclick="ailabPinCurrentChat()" title="Pin this chat">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v8m-7 4l2-2m10 2l-2-2m-8 6h12m-6 0v6"/></svg>
-      </button>
       <button class="ailab-iconbtn" onclick="ailabExportCurrentChat()" title="Export chat as Markdown">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
       </button>
@@ -4097,39 +4114,20 @@ body.in-global_ai_lab .nano-dynamic-island {
         </button>
       </div>
 
-      <!-- User Profile & Auth Controls (Modern Animated Dock in Bottom Left Corner) -->
-      <div class="ailab-user-dock">
-        <div class="ailab-user-card">
-          <div class="ailab-user-avatar-wrap">
-            <div class="ailab-user-avatar">
-              <span id="ailabSidebarAvatarText">MB</span>
-              <span class="ailab-user-pulse-dot"></span>
-            </div>
-            <div class="ailab-user-info">
-              <div class="ailab-user-name" id="ailabSidebarUserName" title="Super Admin (Mangesh Bagul)">Super Admin (Mangesh Bagul)</div>
-              <div class="ailab-user-meta">
-                <span class="ailab-user-role-badge">ADMIN</span>
-                <span class="ailab-user-status-text">&#9679; Active Session</span>
-              </div>
-            </div>
-          </div>
-          <div class="ailab-auth-actions">
-            <!-- Modern Animated Switch User Button -->
-            <button type="button" class="ailab-auth-btn ailab-switch-btn" id="ailabSwitchUserBtn" onclick="ailabSwitchUser(this)" title="Switch to another user or login account">
-              <svg class="ailab-auth-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
-              </svg>
-              <span>Switch User</span>
-            </button>
-            <!-- Modern Animated Log Out Button -->
-            <button type="button" class="ailab-auth-btn ailab-logout-btn" id="ailabLogOutBtn" onclick="ailabLogOut(this)" title="Sign out of NanoPro AI Lab securely">
-              <svg class="ailab-auth-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-              </svg>
-              <span>Log Out</span>
-            </button>
-          </div>
+      <!-- Clean Minimal Footer (Zero Clutter, Maximum Space for Chats & Projects) -->
+      <div class="ailab-user-dock" style="padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.08); background: #0B1119; min-height: 32px;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+          <span class="ailab-user-pulse-dot" style="position:static; display:inline-block; width:6px; height:6px;"></span>
+          <span style="font-size: 11px; color: #86EFAC; font-weight: 600;">Active Session</span>
+          <span id="ailabSidebarUserName" style="display:none;">Super Admin</span>
+          <span id="ailabSidebarAvatarText" style="display:none;">MB</span>
         </div>
+        <button type="button" class="ailab-auth-btn ailab-logout-btn" id="ailabLogOutBtn" onclick="ailabLogOut(this)" title="Sign out of NanoPro AI Lab securely" style="padding: 3px 8px; font-size: 11px; height: 26px; border-radius: 5px; display: flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #FCA5A5; cursor: pointer;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+          <span>Log Out</span>
+        </button>
       </div>
     </aside>
 
@@ -4170,28 +4168,16 @@ body.in-global_ai_lab .nano-dynamic-island {
 
     <!-- Panel 3: Conversational Cockpit & Code Studio -->
     <main class="ailab-main">
-      <!-- Active Chat Header -->
-      <div class="ailab-canvas-head">
-        <div class="ailab-chat-title-wrap">
-          <div class="ailab-active-title" id="ailabActiveTitle">New AI Chat Session</div>
-          <div class="ailab-active-sub" id="ailabActiveSub">
-            <span id="ailabActiveProjectTag">Standalone Task</span>
-            <span>•</span>
+      <!-- Active Chat Header (Ultra-Sleek Breadcrumb, Zero Button Clutter) -->
+      <div class="ailab-canvas-head" style="padding: 5px 16px; min-height: 32px; height: 32px; background: rgba(11, 17, 25, 0.45); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+          <span style="font-size: 13px; font-weight: 700; color: #F1F5F9;" id="ailabActiveTitle">New AI Chat Session</span>
+          <span style="font-size: 11px; color: #64748B;">•</span>
+          <span style="font-size: 11px; color: #A78BFA; font-weight: 600;" id="ailabActiveProjectTag">Standalone Task</span>
+          <span id="ailabActiveSub" style="display: none;">
             <span id="ailabActiveModelTag">⚡ Single AUTO Engine</span>
-            <span>•</span>
             <span id="ailabActiveStorageTag">🦆 DuckDB Synced</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <button class="ailab-code-btn" onclick="ailabMoveCurrentChat()" title="Move this chat to a project">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><span class="lbl">Move</span>
-          </button>
-          <button class="ailab-code-btn" onclick="ailabRenameCurrentChat()" title="Rename this chat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg><span class="lbl">Rename</span>
-          </button>
-          <button class="ailab-code-btn" onclick="ailabClearMessages()" title="Clear this view">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8"/></svg><span class="lbl">Clear</span>
-          </button>
+          </span>
         </div>
       </div>
 
