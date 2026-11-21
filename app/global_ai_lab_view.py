@@ -5119,19 +5119,29 @@ body.in-global_ai_lab .nano-dynamic-island {
           if (isTbOpen && tb._loadingColumns) {
             colsHtml = `
               <div class="ailab-tree-children is-expanded" id="child_${escapeHtml(tbKey)}">
-                <div style="padding:3px 15px;color:#64748B;font-size:10.5px;">Loading columns…</div>
+                <div style="padding:4px 18px;color:#38BDF8;font-size:11px;"><span style="display:inline-block;animation:spin 1s linear infinite;margin-right:6px;">⚡</span>Loading column schema…</div>
               </div>
             `;
           } else if (isTbOpen && tb.columns && tb.columns.length > 0) {
             colsHtml = `
               <div class="ailab-tree-children is-expanded" id="child_${escapeHtml(tbKey)}">
-                ${tb.columns.map(c => `
-                  <div style="padding:2px 6px 2px 22px;font-size:10.5px;color:#94A3B8;display:flex;align-items:center;gap:5px;font-family:monospace;" data-ailab-kind="column" data-db="${escapeHtml(db.id)}" data-schema="${escapeHtml(sc.name)}" data-table="${escapeHtml(tb.name)}" data-column="${escapeHtml(c.name)}" data-type="${escapeHtml(c.type)}">
-                    <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">• ${escapeHtml(c.name)}</span>
-                    ${c.key ? `<span title="${c.key === 'PK' ? 'Primary key' : 'Foreign key'}" style="font-size:8.5px;padding:0 4px;border-radius:3px;${c.key === 'PK' ? 'background:rgba(250,204,21,0.15);color:#FACC15;' : 'background:rgba(56,189,248,0.15);color:#38BDF8;'}">${c.key}</span>` : ""}
-                    <span style="color:#64748B;font-size:9.5px;">${escapeHtml(c.type)}</span>
-                  </div>
-                `).join("")}
+                ${tb.columns.map(c => {
+                  const cName = typeof c === "string" ? c : (c.name || "");
+                  const cType = typeof c === "string" ? ailabInferColType(cName) : (c.type || "VARCHAR(64)");
+                  const cKey = (c && c.key) || (c && c.is_pk ? "PK" : (cName.endsWith("_ID") || cName === "ID" || cName === "FORACID" ? "PK" : ""));
+                  return `
+                    <div class="ailab-tree-row ailab-col-row" style="padding:3px 6px 3px 22px;font-size:11px;color:#CBD5E1;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;" data-ailab-kind="column" data-db="${escapeHtml(db.id)}" data-schema="${escapeHtml(sc.name)}" data-table="${escapeHtml(tb.name)}" data-column="${escapeHtml(cName)}" data-type="${escapeHtml(cType)}" title="Right-click or click ⋮ to edit column (${cName}: ${cType})">
+                      <span style="font-size:10px;color:#8B5CF6;flex-shrink:0;">🔹</span>
+                      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;font-size:11px;color:#F1F5F9;">${escapeHtml(cName)}</span>
+                      ${cKey ? `<span title="${cKey === 'PK' ? 'Primary Key' : 'Foreign Key'}" style="font-size:8.5px;padding:1px 4px;border-radius:3px;background:rgba(250,204,21,0.18);color:#FACC15;font-weight:700;flex-shrink:0;">${cKey}</span>` : ""}
+                      <span class="ailab-col-type-tag" style="color:#38BDF8;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.22);border-radius:3px;padding:1px 5px;font-size:9.5px;font-family:monospace;flex-shrink:0;">${escapeHtml(cType)}</span>
+                      <button class="ailab-col-act-btn" onclick="event.stopPropagation(); ailabOpenExplorerMenu(event, this.closest('[data-ailab-kind]'));" title="Column Actions (Change Type/Length, Rename, Delete)" style="background:none;border:none;color:#94A3B8;cursor:pointer;padding:0 3px;font-size:13px;line-height:1;margin-left:2px;border-radius:3px;">⋮</button>
+                    </div>
+                  `;
+                }).join("")}
+                <div style="padding:4px 6px 4px 22px;display:flex;gap:6px;">
+                  <button onclick="event.stopPropagation(); ailabAddColumnDialog('${escapeHtml(db.id)}', '${escapeHtml(sc.name)}', '${escapeHtml(tb.name)}');" style="background:rgba(139,92,246,0.12);border:1px dashed rgba(139,92,246,0.35);color:#C084FC;font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">➕ Add Column</button>
+                </div>
               </div>
             `;
           } else if (isTbOpen) {
@@ -5139,7 +5149,7 @@ body.in-global_ai_lab .nano-dynamic-island {
               setTimeout(() => ailabFetchExplorerColumns(db.id, sc.name, tb.name), 0);
               colsHtml = `
                 <div class="ailab-tree-children is-expanded" id="child_${escapeHtml(tbKey)}">
-                  <div style="padding:3px 15px;color:#64748B;font-size:10.5px;">Loading columns…</div>
+                  <div style="padding:4px 18px;color:#38BDF8;font-size:11px;"><span style="display:inline-block;animation:spin 1s linear infinite;margin-right:6px;">⚡</span>Loading column schema…</div>
                 </div>
               `;
             } else {
@@ -5230,6 +5240,22 @@ body.in-global_ai_lab .nano-dynamic-island {
     ailabRenderExplorerTree();
   };
 
+  
+  window.ailabInferColType = function(name) {
+    const n = String(name || '').toUpperCase().trim();
+    if (n === 'ID' || n.endsWith('_ID') || n === 'FORACID') return 'VARCHAR(32)';
+    if (n.includes('AMT') || n.includes('BAL') || n.includes('LIMIT') || n.includes('SPEND') || n.includes('TURNOVER') || n.includes('VALUE')) return 'NUMERIC(15,2)';
+    if (n.includes('RATE') || n.includes('RATIO') || n.includes('PERCENT') || n.includes('INDEX')) return 'NUMERIC(5,2)';
+    if (n.includes('DATE') || n.endsWith('_TS') || n.endsWith('_AT') || n.includes('TIME')) return 'TIMESTAMP';
+    if (n.includes('PAN')) return 'CHAR(10)';
+    if (n.includes('BIC')) return 'CHAR(11)';
+    if (n.includes('AADHAAR')) return 'CHAR(64)';
+    if (n.endsWith('_FLAG') || n.startsWith('IS_')) return 'CHAR(1)';
+    if (n.includes('PAYLOAD') || n.includes('DATA') || n.includes('JSON')) return 'JSONB';
+    if (n.includes('NAME') || n.includes('DESC') || n.includes('PARTICULAR') || n.includes('MSG')) return 'VARCHAR(128)';
+    return 'VARCHAR(64)';
+  };
+
   window.ailabClickExplorerTable = async function(dbId, schema, table, tbKey) {
     AILAB_EXPLORER.treeOpen[tbKey] = !AILAB_EXPLORER.treeOpen[tbKey];
     const isOpen = !!AILAB_EXPLORER.treeOpen[tbKey];
@@ -5239,9 +5265,12 @@ body.in-global_ai_lab .nano-dynamic-island {
     const tableEntry = sc ? (sc.tables || []).find(t => t.name === table) : null;
 
     // Columns are introspected on first expand so the catalog stays cheap.
-    if (isOpen && tableEntry && (!tableEntry.columns || tableEntry.columns.length === 0)) {
-      delete tableEntry._columnError;
-      await ailabFetchExplorerColumns(dbId, schema, table);
+    if (isOpen && tableEntry) {
+      const needsFetch = !tableEntry.columns || tableEntry.columns.length === 0 || typeof tableEntry.columns[0] === 'string' || !tableEntry.columns[0].type;
+      if (needsFetch) {
+        delete tableEntry._columnError;
+        await ailabFetchExplorerColumns(dbId, schema, table);
+      }
     }
     ailabRenderExplorerTree();
 
@@ -5607,7 +5636,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     };
   };
 
-  const AILAB_COLUMN_TYPES = ['STRING', 'INT64', 'NUMERIC', 'BIGNUMERIC', 'FLOAT64', 'BOOL', 'DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'BYTES', 'JSON', 'GEOGRAPHY'];
+  const AILAB_COLUMN_TYPES = ['VARCHAR', 'CHAR', 'TEXT', 'STRING', 'INT64', 'INTEGER', 'NUMERIC', 'DECIMAL', 'FLOAT64', 'BOOL', 'DATE', 'DATETIME', 'TIMESTAMP', 'TIME', 'JSON', 'BYTES'];
   const AILAB_DATE_FORMATS = [
     ['', '(format बदलू नका)'],
     ['%Y-%m-%d', 'YYYY-MM-DD'],
@@ -5646,7 +5675,7 @@ body.in-global_ai_lab .nano-dynamic-island {
        <label class="ailab-dlg-label">New data type</label>
        <select class="ailab-dlg-select" id="npTypeTarget">${typeOptions}</select>
        <div id="npTypeLengthRow" style="display:none">
-         <label class="ailab-dlg-label">Length (STRING / BYTES)</label>
+         <label class="ailab-dlg-label">Length (e.g. VARCHAR(12), CHAR(15))</label>
          <input class="ailab-dlg-input" id="npTypeLength" type="number" min="1" placeholder="e.g. 50">
        </div>
        <div id="npTypePrecRow" style="display:none">
@@ -5679,8 +5708,8 @@ body.in-global_ai_lab .nano-dynamic-island {
     const refresh = () => {
       const source = sourceType();
       const target = targetSelect.value;
-      const needsLength = target === 'STRING' || target === 'BYTES';
-      const needsPrecision = target === 'NUMERIC' || target === 'BIGNUMERIC';
+      const needsLength = target === 'VARCHAR' || target === 'CHAR' || target === 'STRING' || target === 'BYTES' || target === 'TEXT';
+      const needsPrecision = target === 'NUMERIC' || target === 'DECIMAL' || target === 'BIGNUMERIC';
       const needsFormat = dateTypes.indexOf(target) >= 0 || (dateTypes.indexOf(source) >= 0 && target === 'STRING');
       lengthRow.style.display = needsLength ? '' : 'none';
       precisionRow.style.display = needsPrecision ? '' : 'none';
@@ -5730,6 +5759,42 @@ body.in-global_ai_lab .nano-dynamic-island {
     };
   };
 
+  
+  window.ailabColumnDeleteDialog = function(dbId, schema, table, column) {
+    const dialog = ailabOpenDialog(
+      'Delete column (DROP COLUMN)',
+      `${schema}.${table}.${column}`,
+      `<div class="ailab-dlg-warn">
+         <b>${column}</b> column कायमचा DROP होईल. यातील डेटा परत मिळणार नाही.
+       </div>
+       <div style="margin-top:10px;font-size:11.5px;color:#94A3B8;">
+         Execute DDL: <code>ALTER TABLE ${schema}.${table} DROP COLUMN ${column};</code>
+       </div>
+       <div class="ailab-dlg-error"></div>`
+    );
+    dialog.ok.textContent = 'Drop Column';
+    dialog.ok.classList.remove('primary');
+    dialog.ok.classList.add('is-danger');
+    dialog.ok.onclick = async () => {
+      dialog.ok.disabled = true;
+      try {
+        await ailabExplorerPost('/api/ai/explorer/column-delete', {
+          database: dbId, schema_name: schema, table: table, column: column
+        });
+        dialog.close();
+        const tb = ailabExplorerTableEntry(dbId, schema, table);
+        if (tb && Array.isArray(tb.columns)) {
+          tb.columns = tb.columns.filter(c => (typeof c === 'string' ? c !== column : c.name !== column));
+        }
+        ailabRenderExplorerTree();
+        ailabNotify(`Column ${column} dropped successfully`, 'success');
+      } catch (err) {
+        dialog.ok.disabled = false;
+        ailabDialogError(dialog, err.message);
+      }
+    };
+  };
+
   window.ailabColumnRenameDialog = function(dbId, schema, table, column) {
     const dialog = ailabOpenDialog(
       'Rename column',
@@ -5772,7 +5837,7 @@ body.in-global_ai_lab .nano-dynamic-island {
        <label class="ailab-dlg-label">Data type</label>
        <select class="ailab-dlg-select" id="npAddColType">${typeOptions}</select>
        <div id="npAddColLenRow" style="display:none">
-         <label class="ailab-dlg-label">Length (STRING / BYTES)</label>
+         <label class="ailab-dlg-label">Length (e.g. VARCHAR(12), CHAR(15))</label>
          <input class="ailab-dlg-input" id="npAddColLength" type="number" min="1" placeholder="e.g. 50">
        </div>
        <div id="npAddColPrecRow" style="display:none">
@@ -5879,8 +5944,10 @@ body.in-global_ai_lab .nano-dynamic-island {
       title = column;
       meta = `${(columnType || 'COLUMN').toUpperCase()} · ${schema}.${table}`;
       items = [
-        ['coltype', '🔤', 'Change data type'],
-        ['colrename', '✏️', 'Rename column'],
+        ['coltype', '🔤', 'Change Data Type & Length'],
+        ['colrename', '✏️', 'Rename Column'],
+        ['coldelete', '🗑️', 'Delete Column (DROP)', true],
+        ['addcol', '➕', 'Add New Column'],
       ];
     }
 
@@ -5916,6 +5983,7 @@ body.in-global_ai_lab .nano-dynamic-island {
       else if (act === 'addcol') ailabAddColumnDialog(dbId, schema, table);
       else if (act === 'coltype') ailabColumnTypeDialog(dbId, schema, table, column);
       else if (act === 'colrename') ailabColumnRenameDialog(dbId, schema, table, column);
+      else if (act === 'coldelete') ailabColumnDeleteDialog(dbId, schema, table, column);
       else if (act === 'refresh') {
         if (kind === 'schema') {
           await ailabLoadExplorer(true);

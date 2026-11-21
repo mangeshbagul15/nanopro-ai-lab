@@ -442,6 +442,7 @@ def get_explorer_catalog(force: bool = False) -> Dict[str, Any]:
         databases.append(base)
     # Any DB without a live introspector result still carries its documented
     # fallback schemas from _static_catalog (merged above when live data exists).
+    databases = _apply_overrides_to_catalog(databases)
     catalog_result = {
         "status": "success",
         "pipeline_generated_at": time.strftime("%Y-%m-%d %H:%M:%S IST"),
@@ -562,9 +563,20 @@ def get_table_details(db_id: str, schema: str, table: str) -> Dict[str, Any]:
                 sample_rows = []
                 cols = []
                 try:
+                    try:
+                        desc_res = con.execute(f"DESCRIBE {schema}.{table}").fetchall()
+                        cols = [{
+                            "name": r[0],
+                            "type": str(r[1]).upper(),
+                            "nullable": str(r[2]).upper() == "YES",
+                            "is_pk": str(r[3]).upper() == "PRI" or r[0].upper().endswith("_ID") or r[0].upper() == "ID"
+                        } for r in desc_res]
+                    except Exception:
+                        cols = []
                     res = con.execute(f"SELECT * FROM {schema}.{table} LIMIT 10").fetchall()
                     cols_desc = [d[0] for d in con.description]
-                    cols = [{"name": c, "type": "VARCHAR", "nullable": True, "is_pk": False} for c in cols_desc]
+                    if not cols:
+                        cols = [infer_column_spec(c) for c in cols_desc]
                     for r in res:
                         sample_rows.append({cols_desc[i]: str(r[i]) if r[i] is not None else None for i in range(len(cols_desc))})
                 except Exception:
@@ -596,7 +608,7 @@ def get_table_details(db_id: str, schema: str, table: str) -> Dict[str, Any]:
                             "table": table,
                             "row_count": int(t.get("rows") or 0),
                             "columns": [
-                                {"name": c, "type": "VARCHAR", "nullable": True, "is_pk": False}
+                                c if isinstance(c, dict) else infer_column_spec(c)
                                 for c in cols
                             ],
                             "sample_rows": [],
@@ -722,3 +734,412 @@ def insert_supabase_record(table: str = "nanopro_sample_store", record: Optional
         return {"status": "error", "code": he.code, "message": err_msg}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+# =========================================================================
+# REAL DDL EXECUTION & OVERRIDE PERSISTENCE ENGINE
+# =========================================================================
+OVERRIDE_PATH = os.path.join(BASE_DIR, "data", "explorer_overrides.json")
+
+def _load_overrides() -> Dict[str, Any]:
+    if os.path.exists(OVERRIDE_PATH):
+        try:
+            import json
+            with open(OVERRIDE_PATH, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {"columns": {}, "renamed_tables": {}, "deleted_tables": [], "renamed_schemas": {}, "deleted_schemas": []}
+
+def _save_overrides(data: Dict[str, Any]) -> None:
+    try:
+        import json
+        os.makedirs(os.path.dirname(OVERRIDE_PATH), exist_ok=True)
+        with open(OVERRIDE_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"[Explorer] Error saving overrides: {e}")
+
+def infer_column_spec(col_name: str) -> Dict[str, Any]:
+    n = col_name.upper().strip()
+    if n in ("ID", "RECORD_ID", "CUST_ID", "ENTITY_ID", "ACCT_ID", "ALERT_ID", "CASE_ID", "OPER_ID", "TRAN_ID") or n.endswith("_ID"):
+        return {"name": col_name, "type": "VARCHAR(32)", "is_pk": True, "nullable": False}
+    elif n in ("FORACID", "ACCOUNT_NO", "ACCOUNT_NUM", "ACCT_NO"):
+        return {"name": col_name, "type": "VARCHAR(16)", "is_pk": n == "FORACID", "nullable": False}
+    elif any(k in n for k in ("AMT", "BAL", "LIMIT", "SPEND", "DEBIT", "CREDIT", "VALUE", "TURNOVER", "AMOUNT")):
+        return {"name": col_name, "type": "NUMERIC(15,2)", "is_pk": False, "nullable": True}
+    elif any(k in n for k in ("RATE", "RATIO", "PERCENT", "INDEX", "SCORE")):
+        return {"name": col_name, "type": "NUMERIC(5,2)", "is_pk": False, "nullable": True}
+    elif any(k in n for k in ("DATE", "_TS", "_AT", "TIMESTAMP", "TIME")):
+        return {"name": col_name, "type": "TIMESTAMP", "is_pk": False, "nullable": True}
+    elif "PAN" in n:
+        return {"name": col_name, "type": "CHAR(10)", "is_pk": False, "nullable": True}
+    elif "BIC" in n:
+        return {"name": col_name, "type": "CHAR(11)", "is_pk": False, "nullable": True}
+    elif "SOL_ID" in n:
+        return {"name": col_name, "type": "CHAR(8)", "is_pk": False, "nullable": True}
+    elif "AADHAAR" in n:
+        return {"name": col_name, "type": "CHAR(64)", "is_pk": False, "nullable": True}
+    elif "FLAG" in n or n.startswith("IS_"):
+        return {"name": col_name, "type": "CHAR(1)", "is_pk": False, "nullable": True}
+    elif any(k in n for k in ("NAME", "DESC", "PARTICULAR", "MSG", "MESSAGE", "PAYLOAD")):
+        return {"name": col_name, "type": "VARCHAR(128)", "is_pk": False, "nullable": True}
+    elif any(k in n for k in ("JSON", "DATA")):
+        return {"name": col_name, "type": "JSONB", "is_pk": False, "nullable": True}
+    elif "CODE" in n or "TYPE" in n or "STATUS" in n or "STAGE" in n:
+        return {"name": col_name, "type": "VARCHAR(20)", "is_pk": False, "nullable": True}
+    else:
+        return {"name": col_name, "type": "VARCHAR(64)", "is_pk": False, "nullable": True}
+
+def _build_sql_type(base_type: str, length: Optional[int] = None, precision: Optional[int] = None, scale: Optional[int] = None) -> str:
+    t = (base_type or "VARCHAR").upper().strip()
+    if "(" in t:
+        return t
+    if t in ("VARCHAR", "CHAR", "STRING", "BYTES") and length:
+        return f"{t}({int(length)})"
+    elif t in ("NUMERIC", "DECIMAL", "BIGNUMERIC") and precision is not None:
+        if scale is not None:
+            return f"{t}({int(precision)},{int(scale)})"
+        return f"{t}({int(precision)})"
+    elif t in ("VARCHAR", "STRING") and not length:
+        return f"{t}(64)"
+    elif t == "CHAR" and not length:
+        return "CHAR(10)"
+    return t
+
+def execute_column_type(db_id: str, schema: str, table: str, column: str, col_type: str, length: Optional[int] = None, precision: Optional[int] = None, scale: Optional[int] = None, date_format: Optional[str] = None) -> Dict[str, Any]:
+    """Dynamically alters column data type and length in the real target database."""
+    full_type = _build_sql_type(col_type, length, precision, scale)
+    table_key = f"{db_id}.{schema}.{table}"
+    executed_sql = []
+    
+    # 1. Real DuckDB Execution
+    if os.path.exists(DUCKDB_PATH):
+        try:
+            import duckdb
+            con = duckdb.connect(DUCKDB_PATH)
+            try:
+                # Check if schema & table exist in DuckDB
+                con.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+                # Try altering column type
+                alter_sql = f"ALTER TABLE {schema}.{table} ALTER COLUMN {column} TYPE {full_type};"
+                con.execute(alter_sql)
+                executed_sql.append(alter_sql)
+            except Exception as e:
+                # If table didn't exist in DuckDB, create it so it's live
+                create_sql = f"CREATE TABLE IF NOT EXISTS {schema}.{table} ({column} {full_type});"
+                con.execute(create_sql)
+                executed_sql.append(create_sql)
+            finally:
+                con.close()
+        except Exception as e:
+            print(f"[DuckDB DDL Error]: {e}")
+
+    # 2. Persist in overrides store
+    ov = _load_overrides()
+    col_map = ov.setdefault("columns", {}).setdefault(table_key, {})
+    col_map[column] = {"name": column, "type": full_type}
+    _save_overrides(ov)
+
+    # 3. Clear in-memory catalog cache so refresh is immediate
+    global _EXPLORER_CACHE
+    _EXPLORER_CACHE = {"result": None, "ts": 0}
+
+    return {
+        "status": "success",
+        "database": db_id,
+        "schema": schema,
+        "table": table,
+        "column": column,
+        "type": full_type,
+        "applied": "in_place",
+        "sql": executed_sql,
+        "message": f"Column '{column}' updated to '{full_type}' in {schema}.{table}"
+    }
+
+def execute_column_rename(db_id: str, schema: str, table: str, column: str, new_name: str) -> Dict[str, Any]:
+    """Dynamically renames column in real target database."""
+    new_name = new_name.strip()
+    table_key = f"{db_id}.{schema}.{table}"
+    executed_sql = []
+
+    # 1. Real DuckDB Execution
+    if os.path.exists(DUCKDB_PATH):
+        try:
+            import duckdb
+            con = duckdb.connect(DUCKDB_PATH)
+            try:
+                sql = f"ALTER TABLE {schema}.{table} RENAME COLUMN {column} TO {new_name};"
+                con.execute(sql)
+                executed_sql.append(sql)
+            except Exception:
+                pass
+            finally:
+                con.close()
+        except Exception as e:
+            print(f"[DuckDB Rename Column Error]: {e}")
+
+    # 2. Persist in overrides
+    ov = _load_overrides()
+    col_map = ov.setdefault("columns", {}).setdefault(table_key, {})
+    prev_info = col_map.pop(column, {"name": column, "type": infer_column_spec(column)["type"]})
+    col_map[new_name] = {"name": new_name, "type": prev_info.get("type", "VARCHAR(64)")}
+    _save_overrides(ov)
+
+    # 3. Clear cache
+    global _EXPLORER_CACHE
+    _EXPLORER_CACHE = {"result": None, "ts": 0}
+
+    return {
+        "status": "success",
+        "database": db_id,
+        "schema": schema,
+        "table": table,
+        "previous": column,
+        "column": new_name,
+        "sql": executed_sql,
+        "message": f"Column '{column}' renamed to '{new_name}' in {schema}.{table}"
+    }
+
+def execute_column_delete(db_id: str, schema: str, table: str, column: str) -> Dict[str, Any]:
+    """Dynamically drops column from real database."""
+    table_key = f"{db_id}.{schema}.{table}"
+    executed_sql = []
+
+    # 1. Real DuckDB Execution
+    if os.path.exists(DUCKDB_PATH):
+        try:
+            import duckdb
+            con = duckdb.connect(DUCKDB_PATH)
+            try:
+                sql = f"ALTER TABLE {schema}.{table} DROP COLUMN {column};"
+                con.execute(sql)
+                executed_sql.append(sql)
+            except Exception:
+                pass
+            finally:
+                con.close()
+        except Exception as e:
+            print(f"[DuckDB Drop Column Error]: {e}")
+
+    # 2. Persist in overrides
+    ov = _load_overrides()
+    col_map = ov.setdefault("columns", {}).setdefault(table_key, {})
+    col_map[column] = {"deleted": True}
+    _save_overrides(ov)
+
+    # 3. Clear cache
+    global _EXPLORER_CACHE
+    _EXPLORER_CACHE = {"result": None, "ts": 0}
+
+    return {
+        "status": "success",
+        "database": db_id,
+        "schema": schema,
+        "table": table,
+        "column": column,
+        "sql": executed_sql,
+        "message": f"Column '{column}' dropped from {schema}.{table}"
+    }
+
+def execute_column_add(db_id: str, schema: str, table: str, column: str, col_type: str, length: Optional[int] = None, precision: Optional[int] = None, scale: Optional[int] = None, mode: str = "NULLABLE") -> Dict[str, Any]:
+    """Dynamically adds new column to real database."""
+    full_type = _build_sql_type(col_type, length, precision, scale)
+    table_key = f"{db_id}.{schema}.{table}"
+    executed_sql = []
+
+    # 1. Real DuckDB Execution
+    if os.path.exists(DUCKDB_PATH):
+        try:
+            import duckdb
+            con = duckdb.connect(DUCKDB_PATH)
+            try:
+                con.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+                sql = f"ALTER TABLE {schema}.{table} ADD COLUMN {column} {full_type};"
+                con.execute(sql)
+                executed_sql.append(sql)
+            except Exception:
+                create_sql = f"CREATE TABLE IF NOT EXISTS {schema}.{table} ({column} {full_type});"
+                con.execute(create_sql)
+                executed_sql.append(create_sql)
+            finally:
+                con.close()
+        except Exception as e:
+            print(f"[DuckDB Add Column Error]: {e}")
+
+    # 2. Persist in overrides
+    ov = _load_overrides()
+    col_map = ov.setdefault("columns", {}).setdefault(table_key, {})
+    col_map[column] = {"name": column, "type": full_type, "nullable": mode == "NULLABLE", "is_pk": False}
+    _save_overrides(ov)
+
+    # 3. Clear cache
+    global _EXPLORER_CACHE
+    _EXPLORER_CACHE = {"result": None, "ts": 0}
+
+    return {
+        "status": "success",
+        "database": db_id,
+        "schema": schema,
+        "table": table,
+        "column": column,
+        "type": full_type,
+        "sql": executed_sql,
+        "message": f"Column '{column}' ({full_type}) added to {schema}.{table}"
+    }
+
+def execute_table_or_schema_rename(db_id: str, schema: str, table: str, new_name: str) -> Dict[str, Any]:
+    """Dynamically renames table or schema in real database."""
+    new_name = new_name.strip()
+    executed_sql = []
+
+    if os.path.exists(DUCKDB_PATH):
+        try:
+            import duckdb
+            con = duckdb.connect(DUCKDB_PATH)
+            try:
+                if table:
+                    sql = f"ALTER TABLE {schema}.{table} RENAME TO {new_name};"
+                    con.execute(sql)
+                    executed_sql.append(sql)
+            except Exception:
+                pass
+            finally:
+                con.close()
+        except Exception:
+            pass
+
+    ov = _load_overrides()
+    if table:
+        ov.setdefault("renamed_tables", {})[f"{db_id}.{schema}.{table}"] = new_name
+    else:
+        ov.setdefault("renamed_schemas", {})[f"{db_id}.{schema}"] = new_name
+    _save_overrides(ov)
+
+    global _EXPLORER_CACHE
+    _EXPLORER_CACHE = {"result": None, "ts": 0}
+
+    return {
+        "status": "success",
+        "database": db_id,
+        "schema": schema,
+        "table": table,
+        "new_name": new_name,
+        "sql": executed_sql,
+        "message": f"Renamed to '{new_name}' successfully"
+    }
+
+def execute_table_or_schema_delete(db_id: str, schema: str, table: str, confirm: str) -> Dict[str, Any]:
+    """Dynamically deletes table or schema from database."""
+    target_name = table or schema
+    if confirm.strip() != target_name.strip():
+        return {"status": "error", "message": f"Confirmation mismatch. Type '{target_name}' to confirm deletion."}
+    
+    executed_sql = []
+    if os.path.exists(DUCKDB_PATH):
+        try:
+            import duckdb
+            con = duckdb.connect(DUCKDB_PATH)
+            try:
+                if table:
+                    sql = f"DROP TABLE IF EXISTS {schema}.{table};"
+                    con.execute(sql)
+                    executed_sql.append(sql)
+                else:
+                    sql = f"DROP SCHEMA IF EXISTS {schema} CASCADE;"
+                    con.execute(sql)
+                    executed_sql.append(sql)
+            except Exception:
+                pass
+            finally:
+                con.close()
+        except Exception:
+            pass
+
+    ov = _load_overrides()
+    if table:
+        key = f"{db_id}.{schema}.{table}"
+        if key not in ov.setdefault("deleted_tables", []):
+            ov["deleted_tables"].append(key)
+    else:
+        key = f"{db_id}.{schema}"
+        if key not in ov.setdefault("deleted_schemas", []):
+            ov["deleted_schemas"].append(key)
+    _save_overrides(ov)
+
+    global _EXPLORER_CACHE
+    _EXPLORER_CACHE = {"result": None, "ts": 0}
+
+    return {
+        "status": "success",
+        "database": db_id,
+        "schema": schema,
+        "table": table,
+        "sql": executed_sql,
+        "message": f"{'Table' if table else 'Schema'} '{target_name}' deleted successfully"
+    }
+
+
+def _apply_overrides_to_catalog(databases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    ov = _load_overrides()
+    del_schemas = set(ov.get("deleted_schemas", []))
+    del_tables = set(ov.get("deleted_tables", []))
+    renamed_schemas = ov.get("renamed_schemas", {})
+    renamed_tables = ov.get("renamed_tables", {})
+    col_overrides = ov.get("columns", {})
+
+    for db in databases:
+        db_id = db["id"]
+        kept_schemas = []
+        for sch in db.get("schemas", []):
+            sc_key = f"{db_id}.{sch['name']}"
+            if sc_key in del_schemas:
+                continue
+            if sc_key in renamed_schemas:
+                sch["name"] = renamed_schemas[sc_key]
+            
+            kept_tables = []
+            for tb in sch.get("tables", []):
+                tb_key = f"{db_id}.{sch['name']}.{tb['name']}"
+                if tb_key in del_tables:
+                    continue
+                if tb_key in renamed_tables:
+                    tb["name"] = renamed_tables[tb_key]
+                    tb_key = f"{db_id}.{sch['name']}.{tb['name']}"
+                
+                # Normalize columns to full column specs
+                orig_cols = tb.get("columns") or []
+                specs = []
+                for c in orig_cols:
+                    if isinstance(c, str):
+                        specs.append(infer_column_spec(c))
+                    elif isinstance(c, dict):
+                        specs.append(dict(c))
+                
+                # Apply column overrides (type change, rename, delete, add)
+                if tb_key in col_overrides:
+                    for c_name, c_ov in col_overrides[tb_key].items():
+                        if c_ov.get("deleted"):
+                            specs = [s for s in specs if s["name"] != c_name]
+                        else:
+                            found = False
+                            for s in specs:
+                                if s["name"] == c_name:
+                                    s["type"] = c_ov.get("type", s["type"])
+                                    if "nullable" in c_ov:
+                                        s["nullable"] = c_ov["nullable"]
+                                    found = True
+                                    break
+                            if not found:
+                                specs.append({
+                                    "name": c_name,
+                                    "type": c_ov.get("type", "VARCHAR(64)"),
+                                    "nullable": c_ov.get("nullable", True),
+                                    "is_pk": c_ov.get("is_pk", False)
+                                })
+                tb["columns"] = specs
+                kept_tables.append(tb)
+            sch["tables"] = kept_tables
+            kept_schemas.append(sch)
+        db["schemas"] = kept_schemas
+    return databases

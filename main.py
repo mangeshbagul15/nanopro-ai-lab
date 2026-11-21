@@ -376,6 +376,105 @@ async def api_explorer_table(database: Optional[str] = None, db: Optional[str] =
     return JSONResponse(get_table_details(target_db, schema, table))
 
 
+
+# -------------------------------------------------------------
+# DDL Operations Engine (Column Type/Length, Rename, Add, Delete)
+# -------------------------------------------------------------
+@app.post("/api/ai/explorer/column-type")
+async def api_explorer_column_type(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    db_id = body.get("database") or body.get("db") or "pipe_duckdb"
+    schema = body.get("schema_name") or body.get("schema") or "nanopro_cbs_bronze"
+    table = body.get("table", "")
+    column = body.get("column", "")
+    col_type = body.get("column_type", "VARCHAR")
+    length = body.get("length")
+    precision = body.get("precision")
+    scale = body.get("scale")
+    date_format = body.get("date_format")
+    from app.explorer_service import execute_column_type
+    res = execute_column_type(db_id, schema, table, column, col_type, length, precision, scale, date_format)
+    return JSONResponse(res)
+
+@app.post("/api/ai/explorer/column-rename")
+async def api_explorer_column_rename(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    db_id = body.get("database") or body.get("db") or "pipe_duckdb"
+    schema = body.get("schema_name") or body.get("schema") or "nanopro_cbs_bronze"
+    table = body.get("table", "")
+    column = body.get("column", "")
+    new_name = body.get("new_name", "")
+    from app.explorer_service import execute_column_rename
+    res = execute_column_rename(db_id, schema, table, column, new_name)
+    return JSONResponse(res)
+
+@app.post("/api/ai/explorer/column-delete")
+async def api_explorer_column_delete(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    db_id = body.get("database") or body.get("db") or "pipe_duckdb"
+    schema = body.get("schema_name") or body.get("schema") or "nanopro_cbs_bronze"
+    table = body.get("table", "")
+    column = body.get("column", "")
+    from app.explorer_service import execute_column_delete
+    res = execute_column_delete(db_id, schema, table, column)
+    return JSONResponse(res)
+
+@app.post("/api/ai/explorer/column-add")
+async def api_explorer_column_add(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    db_id = body.get("database") or body.get("db") or "pipe_duckdb"
+    schema = body.get("schema_name") or body.get("schema") or "nanopro_cbs_bronze"
+    table = body.get("table", "")
+    column = body.get("column", "")
+    col_type = body.get("column_type", "VARCHAR")
+    length = body.get("length")
+    precision = body.get("precision")
+    scale = body.get("scale")
+    mode = body.get("mode", "NULLABLE")
+    from app.explorer_service import execute_column_add
+    res = execute_column_add(db_id, schema, table, column, col_type, length, precision, scale, mode)
+    return JSONResponse(res)
+
+@app.post("/api/ai/explorer/rename")
+async def api_explorer_rename(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    db_id = body.get("database") or body.get("db") or "pipe_duckdb"
+    schema = body.get("schema_name") or body.get("schema") or "nanopro_cbs_bronze"
+    table = body.get("table", "")
+    new_name = body.get("new_name", "")
+    from app.explorer_service import execute_table_or_schema_rename
+    res = execute_table_or_schema_rename(db_id, schema, table, new_name)
+    return JSONResponse(res)
+
+@app.post("/api/ai/explorer/delete")
+async def api_explorer_delete(request: Request):
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    db_id = body.get("database") or body.get("db") or "pipe_duckdb"
+    schema = body.get("schema_name") or body.get("schema") or "nanopro_cbs_bronze"
+    table = body.get("table", "")
+    confirm = body.get("confirm", "")
+    from app.explorer_service import execute_table_or_schema_delete
+    res = execute_table_or_schema_delete(db_id, schema, table, confirm)
+    return JSONResponse(res)
+
 @app.get("/api/ai/explorer/supabase/sql")
 async def api_supabase_sql():
     from app.explorer_service import get_supabase_sample_sql
