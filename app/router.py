@@ -44,6 +44,10 @@ EXTENDED_PROVIDERS = [
     ("requesty",      "REQUESTY_API_KEY",      "https://router.requesty.ai/v1",      "openai/gpt-4o-mini",                     20.0),
     ("aimlapi",       "AIMLAPI_KEY",           "https://api.aimlapi.com/v1",         "gpt-4o-mini",                            20.0),
     ("huggingface",   "HUGGINGFACE_API_KEY",   "https://router.huggingface.co/v1",   "meta-llama/Llama-3.3-70B-Instruct",      20.0),
+    ("arcee",         "ARCEE_API_KEY",         "https://api.arcee.ai/api/v1",        "zai-org/glm-5.3-flash",                  20.0),
+    ("baseten",       "BASETEN_API_KEY",       "https://inference.baseten.co/v1",    "openai/gpt-oss-120b",                    20.0),
+    ("friendli",      "FRIENDLI_API_KEY",      "https://api.friendli.ai/serverless/v1","meta-llama-3.3-70b-instruct",           20.0),
+    ("krutrim",       "KRUTRIM_API_KEY",       "https://api.olakrutrim.com/v1",      "krutrim-cloud-ai-v1",                    15.0),
 ]
 
 # Friendly model-name aliases so a UI model pick like "deepseek-chat" or
@@ -55,6 +59,10 @@ MODEL_PROVIDER_HINTS = {
     "gemma": "nvidia-nim", "nvidia": "nvidia-nim", "nim": "nvidia-nim",
     "novita": "novita",
     "kimi": "nvidia-nim",
+    "glm": "arcee", "arcee": "arcee",
+    "baseten": "baseten",
+    "friendli": "friendli",
+    "krutrim": "krutrim", "olakrutrim": "krutrim",
 }
 
 
