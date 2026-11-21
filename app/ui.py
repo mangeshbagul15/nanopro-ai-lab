@@ -33,11 +33,6 @@ def get_ai_lab_html(user: Optional[Dict[str, Any]] = None) -> str:
             '<div class="workspace-view active" id="view-global_ai_lab" style="display:flex !important; flex-direction:column !important; width:100vw !important; height:100vh !important; flex:1 1 0% !important;">'
         )
 
-    # Inject user pill & logout button into ailab-topbar-right
-    user_pill = f'''<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.4);padding:4px 9px;border-radius:6px;font-size:11.5px;color:#fff;margin-left:6px;"><span id="ailabUserBadge">👤 {user_name}</span><span style="font-size:9.5px;background:#6366F1;color:#fff;padding:1px 5px;border-radius:3px;font-weight:700;">{user_role}</span><button onclick="logout()" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:12px;margin-left:2px;" title="Sign Out">🚪</button></div>'''
-
-    if '<div class="ailab-topbar-right">' in view_content:
-        view_content = view_content.replace('<div class="ailab-topbar-right">', '<div class="ailab-topbar-right">' + user_pill)
 
     logout_script = """
     <script>

@@ -3839,6 +3839,54 @@ body.in-global_ai_lab .nano-dynamic-island {
   flex-shrink: 0 !important;
 }
 
+
+/* ---------------- Regenerate Alternative Model Popover ---------------- */
+#view-global_ai_lab .ailab-regen-popover {
+  position: absolute;
+  bottom: 34px;
+  left: 0;
+  background: #0B132B;
+  border: 1.5px solid #8B5CF6;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(139,92,246,0.35);
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 260px;
+}
+#view-global_ai_lab .ailab-regen-pop-head {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #A78BFA;
+  padding: 4px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 2px;
+}
+#view-global_ai_lab .ailab-regen-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: #E2E8F0;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+#view-global_ai_lab .ailab-regen-opt:hover {
+  background: rgba(139, 92, 246, 0.25);
+  color: #FFF;
+  transform: translateX(2px);
+}
+
 </style>
 
 <div class="ailab-app">
@@ -4168,17 +4216,14 @@ body.in-global_ai_lab .nano-dynamic-island {
 
     <!-- Panel 3: Conversational Cockpit & Code Studio -->
     <main class="ailab-main">
-      <!-- Active Chat Header (Ultra-Sleek Breadcrumb, Zero Button Clutter) -->
-      <div class="ailab-canvas-head" style="padding: 5px 16px; min-height: 32px; height: 32px; background: rgba(11, 17, 25, 0.45); border-bottom: 1px solid rgba(255, 255, 255, 0.06); display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-          <span style="font-size: 13px; font-weight: 700; color: #F1F5F9;" id="ailabActiveTitle">New AI Chat Session</span>
-          <span style="font-size: 11px; color: #64748B;">•</span>
-          <span style="font-size: 11px; color: #A78BFA; font-weight: 600;" id="ailabActiveProjectTag">Standalone Task</span>
-          <span id="ailabActiveSub" style="display: none;">
-            <span id="ailabActiveModelTag">⚡ Single AUTO Engine</span>
-            <span id="ailabActiveStorageTag">🦆 DuckDB Synced</span>
-          </span>
-        </div>
+      <!-- Active Chat Header (Completely hidden to maximize pure chat space) -->
+      <div class="ailab-canvas-head" style="display: none !important;">
+        <span id="ailabActiveTitle">New AI Chat Session</span>
+        <span id="ailabActiveProjectTag">Standalone Task</span>
+        <span id="ailabActiveSub" style="display: none;">
+          <span id="ailabActiveModelTag">⚡ Single AUTO Engine</span>
+          <span id="ailabActiveStorageTag">🦆 DuckDB Synced</span>
+        </span>
       </div>
 
       <!-- Messages Stream Canvas -->
@@ -4209,32 +4254,37 @@ body.in-global_ai_lab .nano-dynamic-island {
         </div>
       </div>
 
-      <!-- Bottom Command Input Cockpit -->
+      <!-- Bottom Command Input Cockpit (Modern High-Tech Container) -->
       <div class="ailab-input-cockpit">
-        <div class="ailab-input-box">
+        <div class="ailab-input-box" style="border: 1.5px solid rgba(139, 92, 246, 0.35); border-radius: 12px; background: rgba(11, 19, 43, 0.7); box-shadow: 0 4px 24px rgba(0,0,0,0.45); transition: border-color 0.2s ease, box-shadow 0.2s ease;">
           <div id="ailabAttachmentChips" style="display:none;flex-wrap:wrap;gap:6px;padding:0 0 8px;"></div>
           <textarea
             class="ailab-textarea"
             id="ailabPromptInput"
-            placeholder="Ask anything… (Enter to send, Shift+Enter for newline)"
+            placeholder="Ask anything or query live BigQuery/DuckDB… (Enter to send, Shift+Enter for newline)"
             rows="1"
             onkeydown="ailabHandleKey(event)"
-            oninput="ailabAutoResize(this)"
+            oninput="ailabAutoResize(this); if($id('ailabCharCount')) $id('ailabCharCount').textContent = this.value.length ? (this.value.length + ' chars') : 'Ready';"
             onpaste="ailabHandlePaste(event)"
+            style="min-height: 28px; font-size: 13.5px; line-height: 1.5; color: #F8FAFC;"
           ></textarea>
           <input type="file" id="ailabAttachInput" accept="image/*" multiple style="display:none;" onchange="ailabHandleAttachmentFiles(this.files);this.value='';" />
 
-          <div class="ailab-input-actions">
-            <div class="ailab-input-tags">
-              <span class="ailab-mode-pill" id="ailabModePill">⚡ AUTO Math Router Active</span>
-              <span id="ailabSlaLabel" style="font-size:11px;color:#94A3B8;">Target SLA: &lt;800ms</span>
+          <div class="ailab-input-actions" style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+            <div class="ailab-input-tags" style="display: flex; align-items: center; gap: 8px;">
+              <span class="ailab-mode-pill" id="ailabModePill" style="transition: all 0.2s ease; cursor: pointer;" onclick="ailabOpenModelCatalogModal()" title="Click to change model">⚡ AUTO Math Router Active</span>
+              <span id="ailabSlaLabel" style="font-size:11px;color:#94A3B8;transition: all 0.2s ease;">Target SLA: &lt;800ms</span>
+              <span id="ailabCharCount" style="font-size:10.5px;color:#64748B;">Ready</span>
             </div>
 
             <div style="display:flex;align-items:center;gap:8px;">
-              <button class="ailab-code-btn" title="Attach image, flowchart or architecture diagram" onclick="document.getElementById('ailabAttachInput').click()">📎 Attach</button>
-              <button class="ailab-btn-primary" id="ailabSendBtn" onclick="ailabSubmitPrompt()">
+              <button type="button" class="ailab-code-btn" title="Attach image, flowchart or architecture diagram" onclick="document.getElementById('ailabAttachInput').click()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;font-size:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#E2E8F0;cursor:pointer;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <span>Attach</span>
+              </button>
+              <button type="button" class="ailab-btn-primary" id="ailabSendBtn" onclick="ailabSubmitPrompt()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 15px;border-radius:8px;font-size:12.5px;font-weight:700;background:linear-gradient(135deg, #10B981 0%, #059669 100%);color:#FFF;border:none;cursor:pointer;box-shadow:0 0 14px rgba(16,185,129,0.35);">
                 <span>Dispatch</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                <span style="font-size:10px;opacity:0.8;background:rgba(0,0,0,0.25);padding:1px 5px;border-radius:4px;font-weight:600;">↵ Enter</span>
               </button>
             </div>
           </div>
@@ -6932,15 +6982,38 @@ body.in-global_ai_lab .nano-dynamic-island {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span>Copy</span>
             </button>
-            <button type="button" class="ailab-action-chip" onclick="ailabRegenerateLast()" title="Regenerate response">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              <span>Regenerate</span>
-            </button>
+            <div style="position:relative;display:inline-block;">
+              <button type="button" class="ailab-action-chip ailab-regen-btn" onclick="ailabToggleRegenMenu('${wrap.id}')" title="Regenerate response with a different AI model">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <span>Regenerate (Alt Model) ▾</span>
+              </button>
+              <div id="${wrap.id}_regen_menu" class="ailab-regen-popover" style="display:none;">
+                <div class="ailab-regen-pop-head">Regenerate with Alternative Model:</div>
+                <button type="button" class="ailab-regen-opt" onclick="ailabRegenerateWithModel('anthropic/claude-3.7-sonnet')">
+                  <span>🧠</span> <span>Claude 3.7 Sonnet (Hybrid Thinking)</span>
+                </button>
+                <button type="button" class="ailab-regen-opt" onclick="ailabRegenerateWithModel('google/gemini-2.5-flash')">
+                  <span>⚡</span> <span>Gemini 2.5 Flash (&lt;300ms SLA)</span>
+                </button>
+                <button type="button" class="ailab-regen-opt" onclick="ailabRegenerateWithModel('deepseek/deepseek-chat')">
+                  <span>🇨🇳</span> <span>DeepSeek V3 (Direct API)</span>
+                </button>
+                <button type="button" class="ailab-regen-opt" onclick="ailabRegenerateWithModel('mistral/mistral-large-latest')">
+                  <span>🇫🇷</span> <span>Mistral Large 2 Flagship</span>
+                </button>
+                <button type="button" class="ailab-regen-opt" onclick="ailabRegenerateWithModel('groq/qwen3.8-27b')">
+                  <span>⚡</span> <span>Groq Qwen 3.8 LPU (&lt;300ms)</span>
+                </button>
+                <button type="button" class="ailab-regen-opt" onclick="ailabRegenerateWithModel('auto')">
+                  <span>🌐</span> <span>Next Pareto Sovereign Model</span>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="ailab-asst-foot-meta">
-            <span class="ailab-footer-verified">
+            <span class="ailab-footer-verified" title="Live Verified Multi-Model Edge Mesh">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              <span>0 MB Render Load</span>
+              <span>⚡ ${dur} Pure-Edge Inference</span>
             </span>
             <span class="ailab-msg-timestamp">📅 ${formattedDate} ⏰ ${formattedTime}</span>
           </div>
@@ -7060,7 +7133,16 @@ body.in-global_ai_lab .nano-dynamic-island {
     }).catch(console.warn);
   };
 
-  window.ailabRegenerateLast = function() {
+  window.ailabToggleRegenMenu = function(wrapId) {
+    const menu = $id(wrapId + "_regen_menu");
+    if (!menu) return;
+    const isShown = menu.style.display !== "none";
+    document.querySelectorAll(".ailab-regen-popover").forEach(m => m.style.display = "none");
+    if (!isShown) menu.style.display = "flex";
+  };
+
+  window.ailabRegenerateWithModel = function(modelId) {
+    document.querySelectorAll(".ailab-regen-popover").forEach(m => m.style.display = "none");
     if (!AILAB.messages || AILAB.messages.length === 0 || AILAB.isStreaming) return;
     let lastUserPrompt = "";
     for (let i = AILAB.messages.length - 1; i >= 0; i--) {
@@ -7070,17 +7152,39 @@ body.in-global_ai_lab .nano-dynamic-island {
       }
     }
     if (!lastUserPrompt) return;
+
+    if (modelId) {
+      AILAB.selectedModel = modelId;
+      const topSelect = $id("ailabModelSelect");
+      if (topSelect) {
+        let opt = Array.from(topSelect.options).find(o => o.value === modelId);
+        if (!opt) {
+          const prov = ailabResolveModelProvenance(modelId);
+          opt = document.createElement("option");
+          opt.value = modelId;
+          opt.textContent = `${prov.flag} ${prov.clean_name || modelId}`;
+          topSelect.appendChild(opt);
+        }
+        topSelect.value = modelId;
+      }
+      ailabChangeModel(modelId);
+    }
+
     const input = $id("ailabPromptInput");
     if (input) {
       input.value = lastUserPrompt;
       ailabAutoResize(input);
-      ailabSubmitPrompt();
+      ailabSubmitPrompt(lastUserPrompt, modelId);
     }
   };
 
-  window.ailabSubmitPrompt = async function() {
+  window.ailabRegenerateLast = function() {
+    ailabRegenerateWithModel("auto");
+  };
+
+  window.ailabSubmitPrompt = async function(overridePrompt, overrideModel) {
     const input = $id("ailabPromptInput");
-    const prompt = input.value.trim();
+    const prompt = (overridePrompt !== undefined ? overridePrompt : (input ? input.value : "")).trim();
     const pending = (AILAB.pendingAttachments || []).slice();
     if ((!prompt && pending.length === 0) || AILAB.isStreaming) return;
 
@@ -7448,7 +7552,7 @@ body.in-global_ai_lab .nano-dynamic-island {
         const routedModel = routeRes.selected_model || AILAB.selectedModel;
 
         // 4. Execution Call (OpenRouter + MCP Streaming)
-        const targetModelToExecute = (AILAB.selectedModel === "auto" || !AILAB.selectedModel) ? (routedModel || "auto") : AILAB.selectedModel;
+        const targetModelToExecute = overrideModel || ((AILAB.selectedModel === "auto" || !AILAB.selectedModel) ? (routedModel || "auto") : AILAB.selectedModel);
         const execRes = await fetch("/api/ai/execute", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -7891,13 +7995,41 @@ body.in-global_ai_lab .nano-dynamic-island {
   window.ailabChangeModel = function(modelId) {
     AILAB.selectedModel = modelId;
     const pill = $id("ailabModePill");
+    const sla = $id("ailabSlaLabel");
     if (pill) {
-      pill.textContent = modelId === "auto" ? "⚡ AUTO Math Router Active" : `🎯 Model: ${modelId.split("/").pop()}`;
+      if (modelId === "auto" || !modelId) {
+        pill.textContent = "⚡ AUTO Math Router Active";
+        pill.style.color = "#10B981";
+        pill.style.borderColor = "rgba(16, 185, 129, 0.4)";
+      } else {
+        const prov = ailabResolveModelProvenance(modelId);
+        pill.textContent = `${prov.flag || "🎯"} ${prov.clean_name || modelId.split("/").pop()}`;
+        pill.style.color = "#A78BFA";
+        pill.style.borderColor = "rgba(139, 92, 246, 0.5)";
+      }
+    }
+    if (sla) {
+      const low = (modelId || "").toLowerCase();
+      if (low.includes("groq")) {
+        sla.textContent = "Target SLA: <300ms (Groq LPU Turbo)";
+      } else if (low.includes("flash") || low.includes("gemini")) {
+        sla.textContent = "Target SLA: <600ms (High Speed)";
+      } else if (low.includes("reason") || low.includes("r1") || low.includes("o3") || low.includes("opus")) {
+        sla.textContent = "Target SLA: 2-5s (Deep Reasoning)";
+      } else {
+        sla.textContent = "Target SLA: <800ms (Balanced)";
+      }
     }
   };
 
   window.ailabChangeEffort = function(effort) {
     AILAB.selectedEffort = effort;
+    const sla = $id("ailabSlaLabel");
+    if (sla) {
+      if (effort === "fast") sla.textContent = "Target SLA: <300ms (Fast Tier)";
+      else if (effort === "reasoning" || effort === "architecture") sla.textContent = "Target SLA: 3-8s (Deep Thinking)";
+      else sla.textContent = "Target SLA: <800ms (Balanced)";
+    }
   };
 
   window.ailabToggleSidebar = function() {
