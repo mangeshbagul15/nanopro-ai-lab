@@ -177,6 +177,72 @@ def _introspect_sftp() -> Optional[Dict[str, Any]]:
     return None
 
 
+def _introspect_snowflake() -> Optional[Dict[str, Any]]:
+    """Real Snowflake schemas/tables via snowflake-connector-python.
+
+    Activates when SNOWFLAKE_ACCOUNT + auth (SNOWFLAKE_PASSWORD or
+    SNOWFLAKE_PRIVATE_KEY_B64/RSA_PKCS8_B64) are configured; otherwise
+    returns None so the documented medallion catalog remains."""
+    account = os.environ.get("SNOWFLAKE_ACCOUNT", "").strip()
+    user = os.environ.get("SNOWFLAKE_USER", "").strip()
+    if not account or not user:
+        return None
+    password = os.environ.get("SNOWFLAKE_PASSWORD", "")
+    key_b64 = os.environ.get("SNOWFLAKE_PRIVATE_KEY_B64") or os.environ.get("RSA_PKCS8_B64") or ""
+    if not password and not key_b64:
+        return None
+    try:
+        import snowflake.connector
+        kwargs: Dict[str, Any] = {
+            "account": account,
+            "user": user,
+            "warehouse": os.environ.get("SNOWFLAKE_WAREHOUSE", "COMPUTE_WH"),
+            "role": os.environ.get("SNOWFLAKE_ROLE", "ACCOUNTADMIN"),
+        }
+        if password:
+            kwargs["password"] = password
+        else:
+            import base64
+            der = base64.b64decode(key_b64)
+            from cryptography.hazmat.primitives import serialization
+            pkey = serialization.load_der_private_key(der, password=None)
+            kwargs["private_key"] = pkey.private_bytes(
+                serialization.Encoding.DER,
+                serialization.PrivateFormat.PKCS8,
+                serialization.NoEncryption(),
+            )
+        con = snowflake.connector.connect(**kwargs)
+        try:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT TABLE_SCHEMA, TABLE_NAME, ROW_COUNT FROM INFORMATION_SCHEMA.TABLES "
+                "WHERE TABLE_SCHEMA NOT IN ('INFORMATION_SCHEMA') ORDER BY 1,2"
+            )
+            schemas_map: Dict[str, List[Dict[str, Any]]] = {}
+            for sch, tbl, rows in cur.fetchall():
+                try:
+                    cur.execute(
+                        f"SELECT COLUMN_NAME FROM {sch}.INFORMATION_SCHEMA.COLUMNS "
+                        f"WHERE TABLE_NAME='{tbl}' ORDER BY ORDINAL_POSITION"
+                    )
+                    cols = [r[0] for r in cur.fetchall()]
+                except Exception:
+                    cols = []
+                schemas_map.setdefault(sch, []).append(
+                    {"name": tbl, "type": "table", "rows": int(rows or 0), "columns": cols}
+                )
+            cur.close()
+        finally:
+            con.close()
+        schemas = [{"name": s, "tables": t} for s, t in schemas_map.items()]
+        if schemas:
+            n = sum(len(s["tables"]) for s in schemas)
+            return {"schemas": schemas, "detail": f"{n} tables · real Snowflake introspection"}
+    except Exception:
+        pass
+    return None
+
+
 def _introspect_s3() -> Optional[Dict[str, Any]]:
     """Real S3 prefixes when AWS creds are configured."""
     try:
@@ -212,6 +278,7 @@ def get_explorer_catalog() -> Dict[str, Any]:
         "pipe_duckdb": _introspect_duckdb,
         "pipe_sftp": _introspect_sftp,
         "pipe_s3": _introspect_s3,
+        "pipe_snowflake": _introspect_snowflake,
     }
     databases: List[Dict[str, Any]] = []
     for db_id, fn in introspectors.items():
@@ -238,8 +305,8 @@ def get_explorer_catalog() -> Dict[str, Any]:
             base["status"] = "live"
             base["error"] = ""
         databases.append(base)
-    # Snowflake has no password/JWT key configured — keep documented schema.
-    databases.append(dict(fallback["pipe_snowflake"]))
+    # Any DB without a live introspector result still carries its documented
+    # fallback schemas from _static_catalog (merged above when live data exists).
     return {
         "status": "success",
         "pipeline_generated_at": time.strftime("%Y-%m-%d %H:%M:%S IST"),
