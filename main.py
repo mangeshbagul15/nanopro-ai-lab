@@ -732,6 +732,21 @@ async def api_ai_bigquery_admin(payload: Dict[str, Any] = Body(...)):
     result["user"] = "Super Admin (Mangesh Bagul)"
     return JSONResponse(result)
 
+@app.post("/api/duckdb/sync")
+async def api_duckdb_sync(payload: Dict[str, Any] = Body(default={})):
+    """Mirror BigQuery bronze tables into the local DuckDB analytical store."""
+    from app.core.bq_duckdb_sync import sync_bigquery_to_duckdb
+    tables = payload.get("tables")
+    return JSONResponse(sync_bigquery_to_duckdb(tables=tables))
+
+
+@app.get("/api/duckdb/status")
+async def api_duckdb_status():
+    """Live DuckDB store stats (tables, row counts)."""
+    from app.core.bq_duckdb_sync import duckdb_status
+    return JSONResponse(duckdb_status())
+
+
 @app.get("/api/ai/routing_telemetry")
 async def api_routing_telemetry():
     """Live telemetry of mathematical Pareto-Bandit routing engine."""

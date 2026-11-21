@@ -113,6 +113,27 @@ def maybe_handle(prompt: str) -> Optional[Dict[str, Any]]:
         return None
 
     started = time.time()
+
+    # "duckdb sync" / "duckdb la bigquery data import kar" — mirror bronze tables.
+    if re.search(r"\bsync\b|इम्पोर्ट|import|load|_REFRESH|refresh", text, re.IGNORECASE):
+        from app.core.bq_duckdb_sync import sync_bigquery_to_duckdb
+        res = sync_bigquery_to_duckdb()
+        if res.get("status") == "skipped":
+            return _error(res["message"], started)
+        lines = ["### 🦆 BigQuery → DuckDB sync", ""]
+        for s in res.get("synced", []):
+            lines.append(f"- `{s['schema'] if 'schema' in s else 'nanopro_cbs_bronze'}.{s['table']}` — **{s['rows']} rows**, {s['columns']} cols")
+        for e in res.get("errors", []):
+            lines.append(f"- ⚠️ `{e['table']}` — {e['error']}")
+        lines += ["", f"_Total: {res.get('total_rows', 0)} rows · {res.get('duration_ms')} ms · store: `data/nanopro.duckdb`._"]
+        return _payload(
+            "duckdb_sync",
+            "\n".join(lines),
+            f"Synced {res.get('total_rows', 0)} rows into DuckDB",
+            res,
+            started,
+        )
+
     sql = _extract_sql(text)
 
     try:
