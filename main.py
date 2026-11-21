@@ -819,6 +819,24 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
         used_model = result.get("model") or result.get("model_executed") or model_to_run
         content = result.get("content") or result.get("response") or ""
         content = format_interactive_hints(content, prompt)
+
+        # Show live tool execution steps inside an expandable status box
+        if result.get("tools_executed"):
+            tools_list = result["tools_executed"]
+            tool_steps_html = (
+                f'<details style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); '
+                f'border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.9em;">\n'
+                f'<summary style="cursor: pointer; font-weight: 600; color: #10B981;">'
+                f'⚙️ <strong>Inspecting Render PostgreSQL & Platform Telemetry ({len(tools_list)} tools executed)</strong>'
+                f'</summary>\n'
+                f'<div style="margin-top: 8px; padding-left: 8px; border-left: 2px solid #10B981; line-height: 1.6;">\n'
+            )
+            for t in tools_list:
+                t_name = t.get("tool", "tool")
+                t_status = str(t.get("result_status", "success")).upper()
+                tool_steps_html += f'• 🔍 <strong>Tool:</strong> <code>{t_name}</code> — <em>Status: {t_status}</em><br>\n'
+            tool_steps_html += '</div>\n</details>\n\n'
+            content = tool_steps_html + content
         latency_ms = result.get("latency_ms", 320)
 
         # Update Thompson Bandit prior
