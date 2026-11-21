@@ -614,6 +614,36 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
         effort = payload.get("effort", "default")
         chat_id = payload.get("chat_id")
 
+        # Ensemble / Mixture-of-Agents mode — multi-model parallel answers
+        # judged into one best response. Triggered by effort="ensemble" or
+        # keywords like "ensemble", "multi model", "best of all models".
+        ensemble_hit = (
+            (payload.get("effort") or "").lower() == "ensemble"
+            or any(k in prompt.lower() for k in (
+                "ensemble", "multi model", "multi-model", "best of all",
+                "sagle model", "sanglya model", "mix of agents", "moa",
+            ))
+        )
+        if ensemble_hit:
+            ens = await ai_router.execute_ensemble(prompt=prompt, model_id=payload.get("model") if payload.get("model") not in (None, "auto") else None)
+            latency_ms = ens.get("latency_ms", 300)
+            prov = resolve_model_provenance(ens.get("model", "ensemble"))
+            return JSONResponse({
+                "status": "success",
+                "response": ens.get("content", ""),
+                "content": ens.get("content", ""),
+                "model_routed": ens.get("model", "ensemble"),
+                "model_executed": ens.get("model", "ensemble"),
+                "model_name": prov.get("clean_name") or "NanoPro Ensemble",
+                "lab_name": "Mixture-of-Agents",
+                "country": "Global",
+                "flag": "🧠",
+                "date_formatted": time.strftime("%d %b %Y, %I:%M %p"),
+                "duration_ms": latency_ms,
+                "ensemble": ens.get("ensemble", {}),
+                "routing_decision": {"selected_model": ens.get("model"), "task_domain": "Ensemble Multi-Model Synthesis"},
+            })
+
         # Mathematical Pareto-Bandit routing
         if req_model == "auto" or not req_model:
             route_res = GLOBAL_AI_ROUTER.route_query(prompt, target_sla_ms=800)

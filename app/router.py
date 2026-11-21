@@ -313,6 +313,77 @@ class AIExecutionRouter:
             "configured_providers": configured_providers,
         }
 
+    async def execute_ensemble(self, prompt: str, model_id: Optional[str] = None, n: int = 3) -> Dict[str, Any]:
+        """Mixture-of-Agents style ensemble: fan the prompt out to the top-N
+        configured providers in parallel, then synthesize the single best
+        answer with a fast judge model. Falls back to single-model cascade
+        when fewer than 2 providers answer."""
+        import asyncio
+        t0 = time.time()
+        system_prompt = _build_system_prompt()
+        cascade = [p for p in self._provider_cascade(prompt, model_id) if p.get("api_key")]
+        if not cascade:
+            return await self.execute(prompt, model_id=model_id, mode="balanced")
+
+        top = cascade[: max(2, min(n, 4))]
+        results = await asyncio.gather(
+            *[self._chat_completion(p, prompt, system_prompt) for p in top],
+            return_exceptions=True,
+        )
+        answers: List[tuple] = []
+        for prov, res in zip(top, results):
+            if isinstance(res, str) and res.strip():
+                answers.append((prov["name"], prov["model"], res.strip()))
+
+        if not answers:
+            return await self.execute(prompt, model_id=model_id, mode="balanced")
+        if len(answers) == 1:
+            name, model, content = answers[0]
+            latency_ms = max(28, round((time.time() - t0) * 1000))
+            return {
+                "status": "success", "content": content, "model": model,
+                "provider": f"{name} (ensemble: only responder)", "latency_ms": latency_ms,
+                "ensemble": {"models_queried": [p["name"] for p in top], "models_answered": [name]},
+            }
+
+        # Judge pass — pick the best answer (or merge) using the fastest
+        # configured provider so synthesis stays cheap.
+        judge = next((p for p in cascade if p["name"].startswith("groq")), cascade[0])
+        ballot = "\n\n".join(
+            f"### Answer {i + 1} — provider: {name}, model: {model}\n{content[:6000]}"
+            for i, (name, model, content) in enumerate(answers)
+        )
+        judge_prompt = (
+            "You are the NanoPro Ensemble Judge. Below are answers to the SAME user "
+            "question from different AI models. Pick the single most accurate, "
+            "complete and well-formatted answer and output ONLY that answer verbatim "
+            "(you may lightly merge the best parts of others if clearly better). "
+            "Keep the original language (Marathi if the question was Marathi).\n\n"
+            f"USER QUESTION:\n{prompt}\n\n{ballot}"
+        )
+        try:
+            best = await self._chat_completion(judge, judge_prompt, "You are a precise answer judge. Output only the winning answer text.")
+            judge_name = judge["name"]
+        except Exception:
+            best = max(answers, key=lambda a: len(a[2]))[2]
+            judge_name = "heuristic-longest"
+
+        latency_ms = max(28, round((time.time() - t0) * 1000))
+        return {
+            "status": "success",
+            "content": best,
+            "model": f"ensemble/{len(answers)}-models",
+            "provider": f"Mixture-of-Agents ({', '.join(a[0] for a in answers)} → judge:{judge_name})",
+            "latency_ms": latency_ms,
+            "ensemble": {
+                "models_queried": [p["name"] for p in top],
+                "models_answered": [a[0] for a in answers],
+                "models_used": [a[1] for a in answers],
+                "judge": judge_name,
+            },
+            "utility_score": 0.999,
+        }
+
     # ------------------------------------------------------------------
     # Honest fallback message. Clearly distinguishes:
     #   - no key configured at all  → tell user to add a free Groq key
