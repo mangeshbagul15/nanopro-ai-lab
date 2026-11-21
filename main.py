@@ -915,6 +915,8 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
 
         # Persist conversation turn into history
         if chat_id:
+            t_logs = json.dumps(result.get("tools_executed", [])) if result.get("tools_executed") else ""
+            df_json = json.dumps(result.get("dataframe", {})) if result.get("dataframe") else ""
             history_manager.add_message(chat_id=chat_id, role="user", content=prompt)
             history_manager.add_message(
                 chat_id=chat_id,
@@ -923,8 +925,29 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
                 model_routed=response_data["model_routed"],
                 model_executed=response_data["model_executed"],
                 duration_ms=latency_ms,
-                routing_math=json.dumps(routing_decision)
+                routing_math=json.dumps(routing_decision),
+                tool_logs_json=t_logs,
+                dataframe_json=df_json
             )
+            try:
+                from nanopro_connectors import ChatPersistenceConnector
+                ChatPersistenceConnector.save_message(
+                    session_id=chat_id,
+                    role="user",
+                    content=prompt
+                )
+                ChatPersistenceConnector.save_message(
+                    session_id=chat_id,
+                    role="assistant",
+                    content=content,
+                    model_used=response_data["model_executed"],
+                    duration_ms=latency_ms,
+                    routing_math=json.dumps(routing_decision),
+                    tool_logs_json=t_logs,
+                    dataframe_json=df_json
+                )
+            except Exception as pe:
+                logger.warning(f"Error dual-writing chat_id turn to ChatPersistenceConnector: {pe}")
 
         return JSONResponse(response_data)
     except Exception as e:

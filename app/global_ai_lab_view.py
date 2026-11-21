@@ -7418,7 +7418,33 @@ body.in-global_ai_lab .nano-dynamic-island {
         </div>
       `;
 
-      let contentHtml = formatMarkdown(msg.content);
+      let toolsHtml = "";
+      let tools = null;
+      if (msg.tool_logs_json) {
+        try {
+          tools = typeof msg.tool_logs_json === "string" ? JSON.parse(msg.tool_logs_json) : msg.tool_logs_json;
+        } catch (_) {}
+      } else if (msg.tools_executed) {
+        tools = msg.tools_executed;
+      }
+      if (Array.isArray(tools) && tools.length > 0 && !(msg.content || "").includes("Inspecting Render PostgreSQL")) {
+        toolsHtml = `
+          <details class="ailab-tools-accordion" style="margin-bottom: 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 0.9em;">
+            <summary style="cursor: pointer; font-weight: 600; color: #10B981;">
+              ⚙️ <strong>Inspecting Render PostgreSQL & Platform Telemetry (${tools.length} live tools executed)</strong>
+            </summary>
+            <div style="margin-top: 8px; padding-left: 8px; border-left: 2px solid #10B981; line-height: 1.6; font-size: 12px; color: #94A3B8;">
+              ${tools.map(t => {
+                const tName = escapeHtml(t.tool || t.name || "Live Tool");
+                const tStat = escapeHtml(String(t.result_status || t.status || "SUCCESS")).toUpperCase();
+                return `• 🔍 <strong>Tool:</strong> <code>${tName}</code> — <em style="color:#10B981;">Status: ${tStat}</em><br>`;
+              }).join("")}
+            </div>
+          </details>
+        `;
+      }
+
+      let contentHtml = toolsHtml + formatMarkdown(msg.content);
       if (msg.transfer_job) {
         contentHtml = ailabRenderTransferJobCard(msg.transfer_job) + contentHtml;
       }
@@ -8105,6 +8131,8 @@ body.in-global_ai_lab .nano-dynamic-island {
           date_formatted: execData.date_formatted,
           duration_ms: execData.duration_ms,
           routing_math: execData.routing_decision || routeRes,
+          tool_logs_json: execData.tool_logs_json || (execData.tools_executed ? JSON.stringify(execData.tools_executed) : ""),
+          dataframe_json: execData.dataframe_json || (execData.dataframe ? JSON.stringify(execData.dataframe) : ""),
           created_at: Date.now() / 1000
         };
 
