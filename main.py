@@ -27,6 +27,7 @@ from app.core.global_ai_catalog import (
 from app.core.chat_bigquery_admin import maybe_handle as maybe_admin
 from app.core.chat_bigquery_ddl import maybe_handle as maybe_ddl
 from app.core.chat_bigquery_data import maybe_handle as maybe_data
+from app.core.chat_duckdb import maybe_handle as maybe_duckdb
 from app.core.agentic_chat_engine import process_agentic_chat
 
 app = FastAPI(
@@ -562,23 +563,32 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
             agentic_result["user"] = "Super Admin (Mangesh Bagul)"
             return JSONResponse(agentic_result)
 
-        # 1. Intercept Explorer admin instructions ("VCT rename", "drop table", etc.)
-        admin_result = maybe_admin(prompt)
-        if admin_result is not None:
-            admin_result["user"] = "Super Admin (Mangesh Bagul)"
-            return JSONResponse(admin_result)
-
-        # 2. Intercept BigQuery CREATE DDL
+        # 1. Intercept BigQuery CREATE DDL
         ddl_result = maybe_ddl(prompt)
         if ddl_result is not None:
             ddl_result["user"] = "Super Admin (Mangesh Bagul)"
             return JSONResponse(ddl_result)
 
-        # 3. Intercept Bronze data manipulation & sampling
+        # 2. Intercept Bronze data & SQL FIRST — data questions and explicit
+        #    SQL must reach the query engine before the admin catalog path
+        #    can swallow them into a generic table listing.
         data_result = maybe_data(prompt)
         if data_result is not None:
             data_result["user"] = "Super Admin (Mangesh Bagul)"
             return JSONResponse(data_result)
+
+        # 3. DuckDB analytics — explicit "duckdb ..." prompts run real SQL
+        #    against the local analytical store.
+        duckdb_result = maybe_duckdb(prompt)
+        if duckdb_result is not None:
+            duckdb_result["user"] = "Super Admin (Mangesh Bagul)"
+            return JSONResponse(duckdb_result)
+
+        # 4. Intercept Explorer admin instructions ("VCT rename", "drop table", etc.)
+        admin_result = maybe_admin(prompt)
+        if admin_result is not None:
+            admin_result["user"] = "Super Admin (Mangesh Bagul)"
+            return JSONResponse(admin_result)
 
         req_model = payload.get("model", "auto")
         routed_model = payload.get("routed_model")

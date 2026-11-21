@@ -681,3 +681,38 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             {"time": "06:00:00 IST", "level": "SUCCESS", "text": "Google BigQuery nanopro_cbs_bronze 8 tables export complete (900 rows)."}
         ]
     }
+
+
+def probe_airflow() -> Optional[Dict[str, Any]]:
+    """Real Apache Airflow REST probe.
+
+    Returns live DAG states when AIRFLOW_API_URL (+ optional
+    AIRFLOW_USER/AIRFLOW_PASSWORD) is configured on the host; otherwise
+    returns None so callers keep the built-in telemetry view.
+    """
+    base = (os.environ.get("AIRFLOW_API_URL") or "").rstrip("/")
+    if not base:
+        return None
+    try:
+        import httpx
+        auth = None
+        user = os.environ.get("AIRFLOW_USER", "")
+        pwd = os.environ.get("AIRFLOW_PASSWORD", "")
+        if user:
+            auth = (user, pwd)
+        headers = {}
+        token = os.environ.get("AIRFLOW_API_TOKEN", "")
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        with httpx.Client(timeout=8.0) as client:
+            resp = client.get(f"{base}/api/v1/dags", params={"limit": 100}, auth=auth, headers=headers)
+            resp.raise_for_status()
+            dags = resp.json().get("dags", [])
+        return {
+            "configured": True,
+            "total": len(dags),
+            "paused": sum(1 for d in dags if d.get("is_paused")),
+            "sample": [{"dag_id": d.get("dag_id"), "paused": d.get("is_paused")} for d in dags[:10]],
+        }
+    except Exception as exc:
+        return {"configured": True, "error": str(exc)[:200]}

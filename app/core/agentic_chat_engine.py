@@ -10,6 +10,7 @@ Empowers the AI Lab chat with true functional execution capabilities:
 7. Explaining the 4,804+ models mesh with Pareto & Thompson Bandit mathematical proofs.
 """
 
+import os
 import re
 import time
 from datetime import datetime, timezone
@@ -21,7 +22,7 @@ from app.config import (
 )
 from app.orchestrator_service import (
     get_orchestrator_overview, update_alert_schedule_time,
-    toggle_alert_schedule, update_dag_schedule
+    toggle_alert_schedule, update_dag_schedule, probe_airflow
 )
 from app.reports_service import (
     get_report_info, dispatch_banking_report_channel
@@ -342,6 +343,24 @@ def process_agentic_chat(prompt: str, user_name: str = "Super Admin (Mangesh Bag
             f"- **Outbound अहवाल:** **{reps_cnt} Excel Workbooks** (सध्या SFTP वर थेट उपलब्ध)\n\n"
             f"[HINT: 🔹 रिपोर्ट पाठवण्याचे शेड्युल बदला | 🔹 पाइपलाइनचा Mermaid डायग्राम दाखवा | 🔹 Master Consolidated अहवाल रन करा]"
         )
+        # Real Airflow probe — when AIRFLOW_API_URL is configured on the host,
+        # append live DAG state instead of only simulated cycle telemetry.
+        try:
+            probe = probe_airflow()
+        except Exception:
+            probe = None
+        if probe and probe.get("configured") and not probe.get("error"):
+            live_lines = [
+                "",
+                "### 🌐 Live Airflow Probe (Real REST API)",
+                "",
+                f"- **Configured endpoint:** `{os.environ.get('AIRFLOW_API_URL', '')}`",
+                f"- **Total DAGs on server:** **{probe.get('total', 0)}**",
+                f"- **Paused DAGs:** **{probe.get('paused', 0)}**",
+            ]
+            for d in probe.get("sample", [])[:5]:
+                live_lines.append(f"  - `{d.get('dag_id')}` — {'⏸️ paused' if d.get('paused') else '▶️ active'}")
+            content += "\n" + "\n".join(live_lines)
         return _build_response("nanopro/telemetry-orchestrator-agent", "Pipeline Telemetry Agent", content, t0)
 
     # =========================================================================

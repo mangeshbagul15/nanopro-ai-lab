@@ -41,11 +41,12 @@ _COUNT = re.compile(r"(\d{1,4})\s*(?:sample\s+)?(?:records?|rows?|रिकॉ�
 # Plain-language data questions ("GAM मध्ये किती accounts आहेत?") are answered
 # from BigQuery instead of the LLM, so the numbers are always real.
 _COUNT_Q = re.compile(
-    rf"(?<![{_DEVANAGARI}])किती(?![{_DEVANAGARI}])|कितीत|how\s+many|\bcounts?\b",
+    rf"(?<![{_DEVANAGARI}])किती(?![{_DEVANAGARI}])|कितीत|किते|किती|how\s+many|\bcounts?\b|\bkithe\b|\bkit\b|\bkiti\b",
     re.IGNORECASE,
 )
 _SHOW_Q = re.compile(
-    r"दाखव|बघ|पहा|\bshow\b|\blist\b|\btop\b|सर्वात|highest|largest|biggest", re.IGNORECASE
+    r"दाखव|बघ|पहा|दिसवा|दाखवा|बद्दल|\bshow\b|\blist\b|\btop\b|सर्वात|highest|largest|biggest|\bdikha\b|\bdakhva\b|\bdikhao\b",
+    re.IGNORECASE,
 )
 _TOPN_Q = re.compile(
     r"\btop\s*(\d{1,3})\b|(\d{1,3})\s*(?:accounts?|records?|rows?|transactions?|रिकॉर्ड|ओळी)",
