@@ -236,6 +236,140 @@ AGENTIC_TOOLS = [
                 "required": ["source_engine", "source_object", "target_engine", "target_object"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "locate_and_inspect_medallion_catalog",
+            "description": "Searches across L0 Raw, L1 Curated, and L2 Mart layers across Snowflake, BigQuery, AWS S3, Supabase, Render PG, and DuckDB using Hybrid RRF ranking.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "search_term": {"type": "string"},
+                    "layer": {"type": "string", "enum": ["ALL", "L0_RAW", "L1_CURATED", "L2_REPORTING"]},
+                    "engine": {"type": "string", "enum": ["ALL", "POSTGRES", "BIGQUERY", "SNOWFLAKE", "AWS", "SUPABASE", "DUCKDB"]}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_pipelines_and_glue_jobs",
+            "description": "Inspects status, gets run logs, triggers, or stops AWS Glue jobs, Snowflake Tasks/Streams, and NanoPro Python ETL pipelines.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["list_status", "get_run_logs", "trigger_run", "stop_run"]},
+                    "job_name": {"type": "string"},
+                    "arguments": {"type": "object"}
+                },
+                "required": ["action"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_schedulers",
+            "description": "Inspects, creates, pauses, resumes, or modifies cron/interval schedules in nanopro_schedules.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["list", "update", "pause", "resume"]},
+                    "schedule_name": {"type": "string"},
+                    "cron_or_interval": {"type": "string"},
+                    "enabled": {"type": "boolean"},
+                    "target_pipeline_or_report": {"type": "string"}
+                },
+                "required": ["action"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "inspect_report_history_and_lineage",
+            "description": "Queries nanopro_report_logs and nanopro_report_definitions to show when each report ran and full L0 -> L1 -> L2 data lineage (tables, joins, filters).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "report_name": {"type": "string"},
+                    "status_filter": {"type": "string", "enum": ["SUCCESS", "FAILED"]},
+                    "limit": {"type": "integer"}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_and_send_notification_deliveries",
+            "description": "Queries nanopro_notification_logs or sends immediate notifications. Directly answers: 'Mail var report gela ka, konala gela?', 'Telegram alert gela ka?', 'WhatsApp alert gela ka?'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "channel": {"type": "string", "enum": ["ALL", "EMAIL", "TELEGRAM", "WHATSAPP"]},
+                    "report_name": {"type": "string"},
+                    "recipient_filter": {"type": "string"},
+                    "action": {"type": "string", "enum": ["check_logs", "send_notification"]},
+                    "payload": {"type": "object"}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "modify_report_definition_and_rerun",
+            "description": "Updates stored SQL logic in nanopro_report_definitions, validates via sqlglot AST, commits, and re-runs the report.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "report_name": {"type": "string"},
+                    "new_filter_or_logic": {"type": "string"},
+                    "add_or_remove_columns": {"type": "string"},
+                    "rerun_now": {"type": "boolean"}
+                },
+                "required": ["report_name", "new_filter_or_logic"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_users_and_roles",
+            "description": "Manages platform users, RBAC roles (ADMIN, DATA_ENGINEER, ANALYST, VIEWER), and engine access permissions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["list", "update"]},
+                    "username_or_email": {"type": "string"},
+                    "role": {"type": "string", "enum": ["ADMIN", "DATA_ENGINEER", "ANALYST", "VIEWER"]},
+                    "is_active": {"type": "boolean"}
+                },
+                "required": ["action"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_privacy_policy_and_ad_ids",
+            "description": "Manages Privacy Policy, PII Masking Rules, Ad Network IDs (Google AdSense/AdMob), and Monetization Telemetry.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "action": {"type": "string", "enum": ["get", "update"]},
+                    "section": {"type": "string", "enum": ["ALL", "PRIVACY_POLICY", "AD_MONETIZATION"]},
+                    "config_updates": {"type": "object"}
+                },
+                "required": ["action"]
+            }
+        }
     }
 ]
 

@@ -9,3 +9,6 @@ duckdb>=1.0.0
 google-cloud-bigquery>=3.0.0
 snowflake-connector-python>=3.0.0
 psycopg2-binary>=2.9.9
+sqlglot>=23.0.0
+plotly>=5.18.0
+streamlit>=1.30.0

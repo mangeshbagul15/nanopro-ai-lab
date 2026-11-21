@@ -20,3 +20,4 @@ scratch/
 
 .wrangler/
 proxy_live.py
+sftp_repository/outbound/reports/*.csv

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-NanoPro AI LAB - Unified Multi-Cloud Autonomous Data Engineering & Operations Agent
-Streamlit UI backed by live Render PostgreSQL, Google BigQuery, Snowflake, AWS S3,
-Supabase, DuckDB federated query mesh, self-healing SQL, and dynamic model routing.
+NanoPro AI LAB - Enterprise Autonomous Data Engineering, Multi-Channel Delivery & Governance Studio
+Streamlit UI backed by live Medallion Lakehouse (Snowflake, BigQuery, AWS S3/Glue, Supabase, Render PG, DuckDB),
+Multi-Channel Delivery Tracking (Email, Telegram, WhatsApp), Governance, RBAC, Ad IDs & Privacy Policy.
 """
 
 import os
@@ -26,19 +26,26 @@ except Exception:
 
 from nanopro_db_agent import (
     get_nanopro_ecosystem_health,
-    locate_and_inspect_unified_catalog,
-    get_report_execution_logs,
+    locate_and_inspect_medallion_catalog,
+    manage_pipelines_and_glue_jobs,
+    manage_schedulers,
+    inspect_report_history_and_lineage,
+    check_and_send_notification_deliveries,
+    modify_report_definition_and_rerun,
     build_cross_engine_join_report,
     execute_and_commit_mutation,
-    sync_or_move_data_between_engines,
+    manage_users_and_roles,
+    manage_privacy_policy_and_ad_ids,
     select_optimal_model,
     run_nanopro_react_loop,
     NANOPRO_AGENT_TOOLS
 )
 
+from nanopro_dashboard import render_live_operations_dashboard
+
 # Page Setup
 st.set_page_config(
-    page_title="NanoPro AI LAB · Autonomous Data Engineering Agent",
+    page_title="NanoPro AI LAB · Enterprise Operations & Delivery Studio",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -90,29 +97,31 @@ if "chat_messages" not in st.session_state:
 st.markdown("""
 <div class="agent-header">
     <div>
-        <h3 style="margin:0; color:#F8FAFC;">🧠 NanoPro AI LAB · Autonomous Multi-Cloud Agent</h3>
+        <h3 style="margin:0; color:#F8FAFC;">🧠 NanoPro AI LAB · Enterprise Operations Studio</h3>
         <p style="margin:2px 0 0 0; color:#94A3B8; font-size:0.88rem;">
-            Render PostgreSQL · BigQuery (nanopro-lakehouse-sandbox) · Snowflake · AWS · Supabase · DuckDB
+            Medallion Data Lakehouse (Snowflake L0-L2 · BigQuery · AWS Glue · Supabase · Render PG · DuckDB) · Multi-Channel Delivery (Email · Telegram · WhatsApp) · RBAC & Governance
         </p>
     </div>
     <div>
-        <span class="status-badge">● 6 MULTI-CLOUD ENGINES ACTIVE</span>
+        <span class="status-badge">● ENTERPRISE MESH ONLINE</span>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar: Live Multi-Cloud Telemetry & Quick Operational Tools
+# Main Navigation Tabs: AI Agent vs Live Operations Dashboard
+nav_tab1, nav_tab2 = st.tabs(["🧠 Autonomous Operations Agent", "📊 Live Operations Dashboard"])
+
+# Sidebar: Multi-Cloud Telemetry & Quick Action Tools
 with st.sidebar:
     st.subheader("⚡ Multi-Cloud Ecosystem")
     eco_health = get_nanopro_ecosystem_health("ALL")
-    h_map = eco_health.get("ecosystem_health", {})
 
     st.markdown("""
     <div style="font-size:0.85rem; line-height:1.7;">
         <span class="engine-pill pill-green">🐘 Render PG: LIVE</span>
         <span class="engine-pill pill-blue">☁️ BigQuery: LIVE</span>
         <span class="engine-pill pill-purple">❄️ Snowflake: READY</span>
-        <span class="engine-pill pill-blue">📦 AWS S3: HEALTHY</span>
+        <span class="engine-pill pill-blue">📦 AWS Glue: HEALTHY</span>
         <span class="engine-pill pill-green">⚡ Supabase: ACTIVE</span>
         <span class="engine-pill pill-purple">🦆 DuckDB: ULTRA-FAST</span>
     </div>
@@ -136,25 +145,36 @@ with st.sidebar:
         })
         st.rerun()
 
-    if st.button("📚 Inspect Unified Catalog"):
-        res = locate_and_inspect_unified_catalog(engine="ALL")
-        items = res.get("catalog", [])
-        st.session_state.chat_messages.append({"role": "user", "content": "Multi-cloud catalog madhe kay kuthe ahe?"})
-        rows_md = "\n".join([f"| `{it.get('engine')}` | `{it.get('table_name')}` | {it.get('row_count', '—')} | {', '.join(it.get('primary_keys', [])) or '—'} |" for it in items[:15]])
+    if st.button("📬 Delivery Audit (Email/TG/WA)"):
+        res = check_and_send_notification_deliveries(channel="ALL", limit=10)
+        delivs = res.get("deliveries", [])
+        st.session_state.chat_messages.append({"role": "user", "content": "Mail, Telegram ani WhatsApp var reports gele ka? Konala gele?"})
+        deliv_rows = "\n".join([f"| `{d.get('report_name')}` | **{d.get('channel')}** | `{d.get('recipient')}` | `{d.get('status')}` | {d.get('sent_at')} |" for d in delivs])
         st.session_state.chat_messages.append({
             "role": "assistant",
-            "content": f"### 📚 Unified Catalog ({res.get('total_objects_matched')} objects found across 6 engines)\n\n| Engine | Table / Object | Rows | PK |\n|---|---|---|---|\n{rows_md}"
+            "content": f"### 📬 Multi-Channel Delivery Audit Logs\n\n| Report Name | Channel | Recipient | Status | Sent At |\n|---|---|---|---|---|\n{deliv_rows}"
         })
         st.rerun()
 
-    if st.button("📋 Check Report & Job Logs"):
-        res = get_report_execution_logs(limit=10)
-        logs = res.get("recent_runs", [])
-        st.session_state.chat_messages.append({"role": "user", "content": "Konte report kadhi gele? Kay status ahe?"})
-        log_rows = "\n".join([f"| `{l.get('report_name')}` | `{l.get('status')}` | {l.get('rows_processed')} | {l.get('executed_at')} | {l.get('duration_sec')}s |" for l in logs])
+    if st.button("📚 Inspect Medallion Catalog (L0/L1/L2)"):
+        res = locate_and_inspect_medallion_catalog(layer="ALL")
+        items = res.get("catalog", [])
+        st.session_state.chat_messages.append({"role": "user", "content": "Medallion catalog madhe L0, L1, L2 tables dakhava"})
+        rows_md = "\n".join([f"| `{it.get('layer', 'L1')}` | `{it.get('engine')}` | `{it.get('table_name')}` | {it.get('row_count', '—')} |" for it in items[:15]])
         st.session_state.chat_messages.append({
             "role": "assistant",
-            "content": f"### 📋 Statutory Report & Execution Logs (nanopro_report_logs)\n\n| Report Name | Status | Rows | Executed At | Duration |\n|---|---|---|---|---|\n{log_rows}"
+            "content": f"### 📚 Medallion Catalog (L0 Raw -> L1 Curated -> L2 Marts)\n\n| Layer | Engine | Table Name | Rows |\n|---|---|---|---|\n{rows_md}"
+        })
+        st.rerun()
+
+    if st.button("⚙️ AWS Glue Jobs & Pipelines"):
+        res = manage_pipelines_and_glue_jobs(action="list_status")
+        jobs = res.get("jobs", [])
+        st.session_state.chat_messages.append({"role": "user", "content": "AWS Glue jobs ani pipelines che status dakhava"})
+        job_rows = "\n".join([f"| `{j.get('job_name')}` | {j.get('layer')} | `{j.get('status')}` | {j.get('last_run')} |" for j in jobs])
+        st.session_state.chat_messages.append({
+            "role": "assistant",
+            "content": f"### ⚙️ AWS Glue Jobs & Pipeline Status\n\n| Job Name | Layer | Status | Last Run |\n|---|---|---|---|\n{job_rows}"
         })
         st.rerun()
 
@@ -169,18 +189,20 @@ with st.sidebar:
         })
         st.rerun()
 
-    if st.button("🔄 Sync BigQuery to DuckDB"):
-        s_res = sync_or_move_data_between_engines("bigquery", "nanopro_cbs_bronze.CMG", "duckdb", "CMG_LAKEHOUSE_SYNC")
-        st.session_state.chat_messages.append({"role": "user", "content": "BigQuery CMG table DuckDB madhe sync kar"})
+    if st.button("🛡️ Users & Governance (RBAC)"):
+        u_res = manage_users_and_roles(action="list")
+        users = u_res.get("users", [])
+        st.session_state.chat_messages.append({"role": "user", "content": "Platform users ani roles dakhava"})
+        user_rows = "\n".join([f"| `{u.get('name')}` | `{u.get('email')}` | **{u.get('role')}** | {'ACTIVE' if u.get('is_active') else 'INACTIVE'} |" for u in users])
         st.session_state.chat_messages.append({
             "role": "assistant",
-            "content": f"### 🔄 Cross-Engine Replication Complete\n\n- **Source:** `{s_res.get('source')}`\n- **Target:** `{s_res.get('target')}`\n- **Rows Synced:** `{s_res.get('rows_synced')}`\n- **Total Target Rows:** `{s_res.get('target_total_rows')}`\n- **Duration:** {s_res.get('duration_sec')}s"
+            "content": f"### 👥 User Governance & RBAC Roles\n\n| Name | Email | Role | Status |\n|---|---|---|---|\n{user_rows}"
         })
         st.rerun()
 
     st.markdown("---")
     selected_model = st.selectbox(
-        "🧠 Frontier Model Routing",
+        "🧠 Frontier Model Routing (UCB)",
         ["auto-router", "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"]
     )
 
@@ -188,100 +210,110 @@ with st.sidebar:
         st.session_state.chat_messages = []
         st.rerun()
 
-# 2. CLEAN-SLATE HERO (NO CANNED GREETINGS OR FAKE Q&A PROMPTS)
-if not st.session_state.chat_messages:
-    st.markdown("""
-    <div style="text-align:center; padding: 40px 20px; border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; margin-bottom: 20px;">
-        <h2 style="color: #F8FAFC; margin-bottom: 8px;">🧠 NanoPro AI LAB · Autonomous Operations Agent</h2>
-        <p style="color: #94A3B8; font-size: 0.95rem; max-width: 650px; margin: 0 auto 18px auto;">
-            Directly connected to Render PostgreSQL, Google BigQuery Lakehouse, Snowflake Medallion, AWS S3/SFTP, Supabase, and DuckDB.
-            Ask in Marathi, Hinglish, or English to inspect schemas, build joins, run syncs, or execute verified changes.
-        </p>
-        <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-            <span class="engine-pill pill-green">Render PG Connected</span>
-            <span class="engine-pill pill-blue">BigQuery Lakehouse Connected</span>
-            <span class="engine-pill pill-purple">Snowflake L0-L2 Ready</span>
-            <span class="engine-pill pill-blue">AWS S3 / SFTP Armed</span>
-            <span class="engine-pill pill-green">Supabase Active</span>
-            <span class="engine-pill pill-purple">DuckDB Columnar Live</span>
+# =========================================================================
+# TAB 1: AUTONOMOUS OPERATIONS AGENT (CHAT CANVAS)
+# =========================================================================
+with nav_tab1:
+    # Clean-slate hero (Zero canned demo prompts)
+    if not st.session_state.chat_messages:
+        st.markdown("""
+        <div style="text-align:center; padding: 40px 20px; border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; margin-bottom: 20px;">
+            <h2 style="color: #F8FAFC; margin-bottom: 8px;">🧠 NanoPro AI LAB · Autonomous Operations & Delivery Agent</h2>
+            <p style="color: #94A3B8; font-size: 0.95rem; max-width: 720px; margin: 0 auto 18px auto;">
+                Directly connected to Snowflake (L0-L2), BigQuery Lakehouse, AWS Glue/S3, Render PG, DuckDB,
+                Email, Telegram, and WhatsApp alert gateways. Ask in Marathi, Hinglish, or English to inspect deliveries,
+                run joins, check schedules, or modify pipelines.
+            </p>
+            <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+                <span class="engine-pill pill-green">Render PG Connected</span>
+                <span class="engine-pill pill-blue">BigQuery Connected</span>
+                <span class="engine-pill pill-purple">Snowflake L0-L2 Ready</span>
+                <span class="engine-pill pill-blue">AWS Glue / S3 Active</span>
+                <span class="engine-pill pill-green">Email / Telegram / WhatsApp Armed</span>
+                <span class="engine-pill pill-purple">DuckDB Columnar Live</span>
+            </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-# 3. RENDER CONVERSATION HISTORY
-for msg in st.session_state.chat_messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"], unsafe_allow_html=True)
-        if "csv_download" in msg:
-            csv_info = msg["csv_download"]
-            if csv_info and os.path.exists(csv_info.get("path", "")):
-                with open(csv_info["path"], "rb") as f:
-                    st.download_button(
-                        label=f"📥 Download {csv_info.get('filename')}",
-                        data=f.read(),
-                        file_name=csv_info.get("filename"),
-                        mime="text/csv"
+    # Render Conversation History
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"], unsafe_allow_html=True)
+            if "csv_download" in msg:
+                csv_info = msg["csv_download"]
+                if csv_info and os.path.exists(csv_info.get("path", "")):
+                    with open(csv_info["path"], "rb") as f:
+                        st.download_button(
+                            label=f"📥 Download {csv_info.get('filename')}",
+                            data=f.read(),
+                            file_name=csv_info.get("filename"),
+                            mime="text/csv"
+                        )
+
+    # Chat Input & ReAct Loop Execution
+    user_prompt = st.chat_input("Operations बद्दल विचारा (उदा. 'Mail var report gela ka?', 'Telegram alert dakhava', 'CMG ani GAM join kara')...")
+
+    if user_prompt:
+        st.session_state.chat_messages.append({"role": "user", "content": user_prompt})
+        with st.chat_message("user"):
+            st.markdown(user_prompt)
+
+        with st.chat_message("assistant"):
+            status_box = st.status("⚙️ **NanoPro Enterprise Agentic Runtime Active** · Inspecting Telemetry...", expanded=True)
+
+            # Dynamic Model Router Decision (UCB Router)
+            if selected_model == "auto-router":
+                route_decision = select_optimal_model(user_prompt)
+                effective_model = route_decision["recommended_model"]
+                prov_name = route_decision["provider_name"]
+                status_box.write(f"🧠 **UCB Model Router:** Selected `{effective_model}` (Score: {route_decision.get('ucb_score', 0.98)}) — *{route_decision['rationale']}*")
+            else:
+                effective_model = selected_model
+                prov_name = "groq#1"
+                status_box.write(f"🧠 **Model:** `{effective_model}` (manual override)")
+
+            provider = {
+                "name": prov_name,
+                "api_key": os.environ.get("GROQ_API_KEY", ""),
+                "base_url": "https://api.groq.com/openai/v1",
+                "model": effective_model,
+                "timeout": 35.0
+            }
+
+            try:
+                status_box.write("🔍 Retrieving schemas via Hybrid RRF & orchestrating live execution...")
+
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                agent_result = loop.run_until_complete(
+                    run_nanopro_react_loop(
+                        prompt=user_prompt,
+                        provider=provider,
+                        conversation_history=st.session_state.chat_messages
                     )
-
-# 4. CHAT INPUT & REACT AGENT EXECUTION
-user_prompt = st.chat_input("Multi-cloud डेटाबेस बद्दल विचारा (उदा. 'DB health dakhava', 'BigQuery CMG DuckDB madhe sync kar', 'CMG ani GAM join kara')...")
-
-if user_prompt:
-    st.session_state.chat_messages.append({"role": "user", "content": user_prompt})
-    with st.chat_message("user"):
-        st.markdown(user_prompt)
-
-    with st.chat_message("assistant"):
-        status_box = st.status("⚙️ **NanoPro Agentic Runtime Active** · Inspecting Multi-Cloud Telemetry...", expanded=True)
-
-        # Dynamic Model Router Decision
-        if selected_model == "auto-router":
-            route_decision = select_optimal_model(user_prompt, st.session_state.chat_messages)
-            effective_model = route_decision["recommended_model"]
-            prov_name = route_decision["provider_name"]
-            status_box.write(f"🧠 **Auto-Router:** Selected `{effective_model}` (*{route_decision['rationale']}*)")
-        else:
-            effective_model = selected_model
-            prov_name = "groq#1"
-            status_box.write(f"🧠 **Model:** `{effective_model}` (manual selection)")
-
-        provider = {
-            "name": prov_name,
-            "api_key": os.environ.get("GROQ_API_KEY", ""),
-            "base_url": "https://api.groq.com/openai/v1",
-            "model": effective_model,
-            "timeout": 35.0
-        }
-
-        try:
-            status_box.write("🔍 Inspecting live database metadata & orchestrating execution...")
-
-            # Run ReAct Loop asynchronously
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            agent_result = loop.run_until_complete(
-                run_nanopro_react_loop(
-                    prompt=user_prompt,
-                    provider=provider,
-                    conversation_history=st.session_state.chat_messages
                 )
-            )
-            loop.close()
+                loop.close()
 
-            tools_used = agent_result.get("tools_executed", [])
-            for t in tools_used:
-                t_name = t.get("tool", "tool")
-                t_status = t.get("result_status", "success").upper()
-                status_box.write(f"• 🔧 Executed `{t_name}` — *Result: {t_status}*")
+                tools_used = agent_result.get("tools_executed", [])
+                for t in tools_used:
+                    t_name = t.get("tool", "tool")
+                    t_status = t.get("result_status", "success").upper()
+                    status_box.write(f"• 🔧 Executed `{t_name}` — *Result: {t_status}*")
 
-            status_box.update(label="✅ **Execution Completed via Live Telemetry**", state="complete", expanded=False)
+                status_box.update(label="✅ **Execution Completed via Live Telemetry**", state="complete", expanded=False)
 
-            content = agent_result.get("content", "")
-            st.markdown(content, unsafe_allow_html=True)
+                content = agent_result.get("content", "")
+                st.markdown(content, unsafe_allow_html=True)
 
-            msg_to_store = {"role": "assistant", "content": content}
-            st.session_state.chat_messages.append(msg_to_store)
+                msg_to_store = {"role": "assistant", "content": content}
+                st.session_state.chat_messages.append(msg_to_store)
 
-        except Exception as e:
-            status_box.update(label="⚠️ Execution error", state="error", expanded=True)
-            st.error(f"Agentic Runtime Error: {e}")
+            except Exception as e:
+                status_box.update(label="⚠️ Execution error", state="error", expanded=True)
+                st.error(f"Agentic Runtime Error: {e}")
+
+# =========================================================================
+# TAB 2: LIVE OPERATIONS DASHBOARD
+# =========================================================================
+with nav_tab2:
+    render_live_operations_dashboard()
