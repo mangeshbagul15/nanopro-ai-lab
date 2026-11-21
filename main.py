@@ -367,8 +367,8 @@ async def api_storage_status(request: Request):
 # Data Modeling Explorer (5 Databases Live Catalog)
 # -------------------------------------------------------------
 @app.get("/api/ai/explorer/catalog")
-async def api_explorer_catalog():
-    return JSONResponse(get_explorer_catalog())
+async def api_explorer_catalog(force: int = 0):
+    return JSONResponse(get_explorer_catalog(force=bool(force)))
 
 @app.get("/api/ai/explorer/table")
 async def api_explorer_table(database: Optional[str] = None, db: Optional[str] = None, schema: str = "nanopro_cbs_bronze", table: str = "CMG"):

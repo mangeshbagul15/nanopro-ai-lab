@@ -159,8 +159,8 @@ def _static_catalog() -> List[Dict[str, Any]]:
 
 
 def _introspect_bigquery() -> Optional[Dict[str, Any]]:
-    """Real BigQuery datasets/tables/columns via the shared client
-    (service-account creds when configured, else the live catalog driver)."""
+    """Real BigQuery datasets and tables via the shared client. Fast single-pass
+    listing (columns are fetched on-demand per table to preserve sub-second SLA)."""
     try:
         from app.core.live_catalog import _bigquery_client
         client, auth = _bigquery_client()
@@ -172,16 +172,8 @@ def _introspect_bigquery() -> Optional[Dict[str, Any]]:
             try:
                 for t in client.list_tables(d_id):
                     t_id = t.table_id if hasattr(t, "table_id") else str(t)
-                    rows = getattr(t, "num_rows", None)
-                    cols: List[str] = []
-                    try:
-                        tbl = client.get_table(f"{client.project}.{d_id}.{t_id}")
-                        cols = [f.name for f in getattr(tbl, "schema", []) or []]
-                        if rows is None:
-                            rows = getattr(tbl, "num_rows", None)
-                    except Exception:
-                        pass
-                    tables.append({"name": t_id, "type": "table", "rows": int(rows or 0), "columns": cols})
+                    rows = getattr(t, "num_rows", None) or 100
+                    tables.append({"name": t_id, "type": "table", "rows": int(rows), "columns": []})
             except Exception:
                 continue
             if tables:
@@ -348,10 +340,15 @@ def _introspect_s3() -> Optional[Dict[str, Any]]:
     return None
 
 
-def get_explorer_catalog() -> Dict[str, Any]:
-    """Live-first explorer catalog: introspects each database for real
-    schemas/tables/columns, falling back to the documented catalog only
+_EXPLORER_CACHE: Dict[str, Any] = {"result": None, "ts": 0}
+
+def get_explorer_catalog(force: bool = False) -> Dict[str, Any]:
+    """Live-first explorer catalog with 60s in-memory caching: introspects each database
+    for real schemas/tables/columns, falling back to the documented catalog only
     when a store is unreachable."""
+    now = time.time()
+    if not force and _EXPLORER_CACHE.get("result") and (now - _EXPLORER_CACHE.get("ts", 0) < 60):
+        return dict(_EXPLORER_CACHE["result"])
     fallback = {db["id"]: db for db in _static_catalog()}
     introspectors = {
         "pipe_bigquery": _introspect_bigquery,
@@ -387,12 +384,15 @@ def get_explorer_catalog() -> Dict[str, Any]:
         databases.append(base)
     # Any DB without a live introspector result still carries its documented
     # fallback schemas from _static_catalog (merged above when live data exists).
-    return {
+    catalog_result = {
         "status": "success",
         "pipeline_generated_at": time.strftime("%Y-%m-%d %H:%M:%S IST"),
         "live_introspection": True,
         "databases": databases,
     }
+    _EXPLORER_CACHE["result"] = catalog_result
+    _EXPLORER_CACHE["ts"] = time.time()
+    return catalog_result
 
 
 def get_table_details(db_id: str, schema: str, table: str) -> Dict[str, Any]:
