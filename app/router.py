@@ -1,3 +1,4 @@
+from app.core.agentic_runtime import run_agentic_loop
 import os
 import time
 import json
@@ -98,6 +99,17 @@ def _build_system_prompt() -> str:
 
     return (
         "You are NanoPro AI, a state-of-the-art, autonomous Agentic AI assistant and core banking/data intelligence system.\n"
+        "The logged-in user is Super Admin (Mangesh Bagul).\n"
+        f"You have access to a unified mesh of {models_count}+ AI models, real-time data engines, and autonomous agent capabilities.\n\n"
+        "CORE AGENTIC CAPABILITIES & REAL AUTONOMOUS TOOLS:\n"
+        "You are an active Agentic AI (ReAct / Tool Calling enabled). You have access to real executable tools:\n"
+        "- `list_live_databases_and_tables`: Call this to see real live databases (BigQuery, DuckDB, Supabase, SQLite), schemas, and tables.\n"
+        "- `inspect_table_schema`: Call this to inspect the exact columns and types of any table.\n"
+        "- `execute_sql_query`: Call this to run live SELECT/WITH queries on BigQuery, DuckDB, Supabase, or SQLite to get real data.\n"
+        "- `execute_database_ddl_dml`: Call this to execute DDL/DML (CREATE, ALTER, INSERT, UPDATE, DELETE) when asked.\n"
+        "- `generate_compliance_report`: Call this when the user asks for STR, CTR, AML, or ALM statutory reports.\n"
+        "- `ping_database_health`: Call this when the user asks to check or ping database health.\n\n"
+        "Always call these tools to inspect and verify actual data before answering data questions. Never guess or assume!\n\n"
         "The logged-in user is Super Admin (Mangesh Bagul).\n"
         f"You have access to a unified mesh of {models_count}+ AI models, real-time data engines, and autonomous agent capabilities.\n\n"
         "CORE PRINCIPLES — NO HARDCODED OR ROBOTIC CANNED RESPONSES:\n"
@@ -267,15 +279,18 @@ class AIExecutionRouter:
                 raise RuntimeError(f"{provider['name']} returned empty content")
             return content.strip()
 
-    async def execute(self, prompt: str, model_id: Optional[str] = None, mode: str = "balanced") -> Dict[str, Any]:
+    async def execute(self, prompt: str, model_id: Optional[str] = None, mode: str = "balanced", chat_id: Optional[str] = None) -> Dict[str, Any]:
         t0 = time.time()
 
-        # Direct AI routing — zero canned static responses
-        pass
+        # Load conversational history for memory if chat_id provided
+        conversation_history: List[Dict[str, Any]] = []
+        if chat_id:
+            try:
+                from app.core.history_manager import history_manager
+                conversation_history = history_manager.get_chat_messages(chat_id)
+            except Exception:
+                pass
 
-        # 2. Real LLM execution — multi-provider cascade.
-        #    Each configured provider is tried in order; the first that returns a real
-        #    answer wins. Unconfigured providers are skipped instantly.
         system_prompt = _build_system_prompt()
         cascade = self._provider_cascade(prompt, model_id)
         attempts: List[str] = []
@@ -286,7 +301,15 @@ class AIExecutionRouter:
                 continue
             configured_providers.append(provider["name"])
             try:
-                content = await self._chat_completion(provider, prompt, system_prompt)
+                # 1. Autonomous Agentic Tool-Calling & ReAct loop
+                agent_res = await run_agentic_loop(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    provider=provider,
+                    conversation_history=conversation_history
+                )
+                content = agent_res.get("content", "")
+                tools_used = agent_res.get("tools_executed", [])
                 latency_ms = max(28, round((time.time() - t0) * 1000))
                 return {
                     "status": "success",
@@ -296,6 +319,8 @@ class AIExecutionRouter:
                     "latency_ms": latency_ms,
                     "utility_score": 0.988,
                     "total_models": TOTAL_MODELS_COUNT,
+                    "agentic": True,
+                    "tools_executed": tools_used,
                     "math_details": {
                         "bandit_arm": provider["model"],
                         "thompson_sample": 0.988,
@@ -306,10 +331,31 @@ class AIExecutionRouter:
                     },
                 }
             except Exception as e:
-                # Record the real failure and continue to the next provider.
-                msg = f"{provider['name']}: {type(e).__name__}: {str(e)[:200]}"
-                attempts.append(msg)
-                continue
+                # Fallback to direct chat completion if tool calling fails on this provider
+                try:
+                    content = await self._chat_completion(provider, prompt, system_prompt)
+                    latency_ms = max(28, round((time.time() - t0) * 1000))
+                    return {
+                        "status": "success",
+                        "content": content,
+                        "model": provider["model"],
+                        "provider": provider["label"],
+                        "latency_ms": latency_ms,
+                        "utility_score": 0.988,
+                        "total_models": TOTAL_MODELS_COUNT,
+                        "math_details": {
+                            "bandit_arm": provider["model"],
+                            "thompson_sample": 0.988,
+                            "pareto_rank": 1,
+                            "sla_target_ms": 300,
+                            "actual_ms": latency_ms,
+                            "provider": provider["name"],
+                        },
+                    }
+                except Exception as e2:
+                    msg = f"{provider['name']}: {type(e2).__name__}: {str(e2)[:200]}"
+                    attempts.append(msg)
+                    continue
 
         # 3. Honest diagnostic fallback — NO fake canned answers.
         #    If we reach here, no LLM provider could answer. Tell the user exactly

@@ -814,7 +814,7 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
             dm["mode"] = "manual"
 
         # Execute prompt through deterministic AI Router (Groq LPU / Cloudflare Edge fallback)
-        result = await ai_router.execute(prompt=prompt, model_id=model_to_run, mode=effort)
+        result = await ai_router.execute(prompt=prompt, model_id=model_to_run, mode=effort, chat_id=chat_id)
 
         used_model = result.get("model") or result.get("model_executed") or model_to_run
         content = result.get("content") or result.get("response") or ""
@@ -844,6 +844,8 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
             "status": "success",
             "response": content,
             "content": content,
+            "agentic": result.get("agentic", False),
+            "tools_executed": result.get("tools_executed", []),
             "model_routed": route_res.get("selected_model", model_to_run),
             "model_executed": used_model,
             "model_name": prov.get("clean_name") or prov.get("model_name", used_model),
