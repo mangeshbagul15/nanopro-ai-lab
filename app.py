@@ -37,6 +37,8 @@ from nanopro_db_agent import (
     manage_users_and_roles,
     manage_privacy_policy_and_ad_ids,
     select_optimal_model,
+    clean_and_sanitize_response,
+    get_report_execution_logs,
     run_nanopro_react_loop,
     NANOPRO_AGENT_TOOLS
 )
@@ -348,7 +350,7 @@ with st.sidebar:
     st.markdown("---")
     selected_model = st.selectbox(
         "🧠 Frontier Model Routing (UCB)",
-        ["auto-router", "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"]
+        ["auto-router", "llama-3.3-70b-versatile", "google/gemini-2.5-flash", "qwen/qwen-2.5-72b-instruct", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
     )
 
     if st.button("🧹 Clear Active Chat"):
@@ -398,7 +400,8 @@ with nav_tab1:
                             t_res = te.get("result_status") or te.get("status", "SUCCESS") if isinstance(te, dict) else "SUCCESS"
                             st.markdown(f"• `{t_name}`: `{t_res}`")
 
-            st.markdown(msg["content"], unsafe_allow_html=True)
+            c_text = clean_and_sanitize_response(msg.get("content", ""))
+            st.markdown(c_text, unsafe_allow_html=True)
             
             # Downloadable CSV / Table Preview
             csv_info = msg.get("csv_download")
@@ -489,6 +492,7 @@ with nav_tab1:
                 status_box.update(label="✅ **Execution Completed via Live Telemetry**", state="complete", expanded=False)
 
                 content = agent_result.get("content", "")
+                content = clean_and_sanitize_response(content)
                 st.caption(f"🧠 **Model:** `{effective_model}` | ⚡ {round(dur_ms)}ms")
                 st.markdown(content, unsafe_allow_html=True)
 

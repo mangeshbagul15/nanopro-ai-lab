@@ -483,17 +483,29 @@ class AWSConnector:
 
 class SupabaseConnector:
     URL = os.environ.get("SUPABASE_URL", "https://tbovdmdihmhzgjvsrixo.supabase.co").rstrip("/")
-    KEY = os.environ.get("SUPABASE_KEY", "sb_publishable_X7kBO5-SaeWbJYkQV4ELMQ_rZy7oRJY")
+    KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_KEY", "sb_publishable_X7kBO5-SaeWbJYkQV4ELMQ_rZy7oRJY")
 
     @classmethod
     def ping_health(cls) -> Dict[str, Any]:
         t0 = time.time()
         try:
             with httpx.Client(timeout=4.0) as client:
-                r = client.get(f"{cls.URL}/rest/v1/", headers={"apikey": cls.KEY})
+                headers = {}
+                if cls.KEY:
+                    headers["apikey"] = cls.KEY
+                    headers["Authorization"] = f"Bearer {cls.KEY}"
+                r = client.get(f"{cls.URL}/rest/v1/", headers=headers)
+                if r.status_code == 200:
+                    status = "ONLINE & ACTIVE"
+                elif r.status_code in [401, 403]:
+                    status = "AUTH_ERROR (401 - Check SUPABASE_KEY)"
+                elif r.status_code == 404:
+                    status = "NOT_FOUND (404 - Check URL)"
+                else:
+                    status = f"HTTP_{r.status_code}"
                 return {
                     "engine": "Supabase Cloud Postgres",
-                    "status": "ONLINE & ACTIVE" if r.status_code in [200, 401, 404] else "UNREACHABLE",
+                    "status": status,
                     "project_id": "tbovdmdihmhzgjvsrixo",
                     "http_code": r.status_code,
                     "latency_ms": round((time.time() - t0) * 1000, 2)
