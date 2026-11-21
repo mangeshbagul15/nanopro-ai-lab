@@ -50,6 +50,17 @@ EXTENDED_PROVIDERS = [
     ("krutrim",       "KRUTRIM_API_KEY",       "https://api.olakrutrim.com/v1",      "krutrim-cloud-ai-v1",                    15.0),
 ]
 
+# Auto-mode task → provider preference. When the user picks "auto" (or no
+# model), the prompt's intent promotes the strongest provider for that task
+# to the front of the cascade; failures still fall through to the rest.
+AUTO_PROVIDER_HINTS = [
+    (("math", "proof", "reason", "logic", "equation", "calculate", "गणित", "सिद्ध", "formula"), "deepseek"),
+    (("code", "sql", "ddl", "query", "function", "bug", "python", "javascript", "debug", "script"), "deepseek"),
+    (("summar", "translate", "creative", "story", "email", "mail", "rewrite", "essay"), "mistral"),
+    (("bank", "compliance", "audit", "aml", "regulatory", "fraud", "fiu", "basel"), "openrouter"),
+    (("image", "vision", "diagram", "chart", "mermaid"), "openrouter"),
+]
+
 # Friendly model-name aliases so a UI model pick like "deepseek-chat" or
 # "mistral-nemo" prioritizes the matching provider in the cascade.
 MODEL_PROVIDER_HINTS = {
@@ -181,21 +192,27 @@ class AIExecutionRouter:
                 "extra_headers": {},
             })
 
-        # If the caller explicitly picked a model that maps to a known
-        # provider, promote that provider to the front of the cascade so the
-        # user's selection is honored instead of always landing on Groq.
+        # Auto-mode smart routing — detect the task type from the prompt and
+        # promote the best-suited provider to the front. Explicit model picks
+        # use MODEL_PROVIDER_HINTS instead.
+        preferred = None
         if model_id and model_id != "auto":
             mid = model_id.lower()
-            preferred = None
             for hint_key, pname in MODEL_PROVIDER_HINTS.items():
                 if hint_key in mid:
                     preferred = pname.split("#")[0]
                     break
-            if preferred:
-                for idx, prov in enumerate(cascade):
-                    if prov["name"].split("#")[0] == preferred:
-                        cascade.insert(0, cascade.pop(idx))
-                        break
+        else:
+            p_low = (prompt or "").lower()
+            for keywords, pname in AUTO_PROVIDER_HINTS:
+                if any(k in p_low for k in keywords):
+                    preferred = pname
+                    break
+        if preferred:
+            for idx, prov in enumerate(cascade):
+                if prov["name"].split("#")[0] == preferred:
+                    cascade.insert(0, cascade.pop(idx))
+                    break
         return cascade
 
     async def _chat_completion(self, provider: Dict[str, Any], prompt: str, system_prompt: str) -> str:
