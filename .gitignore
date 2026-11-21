@@ -18,3 +18,5 @@ nanopro_operator/.vault_secrets.enc
 
 scratch/
 
+.wrangler/
+proxy_live.py
