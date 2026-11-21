@@ -64,16 +64,27 @@ AUTO_PROVIDER_HINTS = [
 # Friendly model-name aliases so a UI model pick like "deepseek-chat" or
 # "mistral-nemo" prioritizes the matching provider in the cascade.
 MODEL_PROVIDER_HINTS = {
-    "deepseek": "deepseek", "deepseek-chat": "deepseek", "deepseek-reasoner": "deepseek",
-    "mistral": "mistral", "open-mistral-nemo": "mistral", "mistral-nemo": "mistral",
-    "llama": "sambanova", "sambanova": "sambanova",
-    "gemma": "nvidia-nim", "nvidia": "nvidia-nim", "nim": "nvidia-nim",
-    "novita": "novita",
-    "kimi": "nvidia-nim",
-    "glm": "arcee", "arcee": "arcee",
-    "baseten": "baseten",
-    "friendli": "friendli",
+    "defapi": "defapi",
+    "jev": "jev",
+    "typesafe": "jev",
     "krutrim": "krutrim", "olakrutrim": "krutrim",
+    "poe": "openrouter",
+    "parasail": "openrouter",
+    "arcee": "arcee", "glm": "arcee",
+    "edenai": "openrouter",
+    "requesty": "requesty",
+    "cf": "openrouter", "@cf": "openrouter",
+    "novita": "novita",
+    "nvidia": "nvidia-nim", "nim": "nvidia-nim", "gemma": "nvidia-nim", "kimi": "nvidia-nim",
+    "sambanova": "sambanova", "llama": "sambanova",
+    "aimlapi": "aimlapi",
+    "deepinfra": "deepinfra",
+    "mistral": "mistral", "open-mistral-nemo": "mistral", "mistral-nemo": "mistral",
+    "hf": "huggingface", "huggingface": "huggingface",
+    "groq": "groq#1",
+    "friendli": "friendli", "thesean": "friendli", "baseten": "baseten",
+    "deepseek": "deepseek", "deepseek-chat": "deepseek", "deepseek-reasoner": "deepseek",
+    "fal": "openrouter", "replicate": "openrouter",
 }
 
 

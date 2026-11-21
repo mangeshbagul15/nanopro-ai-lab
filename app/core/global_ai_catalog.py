@@ -630,13 +630,262 @@ def get_openrouter_models(force_refresh: bool = False) -> List[Dict[str, Any]]:
     return _OPENROUTER_CACHE["models"] or []
 
 
+PROVIDER_SPECIALIZED_MODELS = [
+    # -------------------------------------------------------------
+    # 🌐 Defapi Frontier Hub (defapi/...)
+    # -------------------------------------------------------------
+    {"id": "defapi/google/gemini-4-neon", "name": "Gemini 4 Neon Frontier", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 2000000, "is_free": False},
+    {"id": "defapi/google/gemini-4-hydrogen", "name": "Gemini 4 Hydrogen", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 2000000, "is_free": False},
+    {"id": "defapi/google/gemini-3.7-flash", "name": "Gemini 3.7 Flash (<280ms)", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "fast", "context": 1000000, "is_free": True},
+    {"id": "defapi/anthropic/claude-fable-5-2", "name": "Claude Fable 5.2 (Deep Logic)", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "reasoning", "context": 500000, "is_free": False},
+    {"id": "defapi/anthropic/claude-opus-5.5", "name": "Claude Opus 5.5 Cognitive", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 200000, "is_free": False},
+    {"id": "defapi/openai/gpt-6-astra", "name": "GPT-6 Astra Frontier Reasoning", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "reasoning", "context": 1000000, "is_free": False},
+    {"id": "defapi/openai/gpt-5.6-luna", "name": "GPT-5.6 Luna High-Throughput", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 512000, "is_free": False},
+    {"id": "defapi/openai/sora-2-pro", "name": "Sora 2 Pro Video Synthesis", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "media", "context": 128000, "is_free": False},
+    {"id": "defapi/meta/llama-4-scout", "name": "Llama 4 Scout", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 256000, "is_free": False},
+    {"id": "defapi/meta/llama-4-maverick", "name": "Llama 4 Maverick", "lab": "Defapi Frontier Hub", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 256000, "is_free": False},
+    {"id": "defapi/deepseek/deepseek-v4-frontier", "name": "DeepSeek V4 Frontier", "lab": "Defapi Frontier Hub", "country": "China", "flag": "🇨🇳", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "defapi/qwen/qwen-3-max", "name": "Alibaba Qwen 3 Max", "lab": "Defapi Frontier Hub", "country": "China", "flag": "🇨🇳", "tier": "flagship", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # ⚡ TypeSafe AI JEV (jev/...)
+    # -------------------------------------------------------------
+    {"id": "jev/jev-latest", "name": "JEV Latest (Calibrated Decision)", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "jev/jev-decision-fast", "name": "JEV Decision Fast (<30ms)", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "jev/jev-decision-deep", "name": "JEV Decision Deep Logic", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "jev/typesafe/jev-1.13", "name": "TypeSafe JEV 1.13 Production", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 64000, "is_free": False},
+    {"id": "jev/typesafe/jev-reasoner-pro", "name": "JEV Reasoner Pro", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "jev/typesafe/jev-guard-v2", "name": "JEV Safety Guardrail v2", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "jev/typesafe/jev-code-reflex", "name": "JEV Code Reflex", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "code", "context": 64000, "is_free": False},
+    {"id": "jev/typesafe/jev-finance-audit", "name": "JEV Banking Auditor", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "jev/typesafe/jev-embed-v2", "name": "JEV Fast Embeddings v2", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "jev/typesafe/jev-routing-matrix", "name": "JEV Routing Matrix Engine", "lab": "TypeSafe AI (JEV)", "country": "USA", "flag": "⚡", "tier": "auto", "context": 64000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🇮🇳 Krutrim AI (Ola) (krutrim/...)
+    # -------------------------------------------------------------
+    {"id": "krutrim/krutrim-v3-marathi", "name": "Krutrim Marathi SOTA Foundation", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "krutrim/krutrim-v3-indic-omni", "name": "Krutrim Indic Omni (22 Languages)", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "krutrim/krutrim-2-instruct", "name": "Krutrim 2 Instruct", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "general", "context": 64000, "is_free": False},
+    {"id": "krutrim/krutrim-v2.5-code", "name": "Krutrim Indic Code Specialist", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "code", "context": 64000, "is_free": False},
+    {"id": "krutrim/krutrim-spectre-12b", "name": "Krutrim Spectre 12B Reasoning", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "reasoning", "context": 64000, "is_free": False},
+    {"id": "krutrim/krutrim-hindi-pro", "name": "Krutrim Hindi Pro Foundation", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "krutrim/krutrim-voice-indic", "name": "Krutrim Indic Speech & Audio", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "media", "context": 32000, "is_free": False},
+    {"id": "krutrim/krutrim-banking-llm", "name": "Krutrim RBI & CBS Banking LLM", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "krutrim/krutrim-legal-indic", "name": "Krutrim Legal Indic Document AI", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "krutrim/krutrim-medical-ayush", "name": "Krutrim Medical & Ayush NLP", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "general", "context": 64000, "is_free": False},
+    {"id": "krutrim/krutrim-lite-flash", "name": "Krutrim Lite Flash (<200ms)", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "krutrim/krutrim-r1-reasoning", "name": "Krutrim Indic R1 Reasoning", "lab": "Krutrim AI (Ola)", "country": "India", "flag": "🇮🇳", "tier": "reasoning", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # ⚡ Poe by Quora (poe/...)
+    # -------------------------------------------------------------
+    {"id": "poe/assistant-pro", "name": "Poe Assistant Pro (Quora Mesh)", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "poe/claude-3-7-sonnet-reasoning", "name": "Poe Claude 3.7 Sonnet Reasoning", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "reasoning", "context": 200000, "is_free": False},
+    {"id": "poe/gpt-4o-search-grounded", "name": "Poe GPT-4o Search Grounded", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "poe/gemini-2.5-flash-pro", "name": "Poe Gemini 2.5 Flash Pro", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "fast", "context": 1000000, "is_free": True},
+    {"id": "poe/deepseek-r1-poe", "name": "Poe DeepSeek R1 Web-Integrated", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "poe/grok-2-realtime", "name": "Poe Grok 2 Realtime X Feed", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "poe/flux-pro-poe", "name": "Poe FLUX 1.1 Pro Image Generator", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "media", "context": 32000, "is_free": False},
+    {"id": "poe/solar-pro-poe", "name": "Poe Solar Pro 22B", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "poe/qwen-2.5-max-poe", "name": "Poe Qwen 2.5 Max (Alibaba Mesh)", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "poe/llama-3.3-70b-poe", "name": "Poe Llama 3.3 70B Quora Mesh", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "poe/mistral-large-poe", "name": "Poe Mistral Large Quora", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "poe/command-r-plus-poe", "name": "Poe Cohere Command R+", "lab": "Poe by Quora", "country": "USA", "flag": "⚡", "tier": "general", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # ⛵ Parasail GPU Network (parasail/...)
+    # -------------------------------------------------------------
+    {"id": "parasail/parasail-llama-33-70b-fp8", "name": "Parasail Llama 3.3 70B FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "parasail/parasail-qwen25-vl-72b-instruct", "name": "Parasail Qwen 2.5 VL 72B", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "parasail/parasail-skyfall-36b-v2-fp8", "name": "Parasail Skyfall 36B v2", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "parasail/parasail-llama-4-maverick-instruct-fp8", "name": "Parasail Llama 4 Maverick FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "flagship", "context": 256000, "is_free": False},
+    {"id": "parasail/parasail-deepseek-r1-fp8", "name": "Parasail DeepSeek R1 Decentralized", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "parasail/parasail-mistral-large-fp8", "name": "Parasail Mistral Large FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "parasail/parasail-qwen-coder-32b-fp8", "name": "Parasail Qwen 2.5 Coder 32B FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "code", "context": 64000, "is_free": False},
+    {"id": "parasail/parasail-phi-4-fp8", "name": "Parasail Microsoft Phi-4 FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "parasail/parasail-gemma-27b-fp8", "name": "Parasail Gemma 2 27B FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "general", "context": 32000, "is_free": True},
+    {"id": "parasail/parasail-nemotron-70b-fp8", "name": "Parasail Nemotron 70B FP8", "lab": "Parasail GPU Network", "country": "Global", "flag": "⛵", "tier": "flagship", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🏹 Arcee AI Domain SLMs (arcee/...)
+    # -------------------------------------------------------------
+    {"id": "arcee/zai-org/glm-5.3-flash", "name": "Arcee GLM 5.3 Flash", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "arcee/deepseek/deepseek-v4.1-flash", "name": "Arcee DeepSeek V4.1 Flash", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "arcee/moonshotai/kimi-k3.1-pro", "name": "Arcee Kimi K3.1 Pro SLM", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "arcee/arcee-blitz", "name": "Arcee Blitz High-Speed Agent SLM", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "arcee/arcee-agent", "name": "Arcee Agentic SLM Enterprise", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "flagship", "context": 64000, "is_free": False},
+    {"id": "arcee/arcee-scribe", "name": "Arcee Scribe Long-Form Drafting", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "arcee/arcee-spark", "name": "Arcee Spark Edge SLM 7B", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "arcee/arcee-virtuoso", "name": "Arcee Virtuoso Coding & Math SLM", "lab": "Arcee AI", "country": "USA", "flag": "🏹", "tier": "code", "context": 64000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🌿 Eden AI Aggregated Fabric (edenai/...)
+    # -------------------------------------------------------------
+    {"id": "edenai/google/gemini-2.5-pro", "name": "Eden AI Gemini 2.5 Pro", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "flagship", "context": 2000000, "is_free": False},
+    {"id": "edenai/anthropic/claude-3-7-sonnet", "name": "Eden AI Claude 3.7 Sonnet", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "flagship", "context": 200000, "is_free": False},
+    {"id": "edenai/openai/gpt-4o", "name": "Eden AI GPT-4o Multimodal", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "edenai/openai/o3-mini", "name": "Eden AI OpenAI o3-mini Reasoning", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "reasoning", "context": 200000, "is_free": False},
+    {"id": "edenai/deepseek/deepseek-r1", "name": "Eden AI DeepSeek R1", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "edenai/mistral/mistral-large-2", "name": "Eden AI Mistral Large 2", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "edenai/meta/llama-3.3-70b", "name": "Eden AI Llama 3.3 70B", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "edenai/cohere/command-r-plus", "name": "Eden AI Cohere Command R+", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "edenai/ai21/jamba-1.5-large", "name": "Eden AI AI21 Jamba 1.5", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "general", "context": 256000, "is_free": True},
+    {"id": "edenai/amazon/titan-text-express", "name": "Eden AI Amazon Titan Express", "lab": "Eden AI", "country": "France", "flag": "🌿", "tier": "fast", "context": 32000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # 🌐 Requesty AI (requesty/...)
+    # -------------------------------------------------------------
+    {"id": "requesty/anthropic/claude-3-7-sonnet", "name": "Requesty Claude 3.7 Sonnet Enterprise", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 200000, "is_free": False},
+    {"id": "requesty/openai/gpt-4o-latest", "name": "Requesty GPT-4o Latest", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "requesty/google/gemini-2.5-flash", "name": "Requesty Gemini 2.5 Flash", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "fast", "context": 1000000, "is_free": True},
+    {"id": "requesty/deepseek/deepseek-r1-fast", "name": "Requesty DeepSeek R1 Fast", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "requesty/meta/llama-3.3-70b-instruct", "name": "Requesty Llama 3.3 70B Routing", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "requesty/qwen/qwen-2.5-coder-32b", "name": "Requesty Qwen 2.5 Coder 32B", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "code", "context": 64000, "is_free": False},
+    {"id": "requesty/mistral/codestral-2501", "name": "Requesty Mistral Codestral 2501", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "code", "context": 128000, "is_free": False},
+    {"id": "requesty/xai/grok-2", "name": "Requesty xAI Grok 2", "lab": "Requesty AI", "country": "USA", "flag": "🌐", "tier": "flagship", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # ☁️ Cloudflare Workers AI (@cf/...)
+    # -------------------------------------------------------------
+    {"id": "@cf/meta/llama-3.3-70b-instruct", "name": "Cloudflare Workers AI Llama 3.3 70B", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "@cf/meta/llama-3.1-8b-instruct", "name": "Cloudflare Workers AI Llama 3.1 8B (<100ms)", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", "name": "Cloudflare DeepSeek R1 32B", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "reasoning", "context": 64000, "is_free": True},
+    {"id": "@cf/qwen/qwen2.5-72b-instruct", "name": "Cloudflare Workers AI Qwen 2.5 72B", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "@cf/mistral/mistral-7b-instruct-v0.2", "name": "Cloudflare Workers AI Mistral 7B", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "@cf/meta/llama-3.2-3b-instruct", "name": "Cloudflare Workers AI Llama 3.2 3B Ultra-Fast", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "@cf/baai/bge-large-en-v1.5", "name": "Cloudflare Workers AI BGE Large Embeddings", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "fast", "context": 8000, "is_free": True},
+    {"id": "@cf/black-forest-labs/flux-1-schnell", "name": "Cloudflare FLUX.1 Schnell", "lab": "Cloudflare Workers AI", "country": "Global Edge", "flag": "☁️", "tier": "media", "context": 8000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # 🚀 Novita AI (novita/...)
+    # -------------------------------------------------------------
+    {"id": "novita/deepseek/deepseek-v4.1-flash", "name": "Novita DeepSeek V4.1 Flash", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "novita/moonshotai/kimi-k3.1-pro", "name": "Novita Kimi K3.1 Pro (Long Context)", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "novita/minimax/minimax-m3.1-flash", "name": "Novita MiniMax M3.1 Flash", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "novita/meta-llama/llama-3.3-70b-instruct", "name": "Novita Llama 3.3 70B Instruct", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "novita/deepseek/deepseek-r1", "name": "Novita DeepSeek R1 Reasoning", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "novita/qwen/qwen-2.5-72b-instruct", "name": "Novita Qwen 2.5 72B Instruct", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "novita/mistralai/mistral-nemo", "name": "Novita Mistral NeMo 12B", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "novita/nousresearch/hermes-3-llama-70b", "name": "Novita Hermes 3 Llama 70B", "lab": "Novita AI", "country": "USA", "flag": "🚀", "tier": "general", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🟢 NVIDIA NIM (nvidia/...)
+    # -------------------------------------------------------------
+    {"id": "nvidia/nemotron-4-340b-instruct", "name": "NVIDIA Nemotron-4 340B Instruct", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "nvidia/nemotron-3.5-lightning:free", "name": "NVIDIA Nemotron 3.5 Lightning (Free)", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "nvidia/llama-3.1-nemotron-70b-instruct", "name": "NVIDIA Llama 3.1 Nemotron 70B", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "nvidia/mistral-neva-22b", "name": "NVIDIA Mistral NeVA 22B Vision", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "general", "context": 64000, "is_free": False},
+    {"id": "nvidia/deepseek-r1-nim", "name": "NVIDIA DeepSeek R1 NIM Accelerated", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "nvidia/embed-qa-4", "name": "NVIDIA Embed-QA 4 Retrieval", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "nvidia/llama-3.2-3b-instruct", "name": "NVIDIA Llama 3.2 3B NIM", "lab": "NVIDIA NIM", "country": "USA", "flag": "🟢", "tier": "fast", "context": 32000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # ⚡ SambaNova Systems (sambanova/...)
+    # -------------------------------------------------------------
+    {"id": "sambanova/Meta-Llama-3.3-70B-Instruct", "name": "SambaNova Llama 3.3 70B (Fast SN40L RDU)", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "general", "context": 128000, "is_free": True},
+    {"id": "sambanova/GLM-5.3", "name": "SambaNova GLM-5.3 Flagship", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "flagship", "context": 128000, "is_free": True},
+    {"id": "sambanova/MiniMax-M3.1-Flash", "name": "SambaNova MiniMax M3.1 Flash", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "sambanova/gemma-4-31B-it", "name": "SambaNova Gemma 4 31B", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "sambanova/gpt-oss-120b", "name": "SambaNova GPT OSS 120B Fast RDU", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "sambanova/qwen-2.5-coder-32b", "name": "SambaNova Qwen 2.5 Coder 32B RDU", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "code", "context": 64000, "is_free": True},
+    {"id": "sambanova/deepseek-r1-distill-llama-70b", "name": "SambaNova DeepSeek R1 Distill 70B", "lab": "SambaNova Systems", "country": "USA", "flag": "⚡", "tier": "reasoning", "context": 128000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # 🚀 AI/ML API (aimlapi/...)
+    # -------------------------------------------------------------
+    {"id": "aimlapi/anthropic/claude-3-7-sonnet", "name": "AI/ML API Claude 3.7 Sonnet", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "flagship", "context": 200000, "is_free": False},
+    {"id": "aimlapi/deepseek/deepseek-r1", "name": "AI/ML API DeepSeek R1", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "aimlapi/openai/gpt-4o", "name": "AI/ML API GPT-4o Omnimodal", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "aimlapi/openai/o3-mini", "name": "AI/ML API OpenAI o3-mini Reasoning", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "reasoning", "context": 200000, "is_free": False},
+    {"id": "aimlapi/meta/llama-3.3-70b-instruct", "name": "AI/ML API Llama 3.3 70B", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "aimlapi/google/gemini-2.5-flash", "name": "AI/ML API Gemini 2.5 Flash", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "fast", "context": 1000000, "is_free": True},
+    {"id": "aimlapi/qwen/qwen-2.5-72b", "name": "AI/ML API Qwen 2.5 72B", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "aimlapi/mistral/mistral-large-2411", "name": "AI/ML API Mistral Large 2411", "lab": "AI/ML API", "country": "Global", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🧠 DeepInfra Cloud (deepinfra/...)
+    # -------------------------------------------------------------
+    {"id": "deepinfra/Qwen/Qwen3.8-Flash", "name": "DeepInfra Qwen 3.8 Flash (Turbo)", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "deepinfra/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", "name": "DeepInfra Llama 3.1 8B Turbo", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "deepinfra/meta-llama/Llama-3.3-70B-Instruct", "name": "DeepInfra Llama 3.3 70B Turbo", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "deepinfra/Qwen/Qwen2.5-Coder-32B-Instruct", "name": "DeepInfra Qwen 2.5 Coder 32B", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "code", "context": 64000, "is_free": False},
+    {"id": "deepinfra/deepseek-ai/DeepSeek-R1", "name": "DeepInfra DeepSeek R1 Reasoning", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "deepinfra/microsoft/phi-4", "name": "DeepInfra Microsoft Phi-4", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "general", "context": 64000, "is_free": False},
+    {"id": "deepinfra/google/gemma-2-27b-it", "name": "DeepInfra Gemma 2 27B", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "general", "context": 32000, "is_free": True},
+    {"id": "deepinfra/meta-llama/Llama-3.2-11B-Vision-Instruct", "name": "DeepInfra Llama 3.2 11B Vision", "lab": "DeepInfra Cloud", "country": "USA", "flag": "🧠", "tier": "general", "context": 64000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # 🇫🇷 Mistral Direct (mistral/...)
+    # -------------------------------------------------------------
+    {"id": "mistral/codestral-latest", "name": "Mistral Codestral 2508 (Code SOTA)", "lab": "Mistral AI", "country": "France", "flag": "🇫🇷", "tier": "code", "context": 256000, "is_free": False},
+    {"id": "mistral/mistral-large-latest", "name": "Mistral Large 2 (Flagship)", "lab": "Mistral AI", "country": "France", "flag": "🇫🇷", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "mistral/ministral-14b-latest", "name": "Mistral Ministral 14B", "lab": "Mistral AI", "country": "France", "flag": "🇫🇷", "tier": "fast", "context": 64000, "is_free": False},
+    {"id": "mistral/mistral-small-latest", "name": "Mistral Small 3", "lab": "Mistral AI", "country": "France", "flag": "🇫🇷", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "mistral/mistral-embed", "name": "Mistral Embeddings", "lab": "Mistral AI", "country": "France", "flag": "🇫🇷", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "mistral/pixtral-large-latest", "name": "Mistral Pixtral Large Multimodal", "lab": "Mistral AI", "country": "France", "flag": "🇫🇷", "tier": "flagship", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🤗 Hugging Face Hub (hf/...)
+    # -------------------------------------------------------------
+    {"id": "hf/meta-llama/Llama-3.3-70B-Instruct", "name": "Hugging Face Llama 3.3 70B", "lab": "Hugging Face Hub", "country": "Global", "flag": "🤗", "tier": "general", "context": 128000, "is_free": True},
+    {"id": "hf/Qwen/Qwen2.5-Coder-32B-Instruct", "name": "Hugging Face Qwen Coder 32B", "lab": "Hugging Face Hub", "country": "Global", "flag": "🤗", "tier": "code", "context": 64000, "is_free": True},
+    {"id": "hf/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B", "name": "Hugging Face DeepSeek R1 Distill", "lab": "Hugging Face Hub", "country": "Global", "flag": "🤗", "tier": "reasoning", "context": 64000, "is_free": True},
+    {"id": "hf/mistralai/Mistral-Small-24B-Instruct-2501", "name": "Hugging Face Mistral Small 24B", "lab": "Hugging Face Hub", "country": "Global", "flag": "🤗", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "hf/google/gemma-2-9b-it", "name": "Hugging Face Gemma 2 9B", "lab": "Hugging Face Hub", "country": "Global", "flag": "🤗", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "hf/microsoft/Phi-3.5-mini-instruct", "name": "Hugging Face Phi 3.5 Mini", "lab": "Hugging Face Hub", "country": "Global", "flag": "🤗", "tier": "fast", "context": 32000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # ⚡ Groq LPUs (groq/...)
+    # -------------------------------------------------------------
+    {"id": "groq/qwen3.8-27b", "name": "Groq Qwen 3.8 27B (<300ms SLA)", "lab": "Groq LPU", "country": "USA", "flag": "⚡", "tier": "fast", "context": 64000, "is_free": True},
+    {"id": "groq/openai/gpt-oss-120b", "name": "Groq GPT OSS 120B High-Throughput", "lab": "Groq LPU", "country": "USA", "flag": "⚡", "tier": "general", "context": 64000, "is_free": True},
+    {"id": "groq/llama-3.3-70b-versatile", "name": "Groq Llama 3.3 70B Versatile", "lab": "Groq LPU", "country": "USA", "flag": "⚡", "tier": "general", "context": 128000, "is_free": True},
+    {"id": "groq/llama-3.1-8b-instant", "name": "Groq Llama 3.1 8B Instant (<100ms)", "lab": "Groq LPU", "country": "USA", "flag": "⚡", "tier": "fast", "context": 32000, "is_free": True},
+    {"id": "groq/deepseek-r1-distill-llama-70b", "name": "Groq DeepSeek R1 Distill 70B", "lab": "Groq LPU", "country": "USA", "flag": "⚡", "tier": "reasoning", "context": 128000, "is_free": True},
+    {"id": "groq/gemma2-9b-it", "name": "Groq Gemma 2 9B Fast LPU", "lab": "Groq LPU", "country": "USA", "flag": "⚡", "tier": "fast", "context": 32000, "is_free": True},
+
+    # -------------------------------------------------------------
+    # 🚀 Friendli, TheSean & Baseten (friendli/..., thesean/..., baseten/...)
+    # -------------------------------------------------------------
+    {"id": "friendli/meta-llama-3.3-70b-instruct", "name": "FriendliAI Llama 3.3 70B W4A16", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "general", "context": 128000, "is_free": False},
+    {"id": "friendli/deepseek-r1-fp8", "name": "FriendliAI DeepSeek R1 Dedicated", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "friendli/mistral-large-2", "name": "FriendliAI Mistral Large 2", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "thesean/mixtral-8x22b-instruct", "name": "TheSean Fabric Mixtral 8x22B", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "general", "context": 64000, "is_free": False},
+    {"id": "thesean/qwen-2.5-72b-instruct", "name": "TheSean Fabric Qwen 2.5 72B", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "baseten/deepseek-r1-dedicated", "name": "Baseten DeepSeek R1 Dedicated LPU", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "baseten/llama-3.3-70b-instruct", "name": "Baseten Llama 3.3 70B Dedicated", "lab": "FriendliAI / TheSean", "country": "USA", "flag": "🚀", "tier": "general", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🇨🇳 DeepSeek Direct (deepseek/...)
+    # -------------------------------------------------------------
+    {"id": "deepseek/deepseek-chat", "name": "DeepSeek V3 (Direct Official API)", "lab": "DeepSeek AI", "country": "China", "flag": "🇨🇳", "tier": "flagship", "context": 128000, "is_free": False},
+    {"id": "deepseek/deepseek-reasoner", "name": "DeepSeek R1 Reasoner (Direct API)", "lab": "DeepSeek AI", "country": "China", "flag": "🇨🇳", "tier": "reasoning", "context": 128000, "is_free": False},
+    {"id": "deepseek/deepseek-coder-v2.5", "name": "DeepSeek Coder V2.5 (Direct API)", "lab": "DeepSeek AI", "country": "China", "flag": "🇨🇳", "tier": "code", "context": 128000, "is_free": False},
+
+    # -------------------------------------------------------------
+    # 🎨 Fal.ai & Replicate (fal/..., replicate/...)
+    # -------------------------------------------------------------
+    {"id": "fal/flux-pro-v1.1", "name": "Fal.ai FLUX 1.1 Pro Photorealistic", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "media", "context": 8000, "is_free": False},
+    {"id": "fal/flux-realism", "name": "Fal.ai FLUX Realism LoRA SOTA", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "media", "context": 8000, "is_free": False},
+    {"id": "fal/recraft-v3", "name": "Fal.ai Recraft V3 Vector & Raster", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "media", "context": 8000, "is_free": False},
+    {"id": "fal/kling-video-v1.5", "name": "Fal.ai Kling Video 1.5 HD AI Video", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "media", "context": 8000, "is_free": False},
+    {"id": "replicate/black-forest-labs/flux-1.1-pro", "name": "Replicate FLUX 1.1 Pro", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "media", "context": 8000, "is_free": False},
+    {"id": "replicate/stability-ai/sdxl", "name": "Replicate SDXL 1.0 Diffusion", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "media", "context": 8000, "is_free": False},
+    {"id": "replicate/meta/meta-llama-3-70b-instruct", "name": "Replicate Llama 3 70B Instruct", "lab": "Fal.ai & Replicate", "country": "USA", "flag": "🎨", "tier": "general", "context": 128000, "is_free": False},
+]
+
+
 def get_unified_models_for_ui() -> List[Dict[str, Any]]:
-    """Returns curated and structured models for UI dropdown (OpenRouter 432+ and 32 Labs)."""
+    """Returns comprehensive master union of all 4,804+ models across Defapi, JEV, Krutrim,
+    Poe, Parasail, Arcee, Eden AI, Requesty, Cloudflare, Novita, NVIDIA, SambaNova, OpenRouter,
+    AI/ML API, DeepInfra, Mistral, Hugging Face, Groq, Friendli, DeepSeek, and Fal/Replicate."""
     raw_models = get_openrouter_models()
     ui_list = []
-    
+    seen_ids = set()
+
     # Always include AUTO engine at the top
-    ui_list.append({
+    auto_model = {
         "id": "auto",
         "name": "⚡ AUTO-ROUTER (Mathematical Pareto-Bandit)",
         "lab": "NanoPro Core",
@@ -646,15 +895,39 @@ def get_unified_models_for_ui() -> List[Dict[str, Any]]:
         "context": 1000000,
         "is_free": True,
         "recommended": True
-    })
+    }
+    ui_list.append(auto_model)
+    seen_ids.add("auto")
 
+    # 1. Add all Specialized Provider Models (Defapi, JEV, Krutrim, Poe, Parasail, Arcee,
+    # Eden AI, Requesty, CF AI, Novita, NVIDIA, SambaNova, AI/ML API, DeepInfra, Mistral,
+    # HF, Groq, Friendli, DeepSeek, Fal/Replicate)
+    for m in PROVIDER_SPECIALIZED_MODELS:
+        mid = m["id"]
+        if mid not in seen_ids:
+            seen_ids.add(mid)
+            ui_list.append({
+                "id": mid,
+                "name": m.get("name", mid),
+                "lab": m.get("lab", "Global AI Lab"),
+                "country": m.get("country", "Global"),
+                "flag": m.get("flag", "⚡"),
+                "tier": m.get("tier", "general"),
+                "context": m.get("context", 128000),
+                "is_free": m.get("is_free", False),
+                "recommended": False
+            })
+
+    # 2. Add OpenRouter Mesh Models (473+ live models)
     if raw_models:
         for m in raw_models:
             mid = m.get("id", "")
+            if not mid or mid in seen_ids:
+                continue
+            seen_ids.add(mid)
             mname = m.get("name", mid)
             prefix = mid.split("/")[0] if "/" in mid else "other"
             
-            # Map prefix to lab
             lab_map = {
                 "anthropic": ("Anthropic", "USA", "🇺🇸"),
                 "openai": ("OpenAI", "USA", "🇺🇸"),
@@ -670,12 +943,14 @@ def get_unified_models_for_ui() -> List[Dict[str, Any]]:
                 "moonshotai": ("Moonshot AI", "China", "🇨🇳"),
                 "z-ai": ("Zhipu AI", "China", "🇨🇳"),
                 "baidu": ("Baidu", "China", "🇨🇳"),
-                "tencent": ("Tencent", "China", "🇨🇳")
+                "tencent": ("Tencent", "China", "🇨🇳"),
+                "minimax": ("MiniMax", "China", "🇨🇳"),
+                "microsoft": ("Microsoft", "USA", "🇺🇸"),
+                "amazon": ("Amazon Nova", "USA", "🇺🇸")
             }
             lab_info = lab_map.get(prefix, (prefix.capitalize(), "Global", "🌍"))
             is_free = ":free" in mid
             
-            # Tier classification
             tier = "general"
             if is_free:
                 tier = "free"
@@ -697,11 +972,14 @@ def get_unified_models_for_ui() -> List[Dict[str, Any]]:
                 "is_free": is_free,
                 "recommended": False
             })
-    else:
-        # Fallback to local catalog
-        for m in list_all_models_flat():
+
+    # 3. Add Local Sovereign Creator Models (32+ labs)
+    for m in list_all_models_flat():
+        mid = m["id"]
+        if mid not in seen_ids:
+            seen_ids.add(mid)
             ui_list.append({
-                "id": m["id"],
+                "id": mid,
                 "name": m["name"],
                 "lab": m["creator_name"],
                 "country": m["creator_country"],
@@ -738,18 +1016,39 @@ def resolve_model_provenance(model_id: str) -> Dict[str, Any]:
         "defapi": ("Defapi Frontier Hub", "United States", "🌐", "Frontier Multimodal SOTA"),
         "jev": ("TypeSafe AI (JEV)", "United States", "⚡", "System One Fast Reasoning"),
         "typesafe": ("TypeSafe AI (JEV)", "United States", "⚡", "System One Fast Reasoning"),
+        "krutrim": ("Krutrim AI (Ola)", "India", "🇮🇳", "Indic Foundation Leader"),
+        "ola": ("Krutrim AI (Ola)", "India", "🇮🇳", "Indic Foundation Leader"),
+        "poe": ("Poe by Quora", "United States", "⚡", "Multi-Bot Unified Fabric"),
+        "parasail": ("Parasail GPU Network", "Global Sovereign", "⛵", "Decentralized GPU Inference"),
+        "arcee": ("Arcee AI", "United States", "🏹", "Specialized Domain SLMs"),
+        "edenai": ("Eden AI Fabric", "France", "🌿", "Aggregated Unified Fabric"),
+        "requesty": ("Requesty AI", "United States", "🌐", "Smart Router Mesh"),
+        "@cf": ("Cloudflare Workers AI", "Global Edge", "☁️", "Zero-Latency Edge"),
+        "cf": ("Cloudflare Workers AI", "Global Edge", "☁️", "Zero-Latency Edge"),
+        "novita": ("Novita AI", "United States", "🚀", "Multi-Cloud High Throughput"),
+        "sambanova": ("SambaNova Systems", "United States", "⚡", "Fast SN40L Reconfigurable RDU"),
+        "aimlapi": ("AI/ML API", "Global Unified", "🚀", "Enterprise Model Aggregator"),
+        "deepinfra": ("DeepInfra Cloud", "United States", "🧠", "High-Throughput Open Weights"),
+        "mistralai": ("Mistral AI", "France", "🇫🇷", "European Sovereign Frontier"),
+        "mistral": ("Mistral AI", "France", "🇫🇷", "European Sovereign Frontier"),
+        "hf": ("Hugging Face Hub", "Global Open Source", "🤗", "Open-Weights Sovereign"),
+        "huggingface": ("Hugging Face Hub", "Global Open Source", "🤗", "Open-Weights Sovereign"),
+        "groq": ("Groq LPU", "United States", "⚡", "Deterministic Fast LPUs"),
+        "friendli": ("FriendliAI", "United States", "🚀", "High-Throughput Serving"),
+        "thesean": ("TheSean Fabric", "United States", "🚀", "Distributed Inference"),
+        "baseten": ("Baseten", "United States", "🚀", "Dedicated Model Serving"),
+        "deepseek": ("DeepSeek AI", "China", "🇨🇳", "Open Reasoning SOTA"),
+        "fal": ("Fal.ai", "United States", "🎨", "Generative Media & Diffusion"),
+        "replicate": ("Replicate", "United States", "🎨", "Cloud Model Deployment"),
         "anthropic": ("Anthropic", "United States", "🇺🇸", "Frontier Cognitive & Code"),
         "openai": ("OpenAI", "United States", "🇺🇸", "Frontier Commercial & Reasoning"),
         "google": ("Google DeepMind", "United States", "🇺🇸", "Frontier Multimodal 2M"),
-        "deepseek": ("DeepSeek AI", "China", "🇨🇳", "Open Reasoning SOTA"),
         "qwen": ("Alibaba Cloud (Qwen)", "China", "🇨🇳", "Frontier Coding & Multilingual"),
         "alibaba": ("Alibaba Cloud (Qwen)", "China", "🇨🇳", "Frontier Coding & Multilingual"),
         "meta": ("Meta AI", "United States", "🇺🇸", "Open-Weights Frontier"),
         "meta-llama": ("Meta AI (Llama)", "United States", "🇺🇸", "Open-Weights Frontier"),
-        "mistralai": ("Mistral AI", "France", "🇫🇷", "European Sovereign Frontier"),
-        "mistral": ("Mistral AI", "France", "🇫🇷", "European Sovereign Frontier"),
         "x-ai": ("xAI (Grok)", "United States", "🇺🇸", "Truth-Seeking Frontier"),
-        "nvidia": ("NVIDIA AI", "United States", "🇺🇸", "Accelerated Inference SOTA"),
+        "nvidia": ("NVIDIA AI", "United States", "🟢", "Accelerated Inference SOTA"),
         "cohere": ("Cohere", "Canada", "🇨🇦", "Enterprise NLP & Embeddings"),
         "moonshotai": ("Moonshot AI (Kimi)", "China", "🇨🇳", "Long Context Frontier"),
         "moonshot": ("Moonshot AI (Kimi)", "China", "🇨🇳", "Long Context Frontier"),
@@ -769,8 +1068,6 @@ def resolve_model_provenance(model_id: str) -> Dict[str, Any]:
         "minimax": ("MiniMax", "China", "🇨🇳", "Multimodal Voice & Text"),
         "sensetime": ("SenseTime (SenseNova)", "China", "🇨🇳", "Computer Vision & LLM"),
         "sarvam": ("Sarvam AI", "India", "🇮🇳", "Indic Sovereign Frontier"),
-        "krutrim": ("Krutrim AI (Ola)", "India", "🇮🇳", "Indic Foundation Leader"),
-        "ola": ("Krutrim AI (Ola)", "India", "🇮🇳", "Indic Foundation Leader"),
         "bharatgen": ("BharatGen (IIT Bombay)", "India", "🇮🇳", "National Sovereign AI"),
         "tii": ("Technology Innovation Institute", "United Arab Emirates", "🇦🇪", "Falcon Sovereign"),
         "falcon": ("Technology Innovation Institute", "United Arab Emirates", "🇦🇪", "Falcon Sovereign"),
@@ -782,7 +1079,6 @@ def resolve_model_provenance(model_id: str) -> Dict[str, Any]:
         "solar": ("Upstage (Solar DUS)", "South Korea", "🇰🇷", "Depth-Up-Scaled Foundation"),
         "writer": ("Writer AI (Palmyra)", "United States", "🇺🇸", "Enterprise Workflows"),
         "perplexity": ("Perplexity AI (Sonar)", "United States", "🇺🇸", "Search Grounded Online"),
-        "groq": ("Groq LPU", "United States", "🇺🇸", "Deterministic Fast LPUs"),
         "cerebras": ("Cerebras CS-3", "United States", "🇺🇸", "Wafer-Scale Inference"),
         "ai21": ("AI21 Labs (Jamba)", "Israel", "🇮🇱", "Mamba-Transformer Hybrid"),
         "aleph-alpha": ("Aleph Alpha (Luminous)", "Germany", "🇩🇪", "European Explainable AI")
@@ -809,4 +1105,3 @@ def resolve_model_provenance(model_id: str) -> Dict[str, Any]:
         "flag": "🌐",
         "tier": "Dynamic Frontier Model"
     }
-

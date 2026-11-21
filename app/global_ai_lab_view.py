@@ -4182,14 +4182,7 @@ body.in-global_ai_lab .nano-dynamic-island {
         </div>
       </div>
       <div id="ailabHistoryStatus" style="font-size:10.5px;color:#64748B;padding:0 12px 6px;line-height:1.35;">Loading your chats…</div>
-      <!-- Quick Frontier Model Registry Launcher in Sidebar -->
-      <div class="ailab-sidebar-registry-banner" onclick="ailabOpenModelCatalogModal()" title="Open Global Frontier AI Model Registry (4,804+ Unified Mesh)">
-        <div style="display:flex;align-items:center;gap:7px;">
-          <span style="font-size:13px;">🌐</span>
-          <span style="font-weight:700;color:#F8FAFC;letter-spacing:0.2px;">Frontier Model Registry</span>
-        </div>
-        <span style="background:rgba(139,92,246,0.25);border:1px solid rgba(139,92,246,0.45);border-radius:4px;padding:2px 7px;font-size:10.5px;color:#C084FC;font-weight:700;">4,804+</span>
-      </div>
+
 
       <div class="ailab-sidebar-scroll" id="ailabSidebarScroll">
         <!-- Pinned Chats -->
@@ -4221,15 +4214,19 @@ body.in-global_ai_lab .nano-dynamic-island {
         </button>
       </div>
 
-      <!-- Clean Minimal Footer (Zero Clutter, Maximum Space for Chats & Projects) -->
-      <div class="ailab-user-dock" style="padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.08); background: #0B1119; min-height: 32px;">
-        <div style="display: flex; align-items: center; gap: 7px;">
-          <span class="ailab-user-pulse-dot" style="position:static; display:inline-block; width:6px; height:6px;"></span>
-          <span style="font-size: 11px; color: #86EFAC; font-weight: 600;">Active Session</span>
-          <span id="ailabSidebarUserName" style="display:none;">Super Admin</span>
-          <span id="ailabSidebarAvatarText" style="display:none;">MB</span>
+      <!-- Clean Standard User Profile Dock (Zero Clutter, Maximum Space for Chats & Projects) -->
+      <div class="ailab-user-dock" id="ailabUserDock" style="padding: 7px 12px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255, 255, 255, 0.08); background: #0B1119; min-height: 42px;">
+        <div style="display: flex; align-items: center; min-width: 0; flex: 1; margin-right: 8px;">
+          <div class="ailab-sidebar-avatar" id="ailabSidebarAvatar" style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: #FFF; font-weight: 700; font-size: 11px; display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(255, 255, 255, 0.18); box-shadow: 0 2px 5px rgba(0,0,0,0.3); position: relative; flex-shrink: 0;">
+            <span id="ailabSidebarAvatarText">MB</span>
+            <span style="position: absolute; bottom: -1px; right: -1px; width: 7px; height: 7px; background: #10B981; border: 1.5px solid #0B1119; border-radius: 50%;"></span>
+          </div>
+          <div style="display: flex; flex-direction: column; min-width: 0; flex: 1; margin-left: 8px; overflow: hidden;">
+            <div id="ailabSidebarUserName" style="font-size: 12px; font-weight: 600; color: #F8FAFC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">Mangesh Bagul</div>
+            <div id="ailabSidebarUserRole" style="font-size: 10px; color: #94A3B8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; margin-top: 2px;">● Super Admin (Online)</div>
+          </div>
         </div>
-        <button type="button" class="ailab-auth-btn ailab-logout-btn" id="ailabLogOutBtn" onclick="ailabLogOut(this)" title="Sign out of NanoPro AI Lab securely" style="padding: 3px 8px; font-size: 11px; height: 26px; border-radius: 5px; display: flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #FCA5A5; cursor: pointer;">
+        <button type="button" class="ailab-auth-btn ailab-logout-btn" id="ailabLogOutBtn" onclick="ailabLogOut(this)" title="Sign out of NanoPro AI Lab securely" style="padding: 3px 8px; font-size: 11px; height: 26px; border-radius: 5px; display: flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #FCA5A5; cursor: pointer; flex-shrink: 0;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
@@ -6039,6 +6036,32 @@ body.in-global_ai_lab .nano-dynamic-island {
     window.addEventListener('scroll', () => ailabCloseExplorerMenu(), true);
   }
 
+  window.ailabHydrateUserProfile = async function() {
+    try {
+      const res = await fetch("/api/auth/validate");
+      if (res.ok) {
+        const d = await res.json();
+        if (d && d.valid && d.user) {
+          const rawName = d.user.full_name || d.user.username || "Mangesh Bagul";
+          let cleanName = rawName;
+          if (rawName.includes("(") && rawName.includes(")")) {
+            cleanName = rawName.split("(")[1].replace(")", "").trim();
+          }
+          const uEl = $id("ailabSidebarUserName");
+          if (uEl) uEl.textContent = cleanName;
+          const rEl = $id("ailabSidebarUserRole");
+          if (rEl) rEl.textContent = (d.user.role || "").toLowerCase() === "admin" ? "● Super Admin (Online)" : `● ${d.user.role} (Online)`;
+          const aEl = $id("ailabSidebarAvatarText");
+          if (aEl) {
+            const parts = cleanName.split(" ").filter(Boolean);
+            const inits = parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : parts[0].slice(0, 2).toUpperCase();
+            aEl.textContent = inits || "MB";
+          }
+        }
+      }
+    } catch (_) {}
+  };
+
   window.initGlobalAILab = async function() {
     console.log("[GlobalAILab] Initializing studio workspace...");
     try {
@@ -6050,6 +6073,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     } catch (_) {}
     ailabInitGrip();
     ailabHydrateLocalStorage();
+    ailabHydrateUserProfile();
     await ailabLoadHistory();
     ailabLoadLiveModels();
     ailabInitExplorer();
@@ -6258,6 +6282,32 @@ body.in-global_ai_lab .nano-dynamic-island {
       .replace(/\b\w/g, l => l.toUpperCase());
 
     const DIRECTORY = {
+      "defapi": { lab_name: "Defapi Frontier Hub", country: "United States", flag: "🌐", tier: "Frontier Multimodal SOTA" },
+      "jev": { lab_name: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", tier: "System One Fast Reasoning" },
+      "typesafe": { lab_name: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", tier: "System One Fast Reasoning" },
+      "krutrim": { lab_name: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Foundation Leader" },
+      "ola": { lab_name: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Foundation Leader" },
+      "poe": { lab_name: "Poe by Quora", country: "United States", flag: "⚡", tier: "Multi-Bot Unified Fabric" },
+      "parasail": { lab_name: "Parasail GPU Network", country: "Global Sovereign", flag: "⛵", tier: "Decentralized GPU Inference" },
+      "arcee": { lab_name: "Arcee AI", country: "United States", flag: "🏹", tier: "Specialized Domain SLMs" },
+      "edenai": { lab_name: "Eden AI Fabric", country: "France", flag: "🌿", tier: "Aggregated Unified Fabric" },
+      "requesty": { lab_name: "Requesty AI", country: "United States", flag: "🌐", tier: "Smart Router Mesh" },
+      "@cf": { lab_name: "Cloudflare Workers AI", country: "Global Edge", flag: "☁️", tier: "Zero-Latency Edge" },
+      "cf": { lab_name: "Cloudflare Workers AI", country: "Global Edge", flag: "☁️", tier: "Zero-Latency Edge" },
+      "novita": { lab_name: "Novita AI", country: "United States", flag: "🚀", tier: "Multi-Cloud High Throughput" },
+      "sambanova": { lab_name: "SambaNova Systems", country: "United States", flag: "⚡", tier: "Fast SN40L Reconfigurable RDU" },
+      "aimlapi": { lab_name: "AI/ML API", country: "Global Unified", flag: "🚀", tier: "Enterprise Model Aggregator" },
+      "deepinfra": { lab_name: "DeepInfra Cloud", country: "United States", flag: "🧠", tier: "High-Throughput Open Weights" },
+      "mistralai": { lab_name: "Mistral AI", country: "France", flag: "🇫🇷", tier: "European Sovereign Frontier" },
+      "mistral": { lab_name: "Mistral AI", country: "France", flag: "🇫🇷", tier: "European Sovereign Frontier" },
+      "hf": { lab_name: "Hugging Face Hub", country: "Global Open Source", flag: "🤗", tier: "Open-Weights Sovereign" },
+      "huggingface": { lab_name: "Hugging Face Hub", country: "Global Open Source", flag: "🤗", tier: "Open-Weights Sovereign" },
+      "groq": { lab_name: "Groq LPU", country: "United States", flag: "⚡", tier: "Deterministic Fast LPUs" },
+      "friendli": { lab_name: "FriendliAI", country: "United States", flag: "🚀", tier: "High-Throughput Serving" },
+      "thesean": { lab_name: "TheSean Fabric", country: "United States", flag: "🚀", tier: "Distributed Inference" },
+      "baseten": { lab_name: "Baseten", country: "United States", flag: "🚀", tier: "Dedicated Model Serving" },
+      "fal": { lab_name: "Fal.ai", country: "United States", flag: "🎨", tier: "Generative Media & Diffusion" },
+      "replicate": { lab_name: "Replicate", country: "United States", flag: "🎨", tier: "Cloud Model Deployment" },
       "anthropic": { lab_name: "Anthropic", country: "United States", flag: "🇺🇸", tier: "Frontier Cognitive & Code" },
       "google": { lab_name: "Google DeepMind", country: "United States", flag: "🇺🇸", tier: "Frontier Multimodal 2M" },
       "openai": { lab_name: "OpenAI", country: "United States", flag: "🇺🇸", tier: "Frontier Commercial & Reasoning" },
@@ -6394,6 +6444,9 @@ body.in-global_ai_lab .nano-dynamic-island {
         deepseek: [],
         groq: [],
         hf: [],
+        aimlapi: [],
+        friendli: [],
+        fal_replicate: [],
         frontier: [],
         free: [],
         other: []
@@ -6443,6 +6496,12 @@ body.in-global_ai_lab .nano-dynamic-island {
             groups.groq.push(item);
           } else if (pfx === "hf" || pfx === "huggingface") {
             groups.hf.push(item);
+          } else if (pfx === "aimlapi") {
+            groups.aimlapi.push(item);
+          } else if (pfx === "friendli" || pfx === "thesean" || pfx === "baseten") {
+            groups.friendli.push(item);
+          } else if (pfx === "fal" || pfx === "replicate") {
+            groups.fal_replicate.push(item);
           } else if (["anthropic", "google", "openai", "meta", "meta-llama"].includes(pfx)) {
             groups.frontier.push(item);
           } else if (isFree) {
@@ -6471,6 +6530,9 @@ body.in-global_ai_lab .nano-dynamic-island {
           groups.deepseek.length ? `<optgroup label="🇨🇳 DeepSeek Sovereign Direct (${groups.deepseek.length} Models)">${groups.deepseek.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
           groups.groq.length ? `<optgroup label="⚡ Groq Ultra-Fast LPUs (${groups.groq.length} Models &lt;300ms SLA)">${groups.groq.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
           groups.hf.length ? `<optgroup label="🤗 Hugging Face Serverless Hub (${groups.hf.length} Models)">${groups.hf.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
+          groups.aimlapi.length ? `<optgroup label="🚀 AI/ML API (${groups.aimlapi.length} Unified Models)">${groups.aimlapi.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
+          groups.friendli.length ? `<optgroup label="🚀 Friendli & TheSean (${groups.friendli.length} Dedicated Models)">${groups.friendli.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
+          groups.fal_replicate.length ? `<optgroup label="🎨 Fal.ai & Replicate (${groups.fal_replicate.length} Media Models)">${groups.fal_replicate.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
           groups.frontier.length ? `<optgroup label="🇺🇸 Frontier Flagships (${groups.frontier.length} Models · Anthropic, Google, OpenAI, Meta)">${groups.frontier.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
           groups.free.length ? `<optgroup label="🆓 Unlimited Free Frontier Models (${groups.free.length} Models)">${groups.free.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : "",
           groups.other.length ? `<optgroup label="🌍 Global & Asia Labs (${groups.other.length} Models)">${groups.other.map(m => `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}</option>`).join("")}</optgroup>` : ""
@@ -8898,8 +8960,8 @@ body.in-global_ai_lab .nano-dynamic-island {
         if (currentCatalogCategory === "nvidia" && !m.id.startsWith("nvidia/") && !(m.lab && m.lab.includes("NVIDIA"))) return false;
         if (currentCatalogCategory === "sambanova" && !m.id.startsWith("sambanova/") && !(m.lab && m.lab.includes("SambaNova"))) return false;
         if (currentCatalogCategory === "friendli_thesean" && !m.id.startsWith("friendli/") && !m.id.startsWith("thesean/") && !m.id.startsWith("baseten/")) return false;
-        if (currentCatalogCategory === "openrouter" && (m.id.startsWith("hf/") || m.id.startsWith("aimlapi/") || m.id.startsWith("fal/") || m.id.startsWith("replicate/") || m.id.startsWith("groq/") || m.id.startsWith("deepinfra/") || m.id.startsWith("mistral/") || m.id.startsWith("novita/") || m.id.startsWith("@cf/") || m.id.startsWith("edenai/") || m.id.startsWith("requesty/") || m.id.startsWith("nvidia/") || m.id.startsWith("sambanova/") || m.id.startsWith("friendli/") || m.id.startsWith("thesean/") || m.id.startsWith("baseten/"))) return false;
-        if (currentCatalogCategory === "aimlapi" && !m.id.startsWith("aimlapi/") && m.provider !== "aimlapi") return false;
+        if (currentCatalogCategory === "openrouter" && (m.id.startsWith("hf/") || m.id.startsWith("aimlapi/") || m.id.startsWith("fal/") || m.id.startsWith("replicate/") || m.id.startsWith("groq/") || m.id.startsWith("deepinfra/") || m.id.startsWith("mistral/") || m.id.startsWith("novita/") || m.id.startsWith("@cf/") || m.id.startsWith("edenai/") || m.id.startsWith("requesty/") || m.id.startsWith("nvidia/") || m.id.startsWith("sambanova/") || m.id.startsWith("friendli/") || m.id.startsWith("thesean/") || m.id.startsWith("baseten/") || m.id.startsWith("defapi/") || m.id.startsWith("jev/") || m.id.startsWith("typesafe/") || m.id.startsWith("krutrim/") || m.id.startsWith("poe/") || m.id.startsWith("parasail/") || m.id.startsWith("arcee/"))) return false;
+        if (currentCatalogCategory === "aimlapi" && !m.id.startsWith("aimlapi/") && !(m.lab && m.lab.includes("AI/ML API"))) return false;
         if (currentCatalogCategory === "deepinfra" && !m.id.startsWith("deepinfra/") && !(m.lab && m.lab.includes("DeepInfra"))) return false;
         if (currentCatalogCategory === "mistral" && !m.id.startsWith("mistral/") && !m.id.startsWith("mistralai/") && !(m.lab && m.lab.includes("Mistral"))) return false;
         if (currentCatalogCategory === "hf" && !m.id.startsWith("hf/") && !m.id.startsWith("huggingface/") && !(m.lab && m.lab.includes("Hugging Face"))) return false;
