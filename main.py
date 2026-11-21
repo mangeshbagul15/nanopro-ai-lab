@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import json
 import base64
@@ -556,6 +557,24 @@ async def execute_ai(request: Request, payload: Dict[str, Any] = Body(...)):
     """Executes AI prompt with BigQuery DDL/Admin intercept, sub-300ms inference, and mathematical telemetry."""
     try:
         prompt = payload.get("prompt", "")
+
+        # -1. Explicit SQL fast-path — fenced ```sql blocks, "execute bigquery
+        #     query: ...", "duckdb ...", or a bare SELECT/WITH must reach the
+        #     query engines before any conversational intercept can swallow them.
+        _p_low = prompt.strip().lower()
+        _explicit_sql = (
+            _p_low.startswith("execute bigquery query:")
+            or "duckdb" in _p_low
+            or bool(re.search(r"```(?:sql)?\s*(select|with|insert|update|delete)\b", prompt, re.IGNORECASE))
+            or bool(re.match(r"^\s*(select|with)\b", prompt.strip(), re.IGNORECASE))
+        )
+        if _explicit_sql:
+            data_result = maybe_data(prompt)
+            if data_result is None:
+                data_result = maybe_duckdb(prompt)
+            if data_result is not None:
+                data_result["user"] = "Super Admin (Mangesh Bagul)"
+                return JSONResponse(data_result)
 
         # 0. Autonomous Agentic Chat Engine Intercept (Schedules, Real Telemetry, Diagrams, Models, Runs)
         agentic_result = process_agentic_chat(prompt)
