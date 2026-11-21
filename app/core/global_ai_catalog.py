@@ -899,6 +899,30 @@ def get_unified_models_for_ui() -> List[Dict[str, Any]]:
     ui_list.append(auto_model)
     seen_ids.add("auto")
 
+    # 0. Add user-added / discovered custom models from custom_models_service
+    try:
+        from app.custom_models_service import get_all_custom_models
+        custom_list = get_all_custom_models()
+        for cm in custom_list:
+            cid = cm.get("id")
+            if cid and cid not in seen_ids:
+                seen_ids.add(cid)
+                ui_list.append({
+                    "id": cid,
+                    "name": cm.get("name") or cid,
+                    "lab": cm.get("lab", "Custom Model"),
+                    "country": cm.get("country", "India"),
+                    "flag": cm.get("flag", "⭐"),
+                    "tier": cm.get("tier", "custom"),
+                    "context": cm.get("context", 128000),
+                    "is_free": bool(cm.get("is_free", False)),
+                    "is_custom": True,
+                    "provider": cm.get("provider", "custom"),
+                    "description": cm.get("description", "")
+                })
+    except Exception:
+        pass
+
     # 1. Add all Specialized Provider Models (Defapi, JEV, Krutrim, Poe, Parasail, Arcee,
     # Eden AI, Requesty, CF AI, Novita, NVIDIA, SambaNova, AI/ML API, DeepInfra, Mistral,
     # HF, Groq, Friendli, DeepSeek, Fal/Replicate)
@@ -1004,6 +1028,22 @@ def resolve_model_provenance(model_id: str) -> Dict[str, Any]:
             "flag": "⚡",
             "tier": "Pareto-Bandit Router"
         }
+
+    try:
+        from app.custom_models_service import load_custom_store
+        c_store = load_custom_store()
+        for cm in c_store.get("custom_models", []) + c_store.get("discovered_models", []):
+            if cm.get("id") == model_id:
+                return {
+                    "model_id": model_id,
+                    "model_name": cm.get("name", model_id),
+                    "lab_name": cm.get("lab", "Custom AI Lab"),
+                    "country": cm.get("country", "India"),
+                    "flag": cm.get("flag", "⭐"),
+                    "tier": cm.get("tier", "Custom Model").title()
+                }
+    except Exception:
+        pass
 
     mid = model_id.lower()
     parts = mid.split("/")

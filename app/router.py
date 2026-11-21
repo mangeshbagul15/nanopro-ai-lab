@@ -161,7 +161,7 @@ class AIExecutionRouter:
                 "api_key": OPENROUTER_API_KEY,
                 "base_url": OPENROUTER_BASE_URL,
                 # openrouter/auto lets OpenRouter pick the best available model
-                "model": "openrouter/auto",
+                "model": model_id if (model_id and "/" in model_id and not model_id.startswith(("groq/", "defapi/", "jev/", "custom/"))) else "openrouter/auto",
                 "timeout": 20.0,
                 "extra_headers": {
                     "HTTP-Referer": "https://nanopro-prod.mangeshbagul15.workers.dev",
@@ -224,6 +224,17 @@ class AIExecutionRouter:
                 if prov["name"].split("#")[0] == preferred:
                     cascade.insert(0, cascade.pop(idx))
                     break
+
+        # Priority 0: Custom user-registered model or connected provider key
+        if model_id and model_id != "auto":
+            try:
+                from app.custom_models_service import get_custom_provider_for_model
+                custom_entry = get_custom_provider_for_model(model_id)
+                if custom_entry and custom_entry.get("api_key"):
+                    cascade.insert(0, custom_entry)
+            except Exception:
+                pass
+
         return cascade
 
     async def _chat_completion(self, provider: Dict[str, Any], prompt: str, system_prompt: str) -> str:

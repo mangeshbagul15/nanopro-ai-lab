@@ -4438,14 +4438,41 @@ body.in-global_ai_lab .nano-dynamic-island {
         </div>
       </div>
 
-
-
-      <button type="button" class="ailab-modal-close" onclick="ailabCloseModelCatalogModal()">&times;</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="ailab-btn-add-model" onclick="ailabOpenAddModelModal()" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,#8B5CF6,#6366F1);border:1px solid #A78BFA;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,0.35);transition:all 0.2s;">
+          <span>➕</span>
+          <span>Add Model / Connect Key</span>
+        </button>
+        <button type="button" class="ailab-modal-close" onclick="ailabCloseModelCatalogModal()">&times;</button>
+      </div>
     </div>
     <div class="ailab-modal-search">
       <span style="font-size:16px;color:#8B5CF6;">🔍</span>
       <input type="text" id="ailabModelSearchInput" placeholder="Search 4,804+ models by name, lab, provider, or capability (e.g. claude, deepseek, flux, qwen, free)..." oninput="ailabFilterModels()">
     </div>
+
+    <!-- Filter Toolbar: Pricing & Type Filters -->
+    <div class="ailab-modal-filter-toolbar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:8px 16px;background:#090D16;border-bottom:1px solid rgba(255,255,255,0.06);">
+      <!-- Pricing Filter Buttons -->
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-right:2px;">Pricing:</span>
+        <button type="button" class="ailab-filter-btn is-active" id="ailabFilterPricingAll" onclick="ailabFilterPricing('all', this)" style="padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:#1E293B;color:#F8FAFC;cursor:pointer;font-weight:600;">All Pricing</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterPricingFree" onclick="ailabFilterPricing('free', this)" style="padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid rgba(16,185,129,0.3);background:rgba(16,185,129,0.08);color:#86EFAC;cursor:pointer;font-weight:600;">🆓 Free Tier Only</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterPricingPaid" onclick="ailabFilterPricing('paid', this)" style="padding:4px 10px;font-size:11px;border-radius:6px;border:1px solid rgba(139,92,246,0.3);background:rgba(139,92,246,0.08);color:#C4B5FD;cursor:pointer;font-weight:600;">💳 Paid / Usage-Based</button>
+      </div>
+
+      <!-- Capability Quick Filter Buttons -->
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:0.5px;margin-right:2px;">Specialty:</span>
+        <button type="button" class="ailab-filter-btn is-active" id="ailabFilterCapAll" onclick="ailabFilterCapability('all', this)" style="padding:4px 9px;font-size:11px;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:#1E293B;color:#F8FAFC;cursor:pointer;font-weight:600;">All</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterCapReasoning" onclick="ailabFilterCapability('reasoning', this)" style="padding:4px 9px;font-size:11px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:#131E38;color:#94A3B8;cursor:pointer;font-weight:600;">🧠 Reasoning</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterCapCode" onclick="ailabFilterCapability('code', this)" style="padding:4px 9px;font-size:11px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:#131E38;color:#94A3B8;cursor:pointer;font-weight:600;">💻 Code</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterCapVision" onclick="ailabFilterCapability('vision', this)" style="padding:4px 9px;font-size:11px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:#131E38;color:#94A3B8;cursor:pointer;font-weight:600;">👁️ Vision</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterCapFast" onclick="ailabFilterCapability('fast', this)" style="padding:4px 9px;font-size:11px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);background:#131E38;color:#94A3B8;cursor:pointer;font-weight:600;">⚡ Fast SLA</button>
+        <button type="button" class="ailab-filter-btn" id="ailabFilterCapCustom" onclick="ailabFilterCapability('custom', this)" style="padding:4px 9px;font-size:11px;border-radius:6px;border:1px solid rgba(234,179,8,0.3);background:rgba(234,179,8,0.08);color:#FDE047;cursor:pointer;font-weight:600;">⭐ Custom Added</button>
+      </div>
+    </div>
+
     <div class="ailab-modal-pills">
       <button type="button" class="ailab-pill is-active" onclick="ailabFilterModelCategory('all', this)">All Mesh (4,804+)</button>
       <button type="button" class="ailab-pill" onclick="ailabFilterModelCategory('defapi', this)">🌐 Defapi Hub (44)</button>
@@ -4479,6 +4506,226 @@ body.in-global_ai_lab .nano-dynamic-island {
     <div class="ailab-modal-footer">
       <span>⚡ Single AUTO Engine evaluates Pareto Frontier in &lt; 3.0ms</span>
       <span style="color:#10B981;">🛡️ 429 Shield Active • Live Sub-Second Inference</span>
+    </div>
+  </div>
+</div>
+
+<!-- Model Details & Properties Inspector Modal -->
+<div class="ailab-modal-backdrop" id="ailabModelDetailsModal" style="display:none;z-index:999999;" onclick="ailabCloseModelDetailsModal(event)">
+  <div class="ailab-modal" style="max-width:620px;max-height:85vh;overflow-y:auto;border:1px solid rgba(139,92,246,0.3);box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(139,92,246,0.2);" onclick="event.stopPropagation()">
+    <div class="ailab-modal-head" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span id="ailabModelDetailsFlag" style="font-size:26px;">⚡</span>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <h4 id="ailabModelDetailsName" style="margin:0;font-size:17px;color:#F8FAFC;font-weight:800;">Model Details</h4>
+            <span id="ailabModelDetailsPricingBadge" style="font-size:10.5px;padding:2px 7px;border-radius:5px;font-weight:700;">FREE</span>
+          </div>
+          <p id="ailabModelDetailsLab" style="margin:2px 0 0 0;font-size:12px;color:#94A3B8;">Creator Lab • Country</p>
+        </div>
+      </div>
+      <button type="button" class="ailab-modal-close" onclick="ailabCloseModelDetailsModal()">&times;</button>
+    </div>
+
+    <div style="padding:18px;display:flex;flex-direction:column;gap:16px;">
+      <!-- Key Properties Grid -->
+      <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:10px;background:#090D16;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
+        <div>
+          <div style="font-size:10.5px;color:#64748B;font-weight:700;text-transform:uppercase;">Model ID</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <code id="ailabModelDetailsId" style="font-size:11.5px;color:#38BDF8;font-family:monospace;word-break:break-all;">model-id</code>
+            <button type="button" onclick="ailabCopyModelId()" title="Copy Model ID" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:13px;padding:2px;">📋</button>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:#64748B;font-weight:700;text-transform:uppercase;">Context Window</div>
+          <div id="ailabModelDetailsContext" style="font-size:12.5px;color:#F8FAFC;font-weight:600;margin-top:2px;">128,000 tokens</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:#64748B;font-weight:700;text-transform:uppercase;">Capability Tier</div>
+          <div id="ailabModelDetailsTier" style="font-size:12.5px;color:#F8FAFC;font-weight:600;margin-top:2px;">Frontier Reasoning</div>
+        </div>
+        <div>
+          <div style="font-size:10.5px;color:#64748B;font-weight:700;text-transform:uppercase;">Target SLA Latency</div>
+          <div id="ailabModelDetailsSLA" style="font-size:12.5px;color:#10B981;font-weight:600;margin-top:2px;">&lt; 300ms SLA</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div style="background:#0F172A;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);">
+        <div style="font-size:11px;color:#94A3B8;font-weight:700;text-transform:uppercase;margin-bottom:4px;">Architecture &amp; Features</div>
+        <p id="ailabModelDetailsDesc" style="margin:0;font-size:12px;line-height:1.5;color:#CBD5E1;">Unified foundation model integrated into NanoPro AI Mesh with full sub-second streaming inference and mathematical Pareto routing.</p>
+      </div>
+
+      <!-- Quick Test Console -->
+      <div style="background:#090D16;border:1px solid rgba(139,92,246,0.25);border-radius:8px;padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#F8FAFC;">
+            <span>🧪</span>
+            <span>Real-Time Model Ping &amp; Live Test</span>
+          </div>
+          <span id="ailabTestStatusBadge" style="font-size:10.5px;color:#64748B;">Ready to test</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="ailabTestPromptInput" value="Hello from NanoPro AI Lab! Confirm ready in one short sentence." style="flex:1;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;font-size:12px;color:#F8FAFC;outline:none;" />
+          <button type="button" id="ailabTestSubmitBtn" onclick="ailabRunModelQuickTest()" style="padding:7px 14px;background:#6366F1;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;">
+            <span>⚡</span>
+            <span>Test Now</span>
+          </button>
+        </div>
+        <div id="ailabTestOutputBox" style="display:none;margin-top:10px;background:#060911;border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:10px;font-size:11.5px;color:#E2E8F0;max-height:120px;overflow-y:auto;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:4px;">
+            <span style="color:#10B981;font-weight:700;">● Response Received</span>
+            <span id="ailabTestLatencyVal" style="color:#38BDF8;font-family:monospace;font-weight:700;">245ms</span>
+          </div>
+          <div id="ailabTestResponseText" style="line-height:1.45;white-space:pre-wrap;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;background:#0F172A;">
+      <button type="button" id="ailabDeleteCustomModelBtn" onclick="ailabDeleteActiveCustomModel()" style="display:none;padding:7px 14px;background:rgba(239,68,68,0.15);border:1px solid #EF4444;border-radius:6px;color:#FCA5A5;font-size:12px;font-weight:700;cursor:pointer;">
+        🗑️ Delete Model
+      </button>
+      <div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+        <button type="button" onclick="ailabCloseModelDetailsModal()" style="padding:7px 14px;background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#94A3B8;font-size:12px;font-weight:600;cursor:pointer;">Close</button>
+        <button type="button" id="ailabSelectFromDetailsBtn" onclick="ailabConfirmSelectModelFromDetails()" style="padding:7px 18px;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:6px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(16,185,129,0.3);">
+          ⚡ Select &amp; Chat
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Model & Connect AI Provider Modal -->
+<div class="ailab-modal-backdrop" id="ailabAddModelModal" style="display:none;z-index:999999;" onclick="ailabCloseAddModelModal(event)">
+  <div class="ailab-modal" style="max-width:580px;max-height:85vh;overflow-y:auto;border:1px solid rgba(139,92,246,0.35);box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(139,92,246,0.25);" onclick="event.stopPropagation()">
+    <div class="ailab-modal-head" style="border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:22px;">➕</span>
+        <div>
+          <h4 style="margin:0;font-size:16px;color:#F8FAFC;font-weight:800;">Add Model / Connect AI Provider</h4>
+          <p style="margin:2px 0 0 0;font-size:11.5px;color:#94A3B8;">Integrate your API Keys to auto-discover models or register custom endpoints.</p>
+        </div>
+      </div>
+      <button type="button" class="ailab-modal-close" onclick="ailabCloseAddModelModal()">&times;</button>
+    </div>
+
+    <!-- Tabs Header -->
+    <div style="display:flex;border-bottom:1px solid rgba(255,255,255,0.08);background:#090D16;">
+      <button type="button" id="ailabTabConnectBtn" onclick="ailabSwitchAddTab('connect')" style="flex:1;padding:10px;background:transparent;border:none;border-bottom:2px solid #8B5CF6;color:#F8FAFC;font-size:12px;font-weight:700;cursor:pointer;">
+        🔑 Connect Provider Key (Auto-Discovery)
+      </button>
+      <button type="button" id="ailabTabCustomBtn" onclick="ailabSwitchAddTab('custom')" style="flex:1;padding:10px;background:transparent;border:none;border-bottom:2px solid transparent;color:#64748B;font-size:12px;font-weight:700;cursor:pointer;">
+        ⚙️ Add Custom Model Manually
+      </button>
+    </div>
+
+    <!-- Tab 1: Connect Provider Key -->
+    <div id="ailabAddTabConnect" style="padding:18px;display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;">AI Provider</label>
+        <select id="ailabConnectProviderSelect" onchange="ailabOnProviderSelectChange()" style="width:100%;background:#0F172A;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:13px;outline:none;">
+          <option value="openrouter">🌐 OpenRouter (473+ Models Mesh)</option>
+          <option value="groq">⚡ Groq LPUs (&lt;300ms SLA, Llama, Qwen)</option>
+          <option value="deepseek">🇨🇳 DeepSeek Direct (V3 &amp; R1 Reasoning)</option>
+          <option value="mistral">🇫🇷 Mistral AI (Codestral, Mistral Large)</option>
+          <option value="novita">🚀 Novita AI (High Throughput GPUs)</option>
+          <option value="together">🤝 Together AI (Meta Llama, DeepSeek)</option>
+          <option value="openai">🇺🇸 OpenAI (GPT-4o, o3-mini, GPT-4.5)</option>
+          <option value="sambanova">⚡ SambaNova Systems (Fast SN40L RDUs)</option>
+          <option value="nvidia">🟢 NVIDIA NIM (DGX Cloud Enterprise)</option>
+          <option value="huggingface">🤗 Hugging Face Hub (Inference Endpoints)</option>
+          <option value="custom">🛠️ Custom OpenAI-Compatible Provider</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;">API Key</label>
+        <div style="position:relative;">
+          <input type="password" id="ailabConnectApiKeyInput" placeholder="sk-..." style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 40px 8px 10px;color:#F8FAFC;font-size:13px;outline:none;" />
+          <button type="button" onclick="ailabToggleApiKeyVis('ailabConnectApiKeyInput')" style="position:absolute;right:8px;top:8px;background:none;border:none;color:#94A3B8;cursor:pointer;font-size:14px;">👁️</button>
+        </div>
+        <p style="margin:4px 0 0 0;font-size:11px;color:#64748B;">API key is securely stored in your server store (`data/custom_models.json`) and used for live inference.</p>
+      </div>
+
+      <div id="ailabConnectBaseUrlGroup" style="display:none;">
+        <label style="display:block;font-size:11.5px;font-weight:700;color:#94A3B8;margin-bottom:6px;text-transform:uppercase;">Base URL</label>
+        <input type="text" id="ailabConnectBaseUrlInput" placeholder="https://api.example.com/v1" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 10px;color:#F8FAFC;font-size:13px;outline:none;" />
+      </div>
+
+      <div id="ailabConnectResultMsg" style="display:none;padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.4;"></div>
+
+      <button type="button" id="ailabConnectSubmitBtn" onclick="ailabSubmitConnectProvider()" style="margin-top:6px;padding:10px 16px;background:linear-gradient(135deg,#8B5CF6,#6366F1);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(139,92,246,0.3);display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>⚡</span>
+        <span>Validate &amp; Discover Models</span>
+      </button>
+    </div>
+
+    <!-- Tab 2: Custom Model Manually -->
+    <div id="ailabAddTabCustom" style="display:none;padding:18px;flex-direction:column;gap:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Model ID</label>
+          <input type="text" id="ailabCustomModelId" placeholder="custom/my-model" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Display Name</label>
+          <input type="text" id="ailabCustomModelName" placeholder="My Custom AI" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Creator / Lab Name</label>
+          <input type="text" id="ailabCustomModelLab" placeholder="Private AI Lab" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Model Slug on Provider</label>
+          <input type="text" id="ailabCustomModelSlug" placeholder="e.g. gpt-4o, llama-3" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">OpenAI-Compatible Base URL</label>
+        <input type="text" id="ailabCustomBaseUrl" placeholder="https://api.openai.com/v1" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+      </div>
+
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">API Key</label>
+        <input type="password" id="ailabCustomApiKey" placeholder="sk-..." style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Context Length</label>
+          <input type="number" id="ailabCustomContext" value="128000" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Tier</label>
+          <select id="ailabCustomTier" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;">
+            <option value="general">General</option>
+            <option value="reasoning">Reasoning SOTA</option>
+            <option value="code">Code Specialist</option>
+            <option value="fast">Fast SLA</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px;text-transform:uppercase;">Pricing</label>
+          <select id="ailabCustomPricing" style="width:100%;box-sizing:border-box;background:#0F172A;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:7px 10px;color:#F8FAFC;font-size:12px;outline:none;">
+            <option value="paid">💳 Paid</option>
+            <option value="free">🆓 Free Tier</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="ailabCustomResultMsg" style="display:none;padding:10px 12px;border-radius:6px;font-size:12px;line-height:1.4;"></div>
+
+      <button type="button" id="ailabCustomSubmitBtn" onclick="ailabSubmitCustomModel()" style="margin-top:6px;padding:10px 16px;background:linear-gradient(135deg,#10B981,#059669);border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(16,185,129,0.3);display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span>💾</span>
+        <span>Register Custom Model</span>
+      </button>
     </div>
   </div>
 </div>
@@ -8774,6 +9021,9 @@ body.in-global_ai_lab .nano-dynamic-island {
   // -------------------------------------------------------------
   let cachedCatalogModels = [];
   let currentCatalogCategory = 'all';
+  let currentPricingFilter = 'all'; // 'all', 'free', 'paid'
+  let currentCapabilityFilter = 'all'; // 'all', 'reasoning', 'code', 'vision', 'fast', 'custom'
+  let activeDetailsModelId = 'auto';
 
   window.ailabOpenModelCatalogModal = function() {
     const modal = $id("ailabModelModal");
@@ -8808,6 +9058,46 @@ body.in-global_ai_lab .nano-dynamic-island {
     ailabRenderModelCatalog();
   };
 
+  window.ailabFilterPricing = function(pricing, btn) {
+    currentPricingFilter = pricing;
+    document.querySelectorAll("[id^='ailabFilterPricing']").forEach(b => {
+      b.style.background = "#0F172A";
+      b.style.color = "#94A3B8";
+      b.style.borderColor = "rgba(255,255,255,0.08)";
+    });
+    if (btn) {
+      if (pricing === 'free') {
+        btn.style.background = "rgba(16,185,129,0.2)";
+        btn.style.color = "#86EFAC";
+        btn.style.borderColor = "#10B981";
+      } else if (pricing === 'paid') {
+        btn.style.background = "rgba(139,92,246,0.2)";
+        btn.style.color = "#C4B5FD";
+        btn.style.borderColor = "#8B5CF6";
+      } else {
+        btn.style.background = "#1E293B";
+        btn.style.color = "#F8FAFC";
+        btn.style.borderColor = "rgba(255,255,255,0.18)";
+      }
+    }
+    ailabRenderModelCatalog();
+  };
+
+  window.ailabFilterCapability = function(cap, btn) {
+    currentCapabilityFilter = cap;
+    document.querySelectorAll("[id^='ailabFilterCap']").forEach(b => {
+      b.style.background = "#131E38";
+      b.style.color = "#94A3B8";
+      b.style.borderColor = "rgba(255,255,255,0.08)";
+    });
+    if (btn) {
+      btn.style.background = "#1E293B";
+      btn.style.color = "#F8FAFC";
+      btn.style.borderColor = "rgba(255,255,255,0.18)";
+    }
+    ailabRenderModelCatalog();
+  };
+
   window.ailabSelectModelFromCatalog = function(modelId) {
     const select = $id("ailabModelSelect");
     if (select) {
@@ -8825,6 +9115,410 @@ body.in-global_ai_lab .nano-dynamic-island {
     ailabCloseModelCatalogModal();
   };
 
+  // -------------------------------------------------------------
+  // MODEL DETAILS & INSPECTOR DRAWER
+  // -------------------------------------------------------------
+  window.ailabOpenModelDetails = function(modelId) {
+    activeDetailsModelId = modelId;
+    const modal = $id("ailabModelDetailsModal");
+    if (!modal) return;
+
+    let modelObj = (cachedCatalogModels || []).find(m => m.id === modelId);
+    const prov = ailabResolveModelProvenance(modelId);
+    const isFree = (modelObj && modelObj.is_free) || modelId.includes(":free");
+    const isCustom = (modelObj && modelObj.is_custom) || modelId.startsWith("custom/");
+    const displayName = (modelObj && modelObj.name) || prov.clean_name || modelId;
+
+    const flagEl = $id("ailabModelDetailsFlag");
+    if (flagEl) flagEl.textContent = prov.flag || "⚡";
+
+    const nameEl = $id("ailabModelDetailsName");
+    if (nameEl) nameEl.textContent = displayName;
+
+    const badgeEl = $id("ailabModelDetailsPricingBadge");
+    if (badgeEl) {
+      if (isCustom) {
+        badgeEl.textContent = "CUSTOM";
+        badgeEl.style.background = "rgba(234,179,8,0.2)";
+        badgeEl.style.color = "#FDE047";
+        badgeEl.style.border = "1px solid rgba(234,179,8,0.3)";
+      } else if (isFree) {
+        badgeEl.textContent = "FREE TIER";
+        badgeEl.style.background = "rgba(16,185,129,0.2)";
+        badgeEl.style.color = "#86EFAC";
+        badgeEl.style.border = "1px solid rgba(16,185,129,0.3)";
+      } else {
+        badgeEl.textContent = "PAID / USAGE-BASED";
+        badgeEl.style.background = "rgba(139,92,246,0.2)";
+        badgeEl.style.color = "#C4B5FD";
+        badgeEl.style.border = "1px solid rgba(139,92,246,0.3)";
+      }
+    }
+
+    const labEl = $id("ailabModelDetailsLab");
+    if (labEl) labEl.textContent = `${prov.lab_name} • Sovereign: ${prov.country}`;
+
+    const idEl = $id("ailabModelDetailsId");
+    if (idEl) idEl.textContent = modelId;
+
+    const ctxEl = $id("ailabModelDetailsContext");
+    if (ctxEl) {
+      const ctx = modelObj && modelObj.context ? modelObj.context : 128000;
+      ctxEl.textContent = ctx >= 1000000 ? `${(ctx/1000000).toFixed(1)}M Tokens` : `${ctx.toLocaleString()} Tokens`;
+    }
+
+    const tierEl = $id("ailabModelDetailsTier");
+    if (tierEl) tierEl.textContent = (modelObj && modelObj.tier) ? modelObj.tier.toUpperCase() : (prov.tier || "General LLM");
+
+    const slaEl = $id("ailabModelDetailsSLA");
+    if (slaEl) {
+      const midLow = modelId.toLowerCase();
+      if (midLow.includes("groq") || midLow.includes("flash") || midLow.includes("instant")) {
+        slaEl.textContent = "< 300ms SLA (Deterministic Fast)";
+        slaEl.style.color = "#10B981";
+      } else {
+        slaEl.textContent = "< 800ms SLA (Frontier)";
+        slaEl.style.color = "#38BDF8";
+      }
+    }
+
+    const descEl = $id("ailabModelDetailsDesc");
+    if (descEl) {
+      descEl.textContent = (modelObj && modelObj.description) 
+        ? modelObj.description 
+        : `Unified foundation model '${displayName}' from ${prov.lab_name} integrated into NanoPro AI Studio mesh with full streaming inference and mathematical Pareto routing.`;
+    }
+
+    // Custom model delete button
+    const delBtn = $id("ailabDeleteCustomModelBtn");
+    if (delBtn) {
+      delBtn.style.display = isCustom ? "block" : "none";
+    }
+
+    // Reset Quick Test Box
+    const testBox = $id("ailabTestOutputBox");
+    if (testBox) testBox.style.display = "none";
+    const testBadge = $id("ailabTestStatusBadge");
+    if (testBadge) {
+      testBadge.textContent = "Ready to test";
+      testBadge.style.color = "#64748B";
+    }
+
+    modal.style.display = "flex";
+  };
+
+  window.ailabCloseModelDetailsModal = function(e) {
+    if (e && e.target !== e.currentTarget && !(e.target.classList && e.target.classList.contains("ailab-modal-close"))) return;
+    const modal = $id("ailabModelDetailsModal");
+    if (modal) modal.style.display = "none";
+  };
+
+  window.ailabConfirmSelectModelFromDetails = function() {
+    if (activeDetailsModelId) {
+      ailabSelectModelFromCatalog(activeDetailsModelId);
+    }
+    ailabCloseModelDetailsModal();
+  };
+
+  window.ailabCopyModelId = function() {
+    if (!activeDetailsModelId) return;
+    navigator.clipboard.writeText(activeDetailsModelId).then(() => {
+      const btn = event?.currentTarget;
+      if (btn) {
+        const orig = btn.textContent;
+        btn.textContent = "✅";
+        setTimeout(() => btn.textContent = orig, 1500);
+      }
+    });
+  };
+
+  window.ailabRunModelQuickTest = async function() {
+    if (!activeDetailsModelId) return;
+    const input = $id("ailabTestPromptInput");
+    const prompt = input?.value || "Hello from NanoPro AI Lab! Confirm ready in one short sentence.";
+    const submitBtn = $id("ailabTestSubmitBtn");
+    const statusBadge = $id("ailabTestStatusBadge");
+    const outBox = $id("ailabTestOutputBox");
+    const latencyVal = $id("ailabTestLatencyVal");
+    const respText = $id("ailabTestResponseText");
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = "<span>⏳</span><span>Testing...</span>";
+    }
+    if (statusBadge) {
+      statusBadge.textContent = "● Contacting endpoint...";
+      statusBadge.style.color = "#F59E0B";
+    }
+    if (outBox) outBox.style.display = "none";
+
+    try {
+      const res = await fetch("/api/ai/models/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model_id: activeDetailsModelId, prompt: prompt })
+      });
+      const data = await res.json();
+      if (outBox) outBox.style.display = "block";
+      if (latencyVal) latencyVal.textContent = `${data.latency_ms || 240}ms`;
+      if (respText) {
+        if (data.status === "success") {
+          respText.textContent = data.response || "Model responded successfully.";
+          respText.style.color = "#E2E8F0";
+          if (statusBadge) {
+            statusBadge.textContent = "● Active & Responsive";
+            statusBadge.style.color = "#10B981";
+          }
+        } else {
+          respText.textContent = `Error: ${data.error || "Unable to reach model"}`;
+          respText.style.color = "#FCA5A5";
+          if (statusBadge) {
+            statusBadge.textContent = "● Error";
+            statusBadge.style.color = "#EF4444";
+          }
+        }
+      }
+    } catch (err) {
+      if (outBox) outBox.style.display = "block";
+      if (respText) {
+        respText.textContent = `Test request failed: ${err.message}`;
+        respText.style.color = "#FCA5A5";
+      }
+      if (statusBadge) {
+        statusBadge.textContent = "● Network Error";
+        statusBadge.style.color = "#EF4444";
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "<span>⚡</span><span>Test Now</span>";
+      }
+    }
+  };
+
+  // -------------------------------------------------------------
+  // ADD MODEL & CONNECT PROVIDER MODAL
+  // -------------------------------------------------------------
+  window.ailabOpenAddModelModal = function() {
+    const modal = $id("ailabAddModelModal");
+    if (modal) {
+      modal.style.display = "flex";
+      ailabSwitchAddTab("connect");
+      const msg1 = $id("ailabConnectResultMsg");
+      if (msg1) msg1.style.display = "none";
+      const msg2 = $id("ailabCustomResultMsg");
+      if (msg2) msg2.style.display = "none";
+    }
+  };
+
+  window.ailabCloseAddModelModal = function(e) {
+    if (e && e.target !== e.currentTarget && !(e.target.classList && e.target.classList.contains("ailab-modal-close"))) return;
+    const modal = $id("ailabAddModelModal");
+    if (modal) modal.style.display = "none";
+  };
+
+  window.ailabSwitchAddTab = function(tab) {
+    const tabConnect = $id("ailabAddTabConnect");
+    const tabCustom = $id("ailabAddTabCustom");
+    const btnConnect = $id("ailabTabConnectBtn");
+    const btnCustom = $id("ailabTabCustomBtn");
+
+    if (tab === "connect") {
+      if (tabConnect) tabConnect.style.display = "flex";
+      if (tabCustom) tabCustom.style.display = "none";
+      if (btnConnect) {
+        btnConnect.style.borderBottomColor = "#8B5CF6";
+        btnConnect.style.color = "#F8FAFC";
+      }
+      if (btnCustom) {
+        btnCustom.style.borderBottomColor = "transparent";
+        btnCustom.style.color = "#64748B";
+      }
+    } else {
+      if (tabConnect) tabConnect.style.display = "none";
+      if (tabCustom) tabCustom.style.display = "flex";
+      if (btnConnect) {
+        btnConnect.style.borderBottomColor = "transparent";
+        btnConnect.style.color = "#64748B";
+      }
+      if (btnCustom) {
+        btnCustom.style.borderBottomColor = "#10B981";
+        btnCustom.style.color = "#F8FAFC";
+      }
+    }
+  };
+
+  window.ailabOnProviderSelectChange = function() {
+    const sel = $id("ailabConnectProviderSelect");
+    const grp = $id("ailabConnectBaseUrlGroup");
+    if (grp) {
+      grp.style.display = (sel && sel.value === "custom") ? "block" : "none";
+    }
+  };
+
+  window.ailabToggleApiKeyVis = function(inputId) {
+    const inp = $id(inputId);
+    if (!inp) return;
+    inp.type = inp.type === "password" ? "text" : "password";
+  };
+
+  window.ailabSubmitConnectProvider = async function() {
+    const provider = $id("ailabConnectProviderSelect")?.value || "";
+    const apiKey = $id("ailabConnectApiKeyInput")?.value || "";
+    const baseUrl = $id("ailabConnectBaseUrlInput")?.value || "";
+    const btn = $id("ailabConnectSubmitBtn");
+    const msg = $id("ailabConnectResultMsg");
+
+    if (!apiKey.trim()) {
+      if (msg) {
+        msg.style.display = "block";
+        msg.style.background = "rgba(239,68,68,0.15)";
+        msg.style.border = "1px solid #EF4444";
+        msg.style.color = "#FCA5A5";
+        msg.textContent = "Please enter a valid API key.";
+      }
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = "<span>⏳</span><span>Validating &amp; Discovering...</span>";
+    }
+    if (msg) msg.style.display = "none";
+
+    try {
+      const res = await fetch("/api/ai/models/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl })
+      });
+      const data = await res.json();
+      if (msg) {
+        msg.style.display = "block";
+        if (data.status === "success") {
+          msg.style.background = "rgba(16,185,129,0.15)";
+          msg.style.border = "1px solid #10B981";
+          msg.style.color = "#86EFAC";
+          msg.innerHTML = `<strong>✅ Success!</strong> ${escapeHtml(data.message)} (${data.models_count || 0} models ready)`;
+          // Refresh catalog
+          setTimeout(() => {
+            if (typeof ailabLoadGlobalLabs === "function") ailabLoadGlobalLabs();
+            ailabRenderModelCatalog();
+          }, 600);
+        } else {
+          msg.style.background = "rgba(239,68,68,0.15)";
+          msg.style.border = "1px solid #EF4444";
+          msg.style.color = "#FCA5A5";
+          msg.textContent = data.message || "Failed to validate API key.";
+        }
+      }
+    } catch (err) {
+      if (msg) {
+        msg.style.display = "block";
+        msg.style.background = "rgba(239,68,68,0.15)";
+        msg.style.border = "1px solid #EF4444";
+        msg.style.color = "#FCA5A5";
+        msg.textContent = `Connection error: ${err.message}`;
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "<span>⚡</span><span>Validate &amp; Discover Models</span>";
+      }
+    }
+  };
+
+  window.ailabSubmitCustomModel = async function() {
+    const id = $id("ailabCustomModelId")?.value || "";
+    const name = $id("ailabCustomModelName")?.value || "";
+    const lab = $id("ailabCustomModelLab")?.value || "";
+    const slug = $id("ailabCustomModelSlug")?.value || "";
+    const baseUrl = $id("ailabCustomBaseUrl")?.value || "";
+    const apiKey = $id("ailabCustomApiKey")?.value || "";
+    const context = parseInt($id("ailabCustomContext")?.value || "128000", 10);
+    const tier = $id("ailabCustomTier")?.value || "general";
+    const isFree = $id("ailabCustomPricing")?.value === "free";
+    const btn = $id("ailabCustomSubmitBtn");
+    const msg = $id("ailabCustomResultMsg");
+
+    if (!id.trim() || !apiKey.trim() || !baseUrl.trim()) {
+      if (msg) {
+        msg.style.display = "block";
+        msg.style.background = "rgba(239,68,68,0.15)";
+        msg.style.border = "1px solid #EF4444";
+        msg.style.color = "#FCA5A5";
+        msg.textContent = "Model ID, Base URL, and API Key are required.";
+      }
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = "<span>⏳</span><span>Registering...</span>";
+    }
+    if (msg) msg.style.display = "none";
+
+    try {
+      const res = await fetch("/api/ai/models/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id, name, lab, model_slug: slug, base_url: baseUrl, api_key: apiKey, context, tier, is_free: isFree
+        })
+      });
+      const data = await res.json();
+      if (msg) {
+        msg.style.display = "block";
+        if (data.status === "success") {
+          msg.style.background = "rgba(16,185,129,0.15)";
+          msg.style.border = "1px solid #10B981";
+          msg.style.color = "#86EFAC";
+          msg.innerHTML = `<strong>✅ Registered!</strong> Model '${escapeHtml(name || id)}' added to persistent registry and live router.`;
+          setTimeout(() => {
+            if (typeof ailabLoadGlobalLabs === "function") ailabLoadGlobalLabs();
+            ailabRenderModelCatalog();
+          }, 600);
+        } else {
+          msg.style.background = "rgba(239,68,68,0.15)";
+          msg.style.border = "1px solid #EF4444";
+          msg.style.color = "#FCA5A5";
+          msg.textContent = data.message || "Failed to register model.";
+        }
+      }
+    } catch (err) {
+      if (msg) {
+        msg.style.display = "block";
+        msg.style.background = "rgba(239,68,68,0.15)";
+        msg.style.border = "1px solid #EF4444";
+        msg.style.color = "#FCA5A5";
+        msg.textContent = `Registration error: ${err.message}`;
+      }
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = "<span>💾</span><span>Register Custom Model</span>";
+      }
+    }
+  };
+
+  window.ailabDeleteActiveCustomModel = async function() {
+    if (!activeDetailsModelId) return;
+    if (!confirm(`Are you sure you want to remove model '${activeDetailsModelId}' from the registry?`)) return;
+
+    try {
+      const res = await fetch(`/api/ai/models/${encodeURIComponent(activeDetailsModelId)}`, {
+        method: "DELETE"
+      });
+      const data = await res.json();
+      alert(data.message || "Model removed.");
+      ailabCloseModelDetailsModal();
+      if (typeof ailabLoadGlobalLabs === "function") ailabLoadGlobalLabs();
+      ailabRenderModelCatalog();
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    }
+  };
+
   function ailabRenderModelCatalog() {
     const grid = $id("ailabModelModalGrid");
     if (!grid) return;
@@ -8833,35 +9527,21 @@ body.in-global_ai_lab .nano-dynamic-island {
       const query = ($id("ailabModelSearchInput")?.value || "").toLowerCase().trim();
       let models = cachedCatalogModels;
       if (!models || models.length === 0) {
-        // Fallback seed models across Unified 2,150+ Mesh
         models = [
-          { id: "auto", name: "Single AUTO Mathematical Engine", lab: "NanoPro Router", country: "Global Sovereign Mesh", flag: "⚡", is_free: false },
-          // DeepInfra High-Throughput (177 Models)
+          { id: "auto", name: "Single AUTO Mathematical Engine", lab: "NanoPro Router", country: "Global Sovereign Mesh", flag: "⚡", is_free: true },
           { id: "deepinfra/Qwen/Qwen3.8-Flash", name: "DeepInfra Qwen 3.8 Flash (Turbo)", lab: "DeepInfra Cloud", country: "United States", flag: "⚡", is_free: true },
           { id: "deepinfra/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", name: "DeepInfra Llama 3.1 8B Turbo", lab: "DeepInfra Cloud", country: "United States", flag: "⚡", is_free: true },
           { id: "deepinfra/meta-llama/Llama-3.3-70B-Instruct", name: "DeepInfra Llama 3.3 70B Turbo", lab: "DeepInfra Cloud", country: "United States", flag: "⚡", is_free: false },
           { id: "deepinfra/Qwen/Qwen2.5-Coder-32B-Instruct", name: "DeepInfra Qwen 2.5 Coder 32B", lab: "DeepInfra Cloud", country: "United States", flag: "⚡", is_free: false },
           { id: "deepinfra/deepseek-ai/DeepSeek-R1", name: "DeepInfra DeepSeek R1 Reasoning", lab: "DeepInfra Cloud", country: "United States", flag: "⚡", is_free: false },
-          { id: "deepinfra/microsoft/phi-4", name: "DeepInfra Microsoft Phi-4", lab: "DeepInfra Cloud", country: "United States", flag: "⚡", is_free: false },
-          // Mistral AI Direct (56 Models)
           { id: "mistral/codestral-latest", name: "Mistral Codestral 2508 (Code SOTA)", lab: "Mistral AI", country: "France", flag: "🇫🇷", is_free: false },
           { id: "mistral/mistral-large-latest", name: "Mistral Large 2 (Flagship)", lab: "Mistral AI", country: "France", flag: "🇫🇷", is_free: false },
-          { id: "mistral/ministral-14b-latest", name: "Mistral Ministral 14B", lab: "Mistral AI", country: "France", flag: "🇫🇷", is_free: false },
-          // DeepSeek Direct (2 Models)
           { id: "deepseek/deepseek-chat", name: "DeepSeek V3 (Direct API)", lab: "DeepSeek AI", country: "China", flag: "🇨🇳", is_free: false },
           { id: "deepseek/deepseek-reasoner", name: "DeepSeek R1 Reasoner (Direct API)", lab: "DeepSeek AI", country: "China", flag: "🇨🇳", is_free: false },
-          // Groq LPUs (11 Models)
           { id: "groq/qwen3.8-27b", name: "Groq Qwen 3.8 27B (<300ms SLA)", lab: "Groq LPU", country: "United States", flag: "⚡", is_free: true },
-          { id: "groq/openai/gpt-oss-120b", name: "Groq GPT OSS 120B High-Throughput", lab: "Groq LPU", country: "United States", flag: "⚡", is_free: true },
           { id: "groq/llama-3.3-70b-versatile", name: "Groq Llama 3.3 70B Versatile", lab: "Groq LPU", country: "United States", flag: "⚡", is_free: true },
-          // Hugging Face Hub (110+ Models)
           { id: "hf/meta-llama/Llama-3.3-70B-Instruct", name: "Hugging Face Llama 3.3 70B", lab: "Hugging Face Hub", country: "Global Open Source", flag: "🤗", is_free: true },
-          { id: "hf/Qwen/Qwen2.5-Coder-32B-Instruct", name: "Hugging Face Qwen Coder 32B", lab: "Hugging Face Hub", country: "Global Open Source", flag: "🤗", is_free: true },
           { id: "hf/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B", name: "Hugging Face DeepSeek R1 Distill", lab: "Hugging Face Hub", country: "Global Open Source", flag: "🤗", is_free: true },
-          // AI/ML API (995+ Models)
-          { id: "aimlapi/anthropic/claude-3-7-sonnet", name: "AI/ML API Claude 3.7 Sonnet", lab: "AI/ML API Fabric", country: "Global Unified Aggregator", flag: "⚡", is_free: false },
-          { id: "aimlapi/deepseek/deepseek-r1", name: "AI/ML API DeepSeek R1", lab: "AI/ML API Fabric", country: "Global Unified Aggregator", flag: "⚡", is_free: false },
-          // OpenRouter Flagships
           { id: "anthropic/claude-3.7-sonnet", name: "Claude 3.7 Sonnet (Hybrid Thinking)", lab: "Anthropic", country: "United States", flag: "🇺🇸", is_free: false },
           { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", lab: "Anthropic", country: "United States", flag: "🇺🇸", is_free: false },
           { id: "google/gemini-2.5-pro", name: "Gemini 2.5 Pro (Frontier 2M)", lab: "Google DeepMind", country: "United States", flag: "🇺🇸", is_free: false },
@@ -8869,98 +9549,31 @@ body.in-global_ai_lab .nano-dynamic-island {
           { id: "openai/o3-mini", name: "OpenAI o3-mini (High-Speed Reasoning)", lab: "OpenAI", country: "United States", flag: "🇺🇸", is_free: false },
           { id: "openai/gpt-4o", name: "GPT-4o (Omni Multimodal)", lab: "OpenAI", country: "United States", flag: "🇺🇸", is_free: false },
           { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B Instruct", lab: "Meta AI", country: "United States", flag: "🇺🇸", is_free: false },
-          // Free Tier
-          { id: "nvidia/nemotron-3.5-lightning:free", name: "NVIDIA Nemotron 3.5 Lightning", lab: "NVIDIA AI", country: "United States", flag: "🇺🇸", is_free: true },
-          { id: "cohere/north-mini-code:free", name: "Cohere North Mini Code", lab: "Cohere", country: "Canada", flag: "🇨🇦", is_free: true },
-          { id: "baidu/ernie-5.5-flash-preview:free", name: "Baidu ERNIE 5.5 Flash", lab: "Baidu", country: "China", flag: "🇨🇳", is_free: true },
-          // SambaNova Systems (Fast SN40L RDUs)
           { id: "sambanova/Meta-Llama-3.3-70B-Instruct", name: "SambaNova Llama 3.3 70B (Fast RDU)", lab: "SambaNova Systems", country: "United States", flag: "⚡", is_free: true },
-          { id: "sambanova/GLM-5.3", name: "SambaNova GLM-5.3 Flagship", lab: "SambaNova Systems", country: "United States", flag: "⚡", is_free: true },
-          { id: "sambanova/MiniMax-M3.1-Flash", name: "SambaNova MiniMax M3.1 Flash", lab: "SambaNova Systems", country: "United States", flag: "⚡", is_free: true },
-          { id: "sambanova/gemma-4-31B-it", name: "SambaNova Gemma 4 31B", lab: "SambaNova Systems", country: "United States", flag: "⚡", is_free: true },
-          { id: "sambanova/gpt-oss-120b", name: "SambaNova GPT OSS 120B", lab: "SambaNova Systems", country: "United States", flag: "⚡", is_free: true },
-          // NVIDIA NIM (83 Models)
-          { id: "nvidia/llama-3.1-nemotron-70b-instruct", name: "NVIDIA Llama 3.1 Nemotron 70B", lab: "NVIDIA DGX Cloud", country: "United States", flag: "🟢", is_free: false },
-          { id: "nvidia/nemotron-4-340b-instruct", name: "NVIDIA Nemotron 4 340B Flagship", lab: "NVIDIA DGX Cloud", country: "United States", flag: "🟢", is_free: false },
-          { id: "nvidia/mistralai/codestral-22b-instruct-v0.1", name: "NVIDIA Codestral 22B", lab: "NVIDIA DGX Cloud", country: "United States", flag: "🟢", is_free: false },
-          { id: "nvidia/deepseek-ai/deepseek-v4.1-flash", name: "NVIDIA DeepSeek V4.1 Flash", lab: "NVIDIA DGX Cloud", country: "United States", flag: "🟢", is_free: false },
-          { id: "nvidia/bigcode/starcoder2-15b", name: "NVIDIA StarCoder2 15B", lab: "NVIDIA DGX Cloud", country: "United States", flag: "🟢", is_free: false },
-          // Requesty AI (750 Models)
-          { id: "requesty/anthropic/claude-fable-5.2", name: "Requesty Claude Fable 5.2", lab: "Requesty AI", country: "Global Router", flag: "🌐", is_free: false },
-          { id: "requesty/google/gemini-4-hydrogen", name: "Requesty Gemini 4 Hydrogen", lab: "Requesty AI", country: "Global Router", flag: "🌐", is_free: false },
-          { id: "requesty/openai/gpt-6.1-terra:flex", name: "Requesty GPT 6.1 Terra", lab: "Requesty AI", country: "Global Router", flag: "🌐", is_free: false },
-          { id: "requesty/deepseek/deepseek-chat", name: "Requesty DeepSeek V3", lab: "Requesty AI", country: "Global Router", flag: "🌐", is_free: false },
-          // Eden AI (1,311 Models)
-          { id: "edenai/openai/gpt-4o", name: "Eden AI OpenAI GPT-4o", lab: "Eden AI", country: "France / Europe", flag: "🌿", tier: "Multimodal Flagship", is_free: false },
-          { id: "edenai/anthropic/claude-3-5-sonnet", name: "Eden AI Claude 3.5 Sonnet", lab: "Eden AI", country: "France / Europe", flag: "🌿", is_free: false },
-          { id: "edenai/google/gemini-1.5-pro", name: "Eden AI Google Gemini 1.5 Pro", lab: "Eden AI", country: "France / Europe", flag: "🌿", is_free: false },
-          { id: "edenai/mistral/mistral-large-latest", name: "Eden AI Mistral Large 2", lab: "Eden AI", country: "France / Europe", flag: "🌿", is_free: false },
-          { id: "edenai/deepseek/deepseek-r1", name: "Eden AI DeepSeek R1", lab: "Eden AI", country: "France / Europe", flag: "🌿", is_free: false },
-          // FriendliAI, TheSean & Baseten
-          { id: "friendli/meta-llama-3.1-8b-instruct", name: "FriendliAI Llama 3.1 8B (PeriFlow)", lab: "FriendliAI", country: "South Korea / Global", flag: "🚀", is_free: true },
-          { id: "thesean/ship-like/claude-haiku-4-5", name: "TheSean Claude Haiku 4.5", lab: "TheSean AI", country: "Global", flag: "⚡", is_free: false },
-          { id: "baseten/deepseek-ai/DeepSeek-V4.1-Flash", name: "Baseten DeepSeek V4.1 Flash", lab: "Baseten", country: "United States", flag: "🏗️", is_free: false },
-          // Ola Krutrim Cloud (India's Sovereign AI Cloud)
-          { id: "krutrim/Qwen3.6-27B", name: "Krutrim Qwen 3.6 27B", lab: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Sovereign Cloud", is_free: true },
-          { id: "krutrim/gpt-oss-120b", name: "Krutrim GPT OSS 120B", lab: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Sovereign Cloud", is_free: true },
-          { id: "krutrim/gemma-4-31b-it", name: "Krutrim Gemma 4 31B", lab: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Sovereign Cloud", is_free: true },
-          { id: "krutrim/GLM-5.3-Flash", name: "Krutrim GLM 5.3 Flash", lab: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Sovereign Cloud", is_free: true },
-          { id: "krutrim/gpt-oss-20b", name: "Krutrim GPT OSS 20B", lab: "Krutrim AI (Ola)", country: "India", flag: "🇮🇳", tier: "Indic Sovereign Cloud", is_free: true },
-          // Poe API (303 Unified Bot Models)
-          { id: "poe/gemini-4-hydrogen", name: "Poe Gemini 4 Hydrogen", lab: "Poe by Quora", country: "United States", flag: "⚡", is_free: false },
-          { id: "poe/grok-4.7", name: "Poe Grok 4.7", lab: "Poe by Quora", country: "United States", flag: "⚡", is_free: false },
-          { id: "poe/kimi-k3.1-pro", name: "Poe Kimi K3.1 Pro", lab: "Poe by Quora", country: "United States", flag: "⚡", is_free: false },
-          { id: "poe/claude-sonnet-5.5", name: "Poe Claude Sonnet 5.5", lab: "Poe by Quora", country: "United States", flag: "⚡", is_free: false },
-          { id: "poe/mistral-large-4", name: "Poe Mistral Large 4", lab: "Poe by Quora", country: "United States", flag: "⚡", is_free: false },
-          { id: "poe/mercury-3-vercel", name: "Poe Mercury 3 Diffusion", lab: "Poe by Quora", country: "United States", flag: "⚡", is_free: false },
-          // Parasail GPU Network (107 Models)
-          { id: "parasail/parasail-llama-33-70b-fp8", name: "Parasail Llama 3.3 70B FP8", lab: "Parasail GPU Network", country: "Global", flag: "⛵", is_free: true },
-          { id: "parasail/parasail-qwen25-vl-72b-instruct", name: "Parasail Qwen 2.5 VL 72B", lab: "Parasail GPU Network", country: "Global", flag: "⛵", is_free: false },
-          { id: "parasail/parasail-skyfall-36b-v2-fp8", name: "Parasail Skyfall 36B v2", lab: "Parasail GPU Network", country: "Global", flag: "⛵", is_free: false },
-          { id: "parasail/parasail-llama-4-maverick-instruct-fp8", name: "Parasail Llama 4 Maverick", lab: "Parasail GPU Network", country: "Global", flag: "⛵", is_free: false },
-          // Arcee AI (Domain-Specialized SLMs)
-          { id: "arcee/zai-org/glm-5.3-flash", name: "Arcee GLM 5.3 Flash", lab: "Arcee AI", country: "United States", flag: "🏹", is_free: true },
-          { id: "arcee/deepseek/deepseek-v4.1-flash", name: "Arcee DeepSeek V4.1 Flash", lab: "Arcee AI", country: "United States", flag: "🏹", is_free: false },
-          { id: "arcee/moonshotai/kimi-k3.1-pro", name: "Arcee Kimi K3.1 Pro", lab: "Arcee AI", country: "United States", flag: "🏹", is_free: false },
-          // Defapi Multi-Model Frontier Hub (44 Models)
-          { id: "defapi/alibaba/wan-2.7-image", name: "Defapi Wan 2.7 Image", lab: "Defapi Hub", country: "China", flag: "🇨🇳", is_free: false },
-          { id: "defapi/anthropic/claude-fable-5-2", name: "Defapi Claude Fable 5.2", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/anthropic/claude-opus-5.5", name: "Defapi Claude Opus 5.5", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/google/gemini-3.7-flash", name: "Defapi Gemini 3.7 Flash", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/google/gemini-4-hydrogen", name: "Defapi Gemini 4 Hydrogen", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/google/gemini-4-neon", name: "Defapi Gemini 4 Neon", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/google/nano-banana-pro", name: "Defapi Nano Banana Pro", lab: "Defapi Hub", country: "United States", flag: "🍌", is_free: true },
-          { id: "defapi/openai/gpt-5.6-luna", name: "Defapi GPT-5.6 Luna", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/openai/gpt-6-astra", name: "Defapi GPT-6 Astra", lab: "Defapi Hub", country: "United States", flag: "🇺🇸", is_free: false },
-          { id: "defapi/openai/sora-2-pro", name: "Defapi Sora 2 Pro", lab: "Defapi Hub", country: "United States", flag: "🎥", is_free: false },
-          { id: "defapi/suno/chirp-v4-5", name: "Defapi Chirp v4.5", lab: "Defapi Hub", country: "United States", flag: "🎵", is_free: false },
-          // TypeSafe AI JEV Decision Mesh (10 Models)
-          { id: "jev/jev-latest", name: "JEV Latest (Sub-50ms Calibrated Decision)", lab: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", is_free: true },
-          { id: "jev/jev-decision-fast", name: "JEV Decision Fast Engine", lab: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", is_free: true },
-          { id: "jev/jev-decision-deep", name: "JEV Decision Deep Logic", lab: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", is_free: false },
-          { id: "jev/typesafe/jev-1.13", name: "TypeSafe JEV 1.13", lab: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", is_free: false },
-          { id: "jev/jev-verifier-pro", name: "JEV Verifier Pro", lab: "TypeSafe AI (JEV)", country: "United States", flag: "⚡", is_free: false }
+          { id: "nvidia/llama-3.1-nemotron-70b-instruct", name: "NVIDIA Llama 3.1 Nemotron 70B", lab: "NVIDIA DGX Cloud", country: "United States", flag: "🟢", is_free: false }
         ];
       }
 
       const filtered = models.filter(m => {
         const prov = ailabResolveModelProvenance(m.id);
-        const mName = (m.name || prov.clean_name || m.id || "");
+        const mName = m.name || prov.clean_name || m.id;
         const isFree = m.is_free || m.id.includes(":free");
+        const isCustom = m.is_custom || m.id.startsWith("custom/");
+
+        // 1. Category Filter
         if (currentCatalogCategory === "defapi" && !m.id.startsWith("defapi/") && !(m.lab && m.lab.includes("Defapi"))) return false;
-        if (currentCatalogCategory === "jev" && !m.id.startsWith("jev/") && !m.id.startsWith("typesafe/") && !(m.lab && m.lab.includes("JEV"))) return false;
-        if (currentCatalogCategory === "krutrim" && !m.id.startsWith("krutrim/") && !(m.lab && m.lab.includes("Krutrim"))) return false;
+        if (currentCatalogCategory === "jev" && !m.id.startsWith("jev/") && !m.id.startsWith("typesafe/") && !(m.lab && m.lab.includes("TypeSafe"))) return false;
+        if (currentCatalogCategory === "krutrim" && !m.id.startsWith("krutrim/") && !m.id.startsWith("ola/") && !(m.lab && m.lab.includes("Krutrim"))) return false;
         if (currentCatalogCategory === "poe" && !m.id.startsWith("poe/") && !(m.lab && m.lab.includes("Poe"))) return false;
         if (currentCatalogCategory === "parasail" && !m.id.startsWith("parasail/") && !(m.lab && m.lab.includes("Parasail"))) return false;
         if (currentCatalogCategory === "arcee" && !m.id.startsWith("arcee/") && !(m.lab && m.lab.includes("Arcee"))) return false;
-        if (currentCatalogCategory === "edenai" && !m.id.startsWith("edenai/") && !(m.lab && m.lab.includes("Eden"))) return false;
+        if (currentCatalogCategory === "edenai" && !m.id.startsWith("edenai/") && !(m.lab && m.lab.includes("Eden AI"))) return false;
         if (currentCatalogCategory === "requesty" && !m.id.startsWith("requesty/") && !(m.lab && m.lab.includes("Requesty"))) return false;
         if (currentCatalogCategory === "cf_ai" && !m.id.startsWith("@cf/") && !m.id.startsWith("cf/") && !(m.lab && m.lab.includes("Cloudflare"))) return false;
         if (currentCatalogCategory === "novita" && !m.id.startsWith("novita/") && !(m.lab && m.lab.includes("Novita"))) return false;
         if (currentCatalogCategory === "nvidia" && !m.id.startsWith("nvidia/") && !(m.lab && m.lab.includes("NVIDIA"))) return false;
         if (currentCatalogCategory === "sambanova" && !m.id.startsWith("sambanova/") && !(m.lab && m.lab.includes("SambaNova"))) return false;
-        if (currentCatalogCategory === "friendli_thesean" && !m.id.startsWith("friendli/") && !m.id.startsWith("thesean/") && !m.id.startsWith("baseten/")) return false;
-        if (currentCatalogCategory === "openrouter" && (m.id.startsWith("hf/") || m.id.startsWith("aimlapi/") || m.id.startsWith("fal/") || m.id.startsWith("replicate/") || m.id.startsWith("groq/") || m.id.startsWith("deepinfra/") || m.id.startsWith("mistral/") || m.id.startsWith("novita/") || m.id.startsWith("@cf/") || m.id.startsWith("edenai/") || m.id.startsWith("requesty/") || m.id.startsWith("nvidia/") || m.id.startsWith("sambanova/") || m.id.startsWith("friendli/") || m.id.startsWith("thesean/") || m.id.startsWith("baseten/") || m.id.startsWith("defapi/") || m.id.startsWith("jev/") || m.id.startsWith("typesafe/") || m.id.startsWith("krutrim/") || m.id.startsWith("poe/") || m.id.startsWith("parasail/") || m.id.startsWith("arcee/"))) return false;
+        if (currentCatalogCategory === "openrouter" && (m.id.startsWith("aimlapi/") || m.id.startsWith("fal/") || m.id.startsWith("replicate/") || m.id.startsWith("groq/") || m.id.startsWith("deepinfra/") || m.id.startsWith("mistral/") || m.id.startsWith("novita/") || m.id.startsWith("@cf/") || m.id.startsWith("edenai/") || m.id.startsWith("requesty/") || m.id.startsWith("nvidia/") || m.id.startsWith("sambanova/") || m.id.startsWith("friendli/") || m.id.startsWith("thesean/") || m.id.startsWith("baseten/") || m.id.startsWith("defapi/") || m.id.startsWith("jev/") || m.id.startsWith("typesafe/") || m.id.startsWith("krutrim/") || m.id.startsWith("poe/") || m.id.startsWith("parasail/") || m.id.startsWith("arcee/"))) return false;
         if (currentCatalogCategory === "aimlapi" && !m.id.startsWith("aimlapi/") && !(m.lab && m.lab.includes("AI/ML API"))) return false;
         if (currentCatalogCategory === "deepinfra" && !m.id.startsWith("deepinfra/") && !(m.lab && m.lab.includes("DeepInfra"))) return false;
         if (currentCatalogCategory === "mistral" && !m.id.startsWith("mistral/") && !m.id.startsWith("mistralai/") && !(m.lab && m.lab.includes("Mistral"))) return false;
@@ -8972,6 +9585,19 @@ body.in-global_ai_lab .nano-dynamic-island {
         if (currentCatalogCategory === "reasoning" && !(mName.includes("R1") || mName.includes("o3") || mName.includes("Thinking") || mName.includes("Reasoning"))) return false;
         if (currentCatalogCategory === "code" && !(mName.toLowerCase().includes("code") || mName.toLowerCase().includes("coder"))) return false;
 
+        // 2. Pricing Filter
+        if (currentPricingFilter === "free" && !isFree) return false;
+        if (currentPricingFilter === "paid" && isFree) return false;
+
+        // 3. Capability Filter
+        const mLow = (m.id + " " + mName + " " + (m.tier || "")).toLowerCase();
+        if (currentCapabilityFilter === "reasoning" && !(mLow.includes("r1") || mLow.includes("o1") || mLow.includes("o3") || mLow.includes("thinking") || mLow.includes("reason"))) return false;
+        if (currentCapabilityFilter === "code" && !(mLow.includes("code") || mLow.includes("coder") || mLow.includes("dev") || mLow.includes("starcoder"))) return false;
+        if (currentCapabilityFilter === "vision" && !(mLow.includes("vision") || mLow.includes("omni") || mLow.includes("multimodal") || mLow.includes("4o") || mLow.includes("gemini") || mLow.includes("flux") || mLow.includes("image"))) return false;
+        if (currentCapabilityFilter === "fast" && !(mLow.includes("groq") || mLow.includes("flash") || mLow.includes("instant") || mLow.includes("turbo") || mLow.includes("fast"))) return false;
+        if (currentCapabilityFilter === "custom" && !isCustom) return false;
+
+        // 4. Search Query Filter
         if (query) {
           const text = `${m.id} ${mName} ${prov.lab_name} ${prov.country}`.toLowerCase();
           return text.includes(query);
@@ -8980,23 +9606,38 @@ body.in-global_ai_lab .nano-dynamic-island {
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#64748B;">No matching models found. Try another search.</div>';
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:#64748B;">No matching models found for this filter. Try another filter or search.</div>';
         return;
       }
 
       grid.innerHTML = filtered.map(m => {
         const prov = ailabResolveModelProvenance(m.id);
         const isFree = m.is_free || m.id.includes(":free");
+        const isCustom = m.is_custom || m.id.startsWith("custom/");
         const isSelected = AILAB.selectedModel === m.id;
         const displayName = m.name || prov.clean_name || m.id;
+        const ctxStr = m.context ? (m.context >= 1000000 ? `${(m.context/1000000).toFixed(0)}M ctx` : `${Math.round(m.context/1000)}k ctx`) : '128k ctx';
+
         return `
-          <div class="ailab-mcard ${isSelected ? 'is-selected' : ''}" onclick="ailabSelectModelFromCatalog('${escapeHtml(m.id)}')">
+          <div class="ailab-mcard ${isSelected ? 'is-selected' : ''}" onclick="ailabOpenModelDetails('${escapeHtml(m.id)}')">
             <div class="ailab-mcard-title">
-              <span>${prov.flag} ${escapeHtml(displayName)}</span>
-              ${isFree ? '<span class="ailab-mcard-tag" style="background:rgba(16,185,129,0.2);color:#86EFAC;">FREE</span>' : ''}
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;">${prov.flag} ${escapeHtml(displayName)}</span>
+              <div style="display:flex;align-items:center;gap:4px;">
+                ${isCustom ? '<span class="ailab-mcard-tag" style="background:rgba(234,179,8,0.2);color:#FDE047;border:1px solid rgba(234,179,8,0.3);">CUSTOM</span>' : ''}
+                ${isFree ? '<span class="ailab-mcard-tag" style="background:rgba(16,185,129,0.2);color:#86EFAC;border:1px solid rgba(16,185,129,0.3);">FREE</span>' : '<span class="ailab-mcard-tag" style="background:rgba(139,92,246,0.15);color:#C4B5FD;">PAID</span>'}
+              </div>
             </div>
-            <div class="ailab-mcard-sub">${escapeHtml(prov.lab_name)} • ${escapeHtml(prov.country)}</div>
-            <div style="font-size:10px;color:#64748B;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(m.id)}</div>
+            <div class="ailab-mcard-sub" style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%;">${escapeHtml(prov.lab_name)} • ${escapeHtml(prov.country)}</span>
+              <span style="font-size:10px;color:#64748B;font-family:monospace;">${ctxStr}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.05);">
+              <span style="font-size:10px;color:#64748B;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%;">${escapeHtml(m.id)}</span>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <button type="button" onclick="event.stopPropagation();ailabOpenModelDetails('${escapeHtml(m.id)}')" title="View Properties & Test" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:12px;padding:2px 4px;">ℹ️</button>
+                <button type="button" onclick="event.stopPropagation();ailabSelectModelFromCatalog('${escapeHtml(m.id)}')" title="Select Model" style="background:#1E293B;border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:#38BDF8;cursor:pointer;font-size:11px;font-weight:700;padding:2px 6px;">⚡</button>
+              </div>
+            </div>
           </div>
         `;
       }).join("");
@@ -9005,7 +9646,6 @@ body.in-global_ai_lab .nano-dynamic-island {
     }
   }
 
-  // Auto initialize on DOMContentLoaded or immediate
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initGlobalAILab);
   } else {

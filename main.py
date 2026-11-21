@@ -626,6 +626,68 @@ async def api_global_labs(region: str = "all", full: bool = False):
         "models": models_for_ui
     })
 
+@app.get("/api/ai/models/custom")
+async def api_get_custom_models():
+    """Returns all custom-added models and connected providers."""
+    try:
+        from app.custom_models_service import load_custom_store, get_all_custom_models
+        store = load_custom_store()
+        all_models = get_all_custom_models()
+        return JSONResponse({
+            "status": "success",
+            "custom_models": store.get("custom_models", []),
+            "connected_providers": store.get("connected_providers", {}),
+            "discovered_models": store.get("discovered_models", []),
+            "total_custom_count": len(all_models)
+        })
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.post("/api/ai/models/add")
+async def api_add_custom_model(payload: Dict[str, Any] = Body(...)):
+    """Registers a user custom model into persistent registry."""
+    try:
+        from app.custom_models_service import add_custom_model
+        res = add_custom_model(payload)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.post("/api/ai/models/connect")
+async def api_connect_provider(payload: Dict[str, Any] = Body(...)):
+    """Validates provider API key, discovers all models, and registers them."""
+    try:
+        from app.custom_models_service import connect_provider_key
+        provider = payload.get("provider", "")
+        api_key = payload.get("api_key", "")
+        base_url = payload.get("base_url")
+        res = connect_provider_key(provider_key=provider, api_key=api_key, base_url=base_url)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.delete("/api/ai/models/{model_id:path}")
+async def api_delete_custom_model(model_id: str):
+    """Deletes custom model from persistent registry."""
+    try:
+        from app.custom_models_service import delete_custom_model
+        res = delete_custom_model(model_id)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+@app.post("/api/ai/models/test")
+async def api_test_model(payload: Dict[str, Any] = Body(...)):
+    """Tests an AI model in real time and returns latency and output."""
+    try:
+        from app.custom_models_service import test_model_completion
+        model_id = payload.get("model_id", "auto")
+        prompt = payload.get("prompt") or "Hello from NanoPro AI Lab! Confirm ready in one short sentence."
+        res = await test_model_completion(model_id=model_id, prompt=prompt)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
 @app.post("/api/ai/smart_route")
 async def api_smart_route(payload: Dict[str, Any] = Body(...)):
     """Sub-3ms Pareto Multi-Objective & Contextual Thompson Bandit Mathematical Router."""
