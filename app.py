@@ -272,10 +272,17 @@ with nav_tab1:
                 prov_name = "groq#1"
                 status_box.write(f"🧠 **Model:** `{effective_model}` (manual override)")
 
+            if "openrouter" in prov_name.lower():
+                api_key = os.environ.get("OPENROUTER_API_KEY", "")
+                base_url = "https://openrouter.ai/api/v1"
+            else:
+                api_key = os.environ.get("GROQ_API_KEY", "")
+                base_url = "https://api.groq.com/openai/v1"
+
             provider = {
                 "name": prov_name,
-                "api_key": os.environ.get("GROQ_API_KEY", ""),
-                "base_url": "https://api.groq.com/openai/v1",
+                "api_key": api_key,
+                "base_url": base_url,
                 "model": effective_model,
                 "timeout": 35.0
             }
