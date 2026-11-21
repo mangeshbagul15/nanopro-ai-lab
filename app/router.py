@@ -27,6 +27,36 @@ GROQ_API_KEYS = [k for k in (
     os.environ.get("GROQ_API_KEY_3", ""),
 ) if k]
 
+# ---------------------------------------------------------------------------
+# Extended Provider Mesh — every entry speaks the OpenAI-compatible
+# /chat/completions protocol. Keys are read from Render env vars at call
+# time; unconfigured providers are skipped instantly by the cascade.
+# Each tuple: (provider_name, env_key, base_url, default_model, timeout_s)
+# ---------------------------------------------------------------------------
+EXTENDED_PROVIDERS = [
+    ("deepseek",      "DEEPSEEK_API_KEY",      "https://api.deepseek.com/v1",        "deepseek-chat",                          20.0),
+    ("deepseek#2",    "DEEPSEEK_API_KEY_2",    "https://api.deepseek.com/v1",        "deepseek-chat",                          20.0),
+    ("mistral",       "MISTRAL_API_KEY",       "https://api.mistral.ai/v1",          "open-mistral-nemo",                      20.0),
+    ("sambanova",     "SAMBANOVA_API_KEY",     "https://api.sambanova.ai/v1",        "Meta-Llama-3.3-70B-Instruct",            20.0),
+    ("nvidia-nim",    "NVIDIA_NIM_API_KEY",    "https://integrate.api.nvidia.com/v1","google/gemma-4-31b-it",                   25.0),
+    ("novita",        "NOVITA_AI_KEY",         "https://api.novita.ai/v3/openai",    "meta-llama/llama-3.3-70b-instruct",      20.0),
+    ("deepinfra",     "DEEPINFRA_API_KEY",     "https://api.deepinfra.com/v1/openai","deepseek-ai/DeepSeek-V3",                 20.0),
+    ("requesty",      "REQUESTY_API_KEY",      "https://router.requesty.ai/v1",      "openai/gpt-4o-mini",                     20.0),
+    ("aimlapi",       "AIMLAPI_KEY",           "https://api.aimlapi.com/v1",         "gpt-4o-mini",                            20.0),
+    ("huggingface",   "HUGGINGFACE_API_KEY",   "https://router.huggingface.co/v1",   "meta-llama/Llama-3.3-70B-Instruct",      20.0),
+]
+
+# Friendly model-name aliases so a UI model pick like "deepseek-chat" or
+# "mistral-nemo" prioritizes the matching provider in the cascade.
+MODEL_PROVIDER_HINTS = {
+    "deepseek": "deepseek", "deepseek-chat": "deepseek", "deepseek-reasoner": "deepseek",
+    "mistral": "mistral", "open-mistral-nemo": "mistral", "mistral-nemo": "mistral",
+    "llama": "sambanova", "sambanova": "sambanova",
+    "gemma": "nvidia-nim", "nvidia": "nvidia-nim", "nim": "nvidia-nim",
+    "novita": "novita",
+    "kimi": "nvidia-nim",
+}
+
 
 def _build_system_prompt() -> str:
     """Enterprise NanoPro system prompt — drives the LLM to answer in fluent
@@ -129,6 +159,35 @@ class AIExecutionRouter:
                 "extra_headers": {},
             },
         ])
+
+        # Extended OpenAI-compatible provider mesh — keys are read live from
+        # env so Render dashboard updates take effect on the next request.
+        for pname, env_key, base_url, model, timeout in EXTENDED_PROVIDERS:
+            cascade.append({
+                "name": pname,
+                "label": pname.replace("-", " ").replace("#", " Key#").title() + " Provider",
+                "api_key": os.environ.get(env_key, ""),
+                "base_url": base_url,
+                "model": model,
+                "timeout": timeout,
+                "extra_headers": {},
+            })
+
+        # If the caller explicitly picked a model that maps to a known
+        # provider, promote that provider to the front of the cascade so the
+        # user's selection is honored instead of always landing on Groq.
+        if model_id and model_id != "auto":
+            mid = model_id.lower()
+            preferred = None
+            for hint_key, pname in MODEL_PROVIDER_HINTS.items():
+                if hint_key in mid:
+                    preferred = pname.split("#")[0]
+                    break
+            if preferred:
+                for idx, prov in enumerate(cascade):
+                    if prov["name"].split("#")[0] == preferred:
+                        cascade.insert(0, cascade.pop(idx))
+                        break
         return cascade
 
     async def _chat_completion(self, provider: Dict[str, Any], prompt: str, system_prompt: str) -> str:
