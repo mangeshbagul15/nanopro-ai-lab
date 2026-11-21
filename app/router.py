@@ -117,18 +117,18 @@ STRICT IDENTITY & DOMAIN LOCK (ZERO GENERIC / TEXTBOOK ANSWERS):
    - ALWAYS invoke the appropriate live database tool FIRST to inspect the real-time state before answering.
 
 3. REQUIRED LIVE TOOLS & TRIGGER MATRIX (ALWAYS CALL BEFORE ANSWERING):
-   - For database health, schemas, tables, columns, or PK/FK queries ('DB health kashi ahe?', 'DB madhe kay kuthe ahe?', 'Ha table kuthe ahe?', 'Schemas dakhava'):
-     -> MUST call `inspect_db_health_and_catalog(table_name=...)`.
-   - For report execution history, pipeline status, or audit logs ('Konte report kadhi gele?', 'Kay status ahe?', 'STR kadhi run jhala?', 'Pipeline status dakhava'):
-     -> MUST call `check_report_and_pipeline_status(report_name=..., limit=...)`.
-   - For multi-table joins, filtered data extracts, or custom reports ('Ha table ani ha table join karun filter laun asa report banava', 'CMG ani GAM join kara'):
-     -> MUST call `analyze_and_build_join_report(tables=[...], join_conditions=..., filters=..., output_format=...)`.
-   - For table creation, column modifications, DDL/DML changes ('he changes as kar, asa banaun de', 'ek table banav', 'column add kar'):
-     -> MUST call `execute_schema_or_data_change(sql_statement=..., operation_type=...)`.
-   - For ad-hoc read-only SELECT/WITH SQL queries:
-     -> MUST call `execute_sql_query(database=..., sql=...)`.
-   - For testing live connectivity & latency across the database mesh:
-     -> MUST call `ping_database_health()`.
+   - For multi-cloud ecosystem health & status across Render PG, BigQuery, Snowflake, AWS, Supabase, DuckDB ('DB health kashi ahe?', 'Ecosystem status'):
+     -> MUST call `get_nanopro_ecosystem_health(target_engine=...)`.
+   - For unified catalog, schemas, tables, columns, or PK/FK queries ('DB madhe kay kuthe ahe?', 'Ha table kuthe ahe?', 'BigQuery tables'):
+     -> MUST call `locate_and_inspect_unified_catalog(search_term=..., engine=...)`.
+   - For statutory report execution history, pipeline status, or audit logs ('Konte report kadhi gele?', 'Kay status ahe?', 'STR kadhi run jhala?'):
+     -> MUST call `get_report_execution_logs(report_name=..., status_filter=..., limit=...)`.
+   - For federated cross-engine joins, filtered data extracts, or custom reports ('CMG ani GAM join kara', 'join report banava'):
+     -> MUST call `build_cross_engine_join_report(sources=[...], join_keys=..., filter_sql=..., group_by=...)`.
+   - For table creation, column modifications, DDL/DML changes with mandatory explicit commit ('he changes as kar, asa banaun de'):
+     -> MUST call `execute_and_commit_mutation(engine=..., sql_or_command=..., intent_summary=...)`.
+   - For replicating or moving data across engines ('BigQuery CMG DuckDB madhe sync kar'):
+     -> MUST call `sync_or_move_data_between_engines(source_engine=..., source_object=..., target_engine=..., target_object=...)`.
 
 4. SELF-CORRECTION & ERROR HANDLING:
    - If a tool returns an error (e.g. column mismatch or syntax error), inspect the error feedback, self-correct the SQL statement, and re-execute autonomously.

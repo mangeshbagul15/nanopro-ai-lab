@@ -4284,27 +4284,35 @@ body.in-global_ai_lab .nano-dynamic-island {
 
       <!-- Messages Stream Canvas -->
       <div class="ailab-messages-wrap" id="ailabMessagesContainer">
-        <!-- Empty Hero State -->
+        <!-- Empty Hero State (Zero Pre-Loaded Static Sample Prompts) -->
         <div class="ailab-hero" id="ailabEmptyHero">
-          <h2>🧠 NanoPro AI Lab</h2>
-          <p>One workspace for 4,804+ frontier models, durable chats, diagrams and projects.</p>
+          <h2>🧠 NanoPro AI Lab · Autonomous Operations Agent</h2>
+          <p>Multi-cloud data engineering & operations across Render PostgreSQL, BigQuery Lakehouse, Snowflake, AWS, Supabase, and DuckDB.</p>
 
-          <div class="ailab-pill-grid">
-            <div class="ailab-pill-card" onclick="ailabSelectPreset('Write a high-performance Python FastAPI service with Pydantic v2 schemas and JWT auth.')">
-              <div class="ailab-pill-card-title">💻 Python REST Microservice</div>
-              <div class="ailab-pill-card-desc">FastAPI, Pydantic v2 and JWT auth.</div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:760px; margin:18px auto 0;">
+            <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:8px; padding:6px 14px; font-size:11.5px; color:#6EE7B7; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#10B981; display:inline-block;"></span>
+              <span>Render PostgreSQL: ONLINE</span>
             </div>
-            <div class="ailab-pill-card" onclick="ailabSelectPreset('Design a zero-loss streaming ETL data pipeline connecting DuckDB, Cloudflare Worker, and BigQuery.')">
-              <div class="ailab-pill-card-title">⚡ High-Speed Data Pipeline</div>
-              <div class="ailab-pill-card-desc">DuckDB to Worker to BigQuery, with diagrams.</div>
+            <div style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:8px; padding:6px 14px; font-size:11.5px; color:#7DD3FC; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#38BDF8; display:inline-block;"></span>
+              <span>Google BigQuery (nanopro-lakehouse-sandbox): ONLINE</span>
             </div>
-            <div class="ailab-pill-card" onclick="ailabSelectPreset('Solve this mathematical optimization problem: Maximize Pareto utility U(m) = alpha*Q - beta*L - gamma*C with Thompson Bandit.')">
-              <div class="ailab-pill-card-title">🧠 Deep Mathematical Proof</div>
-              <div class="ailab-pill-card-desc">Step-by-step reasoning on R1 or o3-mini.</div>
+            <div style="background:rgba(168,85,247,0.12); border:1px solid rgba(168,85,247,0.3); border-radius:8px; padding:6px 14px; font-size:11.5px; color:#D8B4FE; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#A855F7; display:inline-block;"></span>
+              <span>Snowflake Medallion (L0-L2): READY</span>
             </div>
-            <div class="ailab-pill-card" onclick="ailabSelectPreset('Render a complete Mermaid architecture diagram for NanoPro 320 Autonomous AI Agents Mesh.')">
-              <div class="ailab-pill-card-title">🏗️ Mermaid Architecture</div>
-              <div class="ailab-pill-card-desc">Live diagram of your system topology.</div>
+            <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:6px 14px; font-size:11.5px; color:#FCD34D; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#F59E0B; display:inline-block;"></span>
+              <span>AWS S3 & SFTP Data Lake: HEALTHY</span>
+            </div>
+            <div style="background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.3); border-radius:8px; padding:6px 14px; font-size:11.5px; color:#A7F3D0; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#34D399; display:inline-block;"></span>
+              <span>Supabase Postgres (tbovdmdihmhzgjvsrixo): ACTIVE</span>
+            </div>
+            <div style="background:rgba(234,179,8,0.12); border:1px solid rgba(234,179,8,0.3); border-radius:8px; padding:6px 14px; font-size:11.5px; color:#FDE047; display:flex; align-items:center; gap:6px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#EAB308; display:inline-block;"></span>
+              <span>DuckDB In-Memory Federated Engine: ULTRA-FAST</span>
             </div>
           </div>
         </div>

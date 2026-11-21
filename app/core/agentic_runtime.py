@@ -139,6 +139,103 @@ AGENTIC_TOOLS = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_nanopro_ecosystem_health",
+            "description": "Queries real-time health across all 6 engines (Render PG, Google BigQuery, Snowflake, AWS, Supabase, DuckDB) or a targeted engine.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_engine": {"type": "string", "enum": ["ALL", "POSTGRES", "RENDER", "BIGQUERY", "SNOWFLAKE", "AWS", "SUPABASE", "DUCKDB"]}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "locate_and_inspect_unified_catalog",
+            "description": "Inspects schemas, tables, columns, PK/FK relationships across all 6 connected engines (Render PG, BigQuery, Snowflake, AWS, Supabase, DuckDB).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "search_term": {"type": "string"},
+                    "engine": {"type": "string", "enum": ["ALL", "POSTGRES", "BIGQUERY", "SNOWFLAKE", "AWS", "SUPABASE", "DUCKDB"]}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_report_execution_logs",
+            "description": "Queries nanopro_report_logs for statutory reports, last run timestamp, status, duration, and error logs.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "report_name": {"type": "string"},
+                    "status_filter": {"type": "string", "enum": ["SUCCESS", "FAILED", "RUNNING"]},
+                    "limit": {"type": "integer"}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "build_cross_engine_join_report",
+            "description": "Executes in-memory federated joins across tables from BigQuery, Render PG, or DuckDB with filters, CSV export, and audit logging.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sources": {"type": "array", "items": {"type": "object"}},
+                    "join_keys": {"type": "string"},
+                    "filter_sql": {"type": "string"},
+                    "group_by": {"type": "string"},
+                    "persist_target": {"type": "object"}
+                },
+                "required": ["sources"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "execute_and_commit_mutation",
+            "description": "Executes live DDL/DML with MANDATORY EXPLICIT conn.commit() and post-commit verification from information_schema.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "engine": {"type": "string", "enum": ["postgres", "render", "duckdb"]},
+                    "sql_or_command": {"type": "string"},
+                    "intent_summary": {"type": "string"}
+                },
+                "required": ["sql_or_command", "intent_summary"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sync_or_move_data_between_engines",
+            "description": "Replicates or moves data between multi-cloud engines (e.g. BigQuery to DuckDB).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "source_engine": {"type": "string"},
+                    "source_object": {"type": "string"},
+                    "target_engine": {"type": "string"},
+                    "target_object": {"type": "string"},
+                    "mode": {"type": "string", "enum": ["replace", "append"]}
+                },
+                "required": ["source_engine", "source_object", "target_engine", "target_object"]
+            }
+        }
     }
 ]
 
@@ -967,6 +1064,15 @@ def tool_ping_database_health() -> Dict[str, Any]:
 def execute_agent_tool(tool_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
     """Dispatches tool call to appropriate Python implementation."""
     t_name = (tool_name or "").strip()
+
+    # Prioritize Unified Multi-Cloud Connectors Engine
+    try:
+        from nanopro_db_agent import dispatch_tool_call
+        res = dispatch_tool_call(t_name, args)
+        if res.get("status") != "error" or "Unknown tool" not in res.get("message", ""):
+            return res
+    except Exception:
+        pass
     
     # 1. Database Health and Schema Catalog
     if t_name in ["inspect_db_health_and_catalog", "list_live_databases_and_tables", "inspect_table_schema"]:
