@@ -87,11 +87,12 @@ t8 = build_cross_engine_join_report(
 print(f"Tool 8 (Cross Engine Join): {t8['status']} - Total rows: {t8.get('total_rows')} | CSV: {t8.get('downloadable_csv', {}).get('filename')}")
 
 # Tool 9: Execute Mutation
+mutation_id = int(time.time()*1000) % 10000000
 t9 = execute_and_commit_mutation(
     engine='DUCKDB',
-    sql_or_command="""
-        INSERT INTO nanopro_job_logs (id, job_name, job_type, target_table, status, rows_processed, duration_ms, created_by)
-        VALUES (99999, 'TEST_JOB_MUTATION', 'VALIDATION', 'nanopro_job_logs', 'SUCCESS', 1, 15, 'Enterprise Agent')
+    sql_or_command=f"""
+        INSERT OR REPLACE INTO nanopro_job_logs (id, job_name, job_type, target_table, status, rows_processed, duration_ms, created_by)
+        VALUES ({mutation_id}, 'TEST_JOB_MUTATION', 'VALIDATION', 'nanopro_job_logs', 'SUCCESS', 1, 15, 'Enterprise Agent')
     """,
     intent_summary="Validation job log insertion with explicit commit"
 )

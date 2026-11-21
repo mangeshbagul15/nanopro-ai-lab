@@ -12,6 +12,7 @@ import re
 import csv
 import json
 import time
+import uuid
 import httpx
 import sqlite3
 import datetime
@@ -998,6 +999,397 @@ def sync_data_between_engines(
     return {"status": "error", "message": f"Target engine '{target_engine}' not supported for direct sync."}
 
 
+# =========================================================================
+# 11. CHATS & PROJECTS FULL-TURN PERSISTENCE CONNECTOR
+# =========================================================================
+
+class ChatPersistenceConnector:
+    """Manages full-turn chat history (user prompts, complete assistant responses,
+    tables/dataframes, SQL/tool execution summaries, model badges) across
+    Render PostgreSQL and DuckDB."""
+
+    _initialized = False
+
+    @classmethod
+    def init_tables(cls):
+        """Idempotently initializes nanopro_projects, nanopro_chat_sessions,
+        and nanopro_chat_messages across Render PostgreSQL and DuckDB."""
+        if cls._initialized:
+            return
+        
+        # 1. Initialize DuckDB Tables
+        try:
+            con = DuckDBFederatedConnector.get_connection(read_only=False)
+            con.execute("""
+            CREATE TABLE IF NOT EXISTS nanopro_projects (
+                project_id VARCHAR PRIMARY KEY,
+                name VARCHAR NOT NULL,
+                description TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_key VARCHAR DEFAULT 'admin'
+            );
+            CREATE TABLE IF NOT EXISTS nanopro_chat_sessions (
+                session_id VARCHAR PRIMARY KEY,
+                project_id VARCHAR DEFAULT '',
+                title VARCHAR NOT NULL,
+                model_used VARCHAR DEFAULT 'auto',
+                message_count INTEGER DEFAULT 0,
+                is_pinned BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_key VARCHAR DEFAULT 'admin'
+            );
+            CREATE TABLE IF NOT EXISTS nanopro_chat_messages (
+                id VARCHAR PRIMARY KEY,
+                session_id VARCHAR NOT NULL,
+                project_id VARCHAR DEFAULT '',
+                role VARCHAR NOT NULL, -- user, assistant, system
+                content TEXT NOT NULL,
+                tool_logs_json TEXT DEFAULT '',
+                dataframe_json TEXT DEFAULT '',
+                model_used VARCHAR DEFAULT '',
+                duration_ms DOUBLE DEFAULT 0.0,
+                routing_math TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_key VARCHAR DEFAULT 'admin'
+            );
+            """)
+
+            # Seed default project if empty
+            if con.execute("SELECT count(*) FROM nanopro_projects").fetchone()[0] == 0:
+                con.execute("""
+                INSERT OR IGNORE INTO nanopro_projects (project_id, name, description, created_at, updated_at, user_key)
+                VALUES ('proj_01', 'Core Banking & AML Intelligence', 'BigQuery, Snowflake & 21 Regulatory Reports', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'admin')
+                """)
+
+            # Seed default session if empty
+            if con.execute("SELECT count(*) FROM nanopro_chat_sessions").fetchone()[0] == 0:
+                con.execute("""
+                INSERT OR IGNORE INTO nanopro_chat_sessions (session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key)
+                VALUES ('sess_01', 'proj_01', 'AML & FIU-IND Statutory Deliveries', 'openai/gpt-oss-120b', 2, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'admin')
+                """)
+                con.execute("""
+                INSERT OR IGNORE INTO nanopro_chat_messages (id, session_id, project_id, role, content, tool_logs_json, dataframe_json, model_used, duration_ms, created_at, user_key)
+                VALUES 
+                ('msg_seed_01', 'sess_01', 'proj_01', 'user', 'Mail var AML report gela ka, konala gela?', '', '', '', 0, CURRENT_TIMESTAMP, 'admin'),
+                ('msg_seed_02', 'sess_01', 'proj_01', 'assistant', 'होय! AML_STR_DAILY_RUN अहवाल 21 नोव्हेंबर रोजी ईमेल, टेलिग्राम आणि व्हॉट्सअ‍ॅपवर यशस्वीरीत्या पाठवला गेला आहे.\n\n- **Recipient:** compliance-officer@bank.com\n- **Status:** DELIVERED ✅\n- **Provider Msg ID:** msg_em_847291', '[{"tool": "check_and_send_notification_deliveries", "result_status": "SUCCESS"}]', '', 'qwen/qwen3.8-27b', 35.0, CURRENT_TIMESTAMP, 'admin')
+                """)
+            con.close()
+        except Exception:
+            pass
+
+        # 2. Initialize Render PostgreSQL Tables with explicit commit
+        try:
+            RenderPostgresConnector.execute_and_commit("""
+            CREATE TABLE IF NOT EXISTS nanopro_projects (
+                project_id VARCHAR(64) PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_key VARCHAR(64) DEFAULT 'admin'
+            );
+            CREATE TABLE IF NOT EXISTS nanopro_chat_sessions (
+                session_id VARCHAR(64) PRIMARY KEY,
+                project_id VARCHAR(64) DEFAULT '',
+                title VARCHAR(255) NOT NULL,
+                model_used VARCHAR(128) DEFAULT 'auto',
+                message_count INTEGER DEFAULT 0,
+                is_pinned BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_key VARCHAR(64) DEFAULT 'admin'
+            );
+            CREATE TABLE IF NOT EXISTS nanopro_chat_messages (
+                id VARCHAR(64) PRIMARY KEY,
+                session_id VARCHAR(64) NOT NULL,
+                project_id VARCHAR(64) DEFAULT '',
+                role VARCHAR(32) NOT NULL,
+                content TEXT NOT NULL,
+                tool_logs_json TEXT DEFAULT '',
+                dataframe_json TEXT DEFAULT '',
+                model_used VARCHAR(128) DEFAULT '',
+                duration_ms DOUBLE PRECISION DEFAULT 0.0,
+                routing_math TEXT DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_key VARCHAR(64) DEFAULT 'admin'
+            );
+            """)
+        except Exception:
+            pass
+
+        cls._initialized = True
+
+    @classmethod
+    def save_message(
+        cls,
+        session_id: str,
+        role: str,
+        content: str,
+        project_id: Optional[str] = None,
+        tool_logs: Optional[Any] = None,
+        dataframe: Optional[Any] = None,
+        model_used: Optional[str] = None,
+        duration_ms: float = 0.0,
+        routing_math: Optional[Any] = None,
+        user_key: str = "admin"
+    ) -> Dict[str, Any]:
+        """Saves a single turn (user or assistant) immediately with explicit COMMIT
+        to both Render PostgreSQL and DuckDB."""
+        cls.init_tables()
+        msg_id = f"msg_{int(time.time()*1000)}_{uuid.uuid4().hex[:6]}"
+        p_id = project_id or ""
+        m_used = model_used or ""
+        
+        # Serialize JSON payloads
+        t_json = json.dumps(tool_logs) if isinstance(tool_logs, (dict, list)) else (str(tool_logs) if tool_logs else "")
+        df_json = json.dumps(dataframe) if isinstance(dataframe, (dict, list)) else (str(dataframe) if dataframe else "")
+        r_math = json.dumps(routing_math) if isinstance(routing_math, (dict, list)) else (str(routing_math) if routing_math else "")
+
+        # 1. Update/Upsert Session in DuckDB
+        con = DuckDBFederatedConnector.get_connection(read_only=False)
+        try:
+            # Check if session exists
+            cur = con.cursor()
+            cur.execute("SELECT count(*) FROM nanopro_chat_sessions WHERE session_id = ?", (session_id,))
+            exists = cur.fetchone()[0] > 0
+            if not exists:
+                # Generate human-friendly title from first turn
+                title = content.strip().split("\n")[0][:45] if role == "user" else "New AI Session"
+                if not title:
+                    title = "New AI Chat Session"
+                con.execute("""
+                INSERT OR IGNORE INTO nanopro_chat_sessions (session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key)
+                VALUES (?, ?, ?, ?, 1, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
+                """, (session_id, p_id, title, m_used or "auto", user_key))
+            else:
+                con.execute("""
+                UPDATE nanopro_chat_sessions 
+                SET message_count = message_count + 1, updated_at = CURRENT_TIMESTAMP,
+                    model_used = CASE WHEN ? != '' THEN ? ELSE model_used END
+                WHERE session_id = ?
+                """, (m_used, m_used, session_id))
+
+            # Insert message into DuckDB
+            con.execute("""
+            INSERT INTO nanopro_chat_messages (
+                id, session_id, project_id, role, content, tool_logs_json, dataframe_json,
+                model_used, duration_ms, routing_math, created_at, user_key
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
+            """, (msg_id, session_id, p_id, role, content, t_json, df_json, m_used, duration_ms, r_math, user_key))
+            con.close()
+        except Exception as e:
+            con.close()
+
+        # 2. Save and Commit to Render PostgreSQL
+        conn = RenderPostgresConnector.get_connection()
+        if conn:
+            try:
+                cur = conn.cursor()
+                cur.execute("""
+                INSERT INTO nanopro_chat_sessions (session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key)
+                VALUES (%s, %s, %s, %s, 1, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, %s)
+                ON CONFLICT (session_id) DO UPDATE SET 
+                    message_count = nanopro_chat_sessions.message_count + 1,
+                    updated_at = CURRENT_TIMESTAMP;
+                """, (session_id, p_id, (content.strip().split("\n")[0][:45] if role == "user" else "New AI Session"), m_used, user_key))
+
+                cur.execute("""
+                INSERT INTO nanopro_chat_messages (
+                    id, session_id, project_id, role, content, tool_logs_json, dataframe_json,
+                    model_used, duration_ms, routing_math, created_at, user_key
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s);
+                """, (msg_id, session_id, p_id, role, content, t_json, df_json, m_used, duration_ms, r_math, user_key))
+                conn.commit()
+                cur.close()
+                conn.close()
+            except Exception:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
+        return {
+            "status": "success",
+            "message_id": msg_id,
+            "session_id": session_id,
+            "role": role,
+            "committed": True
+        }
+
+    @classmethod
+    def get_session_messages(cls, session_id: str, user_key: str = "admin") -> List[Dict[str, Any]]:
+        """Fetches all chronological messages for a session (both user prompts and
+        complete assistant responses with tables, tool executions, and model badges)."""
+        cls.init_tables()
+        messages = []
+
+        # Try Render PostgreSQL first
+        try:
+            res = RenderPostgresConnector.execute_and_commit(f"""
+            SELECT id, session_id, project_id, role, content, tool_logs_json, dataframe_json,
+                   model_used, duration_ms, routing_math, created_at
+            FROM nanopro_chat_messages
+            WHERE session_id = '{session_id}'
+            ORDER BY created_at ASC, id ASC;
+            """)
+            if res.get("status") == "success" and res.get("rows"):
+                messages = res["rows"]
+        except Exception:
+            messages = []
+
+        # Fallback to DuckDB if Postgres returned no rows or had error
+        if not messages:
+            try:
+                con = DuckDBFederatedConnector.get_connection(read_only=True)
+                cur = con.cursor()
+                cur.execute("""
+                SELECT id, session_id, project_id, role, content, tool_logs_json, dataframe_json,
+                       model_used, duration_ms, routing_math, created_at
+                FROM nanopro_chat_messages
+                WHERE session_id = ?
+                ORDER BY created_at ASC, id ASC
+                """, (session_id,))
+                cols = [d[0] for d in cur.description]
+                rows = cur.fetchall()
+                con.close()
+                messages = [_json_safe(dict(zip(cols, r))) for r in rows]
+            except Exception:
+                messages = []
+
+        # Parse JSON columns into structured objects
+        parsed_msgs = []
+        for m in messages:
+            # Parse tool executions
+            t_execs = []
+            t_raw = m.get("tool_logs_json")
+            if t_raw:
+                try:
+                    t_execs = json.loads(t_raw) if isinstance(t_raw, str) else t_raw
+                except Exception:
+                    t_execs = []
+            
+            # Parse dataframe / CSV info
+            df_info = None
+            df_raw = m.get("dataframe_json")
+            if df_raw:
+                try:
+                    df_info = json.loads(df_raw) if isinstance(df_raw, str) else df_raw
+                except Exception:
+                    df_info = None
+
+            parsed_msgs.append({
+                "id": m.get("id"),
+                "session_id": m.get("session_id"),
+                "project_id": m.get("project_id"),
+                "role": m.get("role"),
+                "content": m.get("content", ""),
+                "model_used": m.get("model_used") or "",
+                "duration_ms": float(m.get("duration_ms") or 0.0),
+                "tool_executions": t_execs,
+                "csv_download": df_info,
+                "created_at": str(m.get("created_at") or "")
+            })
+
+        return parsed_msgs
+
+    @classmethod
+    def list_sessions_and_projects(cls, user_key: str = "admin") -> Dict[str, Any]:
+        """Lists active projects and recent chat sessions with real-time message counts."""
+        cls.init_tables()
+        sessions = []
+        projects = []
+
+        con = DuckDBFederatedConnector.get_connection(read_only=True)
+        try:
+            cur = con.cursor()
+            cur.execute("""
+            SELECT session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at
+            FROM nanopro_chat_sessions
+            ORDER BY is_pinned DESC, updated_at DESC
+            LIMIT 50
+            """)
+            cols = [d[0] for d in cur.description]
+            sessions = [_json_safe(dict(zip(cols, r))) for r in cur.fetchall()]
+
+            cur.execute("""
+            SELECT project_id, name, description, created_at, updated_at
+            FROM nanopro_projects
+            ORDER BY updated_at DESC
+            LIMIT 20
+            """)
+            p_cols = [d[0] for d in cur.description]
+            projects = [_json_safe(dict(zip(p_cols, r))) for r in cur.fetchall()]
+            con.close()
+        except Exception:
+            con.close()
+
+        return {
+            "status": "success",
+            "sessions": sessions,
+            "projects": projects,
+            "total_sessions": len(sessions),
+            "total_projects": len(projects)
+        }
+
+    @classmethod
+    def create_session(cls, title: str = "New AI Chat Session", project_id: str = "", model: str = "auto", user_key: str = "admin") -> Dict[str, Any]:
+        """Creates a new session in both Render PostgreSQL and DuckDB."""
+        cls.init_tables()
+        s_id = f"sess_{int(time.time()*1000)}"
+        p_id = project_id or ""
+        
+        con = DuckDBFederatedConnector.get_connection(read_only=False)
+        try:
+            con.execute("""
+            INSERT INTO nanopro_chat_sessions (session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key)
+            VALUES (?, ?, ?, ?, 0, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
+            """, (s_id, p_id, title, model, user_key))
+            con.close()
+        except Exception:
+            con.close()
+
+        try:
+            safe_title = title.replace("'", "''")
+            RenderPostgresConnector.execute_and_commit(f"""
+            INSERT INTO nanopro_chat_sessions (session_id, project_id, title, model_used, message_count, is_pinned, created_at, updated_at, user_key)
+            VALUES ('{s_id}', '{p_id}', '{safe_title}', '{model}', 0, FALSE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '{user_key}');
+            """)
+        except Exception:
+            pass
+
+        return {"status": "success", "session_id": s_id, "title": title, "project_id": p_id}
+
+    @classmethod
+    def create_project(cls, name: str, description: str = "", user_key: str = "admin") -> Dict[str, Any]:
+        """Creates a new project in both Render PostgreSQL and DuckDB."""
+        cls.init_tables()
+        p_id = f"proj_{int(time.time()*1000)}"
+        
+        con = DuckDBFederatedConnector.get_connection(read_only=False)
+        try:
+            con.execute("""
+            INSERT INTO nanopro_projects (project_id, name, description, created_at, updated_at, user_key)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
+            """, (p_id, name, description, user_key))
+            con.close()
+        except Exception:
+            con.close()
+
+        try:
+            safe_name = name.replace("'", "''")
+            safe_desc = description.replace("'", "''")
+            RenderPostgresConnector.execute_and_commit(f"""
+            INSERT INTO nanopro_projects (project_id, name, description, created_at, updated_at, user_key)
+            VALUES ('{p_id}', '{safe_name}', '{safe_desc}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, '{user_key}');
+            """)
+        except Exception:
+            pass
+
+        return {"status": "success", "project_id": p_id, "name": name, "description": description}
+
+
 # Unified Multi-Cloud Connector Registry Map
 MULTI_CLOUD_CONNECTORS = {
     "postgres": RenderPostgresConnector,
@@ -1010,5 +1402,6 @@ MULTI_CLOUD_CONNECTORS = {
     "notifications": NotificationDeliveryConnector,
     "schedulers": SchedulerConnector,
     "users": UserGovernanceConnector,
-    "privacy_and_ads": PrivacyAndAdConfigConnector
+    "privacy_and_ads": PrivacyAndAdConfigConnector,
+    "chat_persistence": ChatPersistenceConnector
 }

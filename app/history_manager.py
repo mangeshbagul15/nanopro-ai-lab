@@ -55,9 +55,19 @@ class HistoryManager:
                 model_executed TEXT,
                 duration_ms REAL DEFAULT 0,
                 routing_math TEXT DEFAULT '',
+                tool_logs_json TEXT DEFAULT '',
+                dataframe_json TEXT DEFAULT '',
                 created_at REAL NOT NULL,
                 user_key TEXT NOT NULL
             )""")
+            try:
+                c.execute("ALTER TABLE messages ADD COLUMN tool_logs_json TEXT DEFAULT ''")
+            except Exception:
+                pass
+            try:
+                c.execute("ALTER TABLE messages ADD COLUMN dataframe_json TEXT DEFAULT ''")
+            except Exception:
+                pass
             c.execute("""
             CREATE TABLE IF NOT EXISTS attachments (
                 id TEXT PRIMARY KEY,
@@ -115,7 +125,7 @@ class HistoryManager:
             "pinned_count": sum(1 for ch in chats if ch["is_pinned"]),
             "recent_count": len(chats),
             "project_count": len(projects),
-            "storage": "DuckDB · BigQuery in sync",
+            "storage": "Render PostgreSQL · DuckDB · BigQuery in sync",
             "server_timestamp": time.time()
         }
 
@@ -148,15 +158,27 @@ class HistoryManager:
             c.execute("SELECT * FROM messages WHERE chat_id = ? ORDER BY created_at ASC", (chat_id,))
             return [dict(r) for r in c.fetchall()]
 
-    def add_message(self, chat_id: str, role: str, content: str, model_routed: str = "", model_executed: str = "", duration_ms: float = 0, routing_math: str = "", user_key: str = "admin") -> Dict[str, Any]:
+    def add_message(
+        self,
+        chat_id: str,
+        role: str,
+        content: str,
+        model_routed: str = "",
+        model_executed: str = "",
+        duration_ms: float = 0,
+        routing_math: str = "",
+        tool_logs_json: str = "",
+        dataframe_json: str = "",
+        user_key: str = "admin"
+    ) -> Dict[str, Any]:
         msg_id = f"msg_{uuid.uuid4().hex[:12]}"
         now = time.time()
         with self._get_conn() as conn:
             c = conn.cursor()
             c.execute("""
-            INSERT INTO messages (id, chat_id, role, content, model_routed, model_executed, duration_ms, routing_math, created_at, user_key)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (msg_id, chat_id, role, content, model_routed, model_executed, duration_ms, routing_math, now, user_key))
+            INSERT INTO messages (id, chat_id, role, content, model_routed, model_executed, duration_ms, routing_math, tool_logs_json, dataframe_json, created_at, user_key)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (msg_id, chat_id, role, content, model_routed, model_executed, duration_ms, routing_math, tool_logs_json, dataframe_json, now, user_key))
             c.execute("UPDATE chats SET message_count = message_count + 1, updated_at = ? WHERE id = ?", (now, chat_id))
             conn.commit()
         return {"status": "success", "message_id": msg_id}

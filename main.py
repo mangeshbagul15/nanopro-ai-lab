@@ -116,7 +116,9 @@ class MessageCreateRequest(BaseModel):
     model_routed: Optional[str] = ""
     model_executed: Optional[str] = ""
     duration_ms: Optional[float] = 0
-    routing_math: Optional[str] = ""
+    routing_math: Optional[Any] = ""
+    tool_logs_json: Optional[Any] = None
+    dataframe_json: Optional[Any] = None
 
 class ChatUpdateRequest(BaseModel):
     title: Optional[str] = None
@@ -292,6 +294,24 @@ async def api_delete_chat(chat_id: str, request: Request):
 
 @app.post("/api/ai/history/messages")
 async def api_add_message(req: MessageCreateRequest, request: Request):
+    r_math = req.routing_math
+    if isinstance(r_math, (dict, list)):
+        r_math = json.dumps(r_math)
+    elif r_math is None:
+        r_math = ""
+
+    t_logs = req.tool_logs_json
+    if isinstance(t_logs, (dict, list)):
+        t_logs = json.dumps(t_logs)
+    elif t_logs is None:
+        t_logs = ""
+
+    df_json = req.dataframe_json
+    if isinstance(df_json, (dict, list)):
+        df_json = json.dumps(df_json)
+    elif df_json is None:
+        df_json = ""
+
     res = history_manager.add_message(
         chat_id=req.chat_id,
         role=req.role,
@@ -299,8 +319,26 @@ async def api_add_message(req: MessageCreateRequest, request: Request):
         model_routed=req.model_routed or "",
         model_executed=req.model_executed or "",
         duration_ms=req.duration_ms or 0,
-        routing_math=req.routing_math or ""
+        routing_math=r_math,
+        tool_logs_json=t_logs,
+        dataframe_json=df_json
     )
+
+    try:
+        from nanopro_connectors import ChatPersistenceConnector
+        ChatPersistenceConnector.save_message(
+            session_id=req.chat_id,
+            role=req.role,
+            content=req.content,
+            model_used=req.model_executed or req.model_routed or "",
+            duration_ms=req.duration_ms or 0,
+            routing_math=r_math,
+            tool_logs=t_logs,
+            dataframe=df_json
+        )
+    except Exception:
+        pass
+
     return JSONResponse(res)
 
 @app.get("/api/ai/history/projects")

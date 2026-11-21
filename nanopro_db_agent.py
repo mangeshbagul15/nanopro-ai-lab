@@ -34,7 +34,7 @@ from nanopro_connectors import (
     RenderPostgresConnector, BigQueryConnector, SnowflakeConnector,
     SupabaseConnector, AWSConnector, DuckDBFederatedConnector,
     NotificationDeliveryConnector, SchedulerConnector, UserGovernanceConnector,
-    PrivacyAndAdConfigConnector, MULTI_CLOUD_CONNECTORS, sync_data_between_engines, _json_safe
+    PrivacyAndAdConfigConnector, ChatPersistenceConnector, MULTI_CLOUD_CONNECTORS, sync_data_between_engines, _json_safe
 )
 
 # =========================================================================
@@ -43,7 +43,8 @@ from nanopro_connectors import (
 
 def ensure_enterprise_tables_initialized():
     """Initializes Medallion definitions, audit logs, notification deliveries,
-    schedulers, users, privacy policy, and ad metrics idempotently."""
+    schedulers, users, privacy policy, ad metrics, and chat history idempotently."""
+    ChatPersistenceConnector.init_tables()
     con = DuckDBFederatedConnector.get_connection(read_only=False)
     try:
         con.execute("""
@@ -556,7 +557,8 @@ def check_and_send_notification_deliveries(
     report_name: Optional[str] = None,
     recipient_filter: Optional[str] = None,
     action: str = "check_logs",
-    payload: Optional[Dict[str, Any]] = None
+    payload: Optional[Dict[str, Any]] = None,
+    limit: int = 20
 ) -> Dict[str, Any]:
     """Answers: 'Mail var report gela ka, konala gela, kadhi gela?', 'Telegram alert gela ka?', 'WhatsApp alert gela ka?'."""
     act = (action or "check_logs").lower()
@@ -568,7 +570,7 @@ def check_and_send_notification_deliveries(
         m_type = p.get("message_type") or "SUMMARY_ALERT"
         return NotificationDeliveryConnector.send_and_log_delivery(channel=ch, report_name=r_name, recipient=rec, message_type=m_type)
     
-    return NotificationDeliveryConnector.check_delivery_logs(channel=channel, report_name=report_name, recipient_filter=recipient_filter)
+    return NotificationDeliveryConnector.check_delivery_logs(channel=channel, report_name=report_name, recipient_filter=recipient_filter, limit=limit)
 
 
 # --- TOOL 7: Modify Report Definition & Re-run ---
