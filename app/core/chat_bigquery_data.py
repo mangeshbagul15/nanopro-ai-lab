@@ -598,7 +598,13 @@ def _run_statement(sql: str, limit: int = 15) -> Dict[str, Any]:
     job = client.query(statement)
     if head in ("SELECT", "WITH"):
         result = job.result(max_results=limit + 1)
-        columns = [field.name for field in result.schema]
+        schema = getattr(result, "schema", None)
+        if schema is not None:
+            columns = [field.name for field in schema]
+        elif result and isinstance(result[0], dict):
+            columns = list(result[0].keys())
+        else:
+            columns = []
         rows = []
         for row in result:
             rows.append({key: _json_safe(value) for key, value in dict(row.items()).items()})

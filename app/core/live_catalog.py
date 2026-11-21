@@ -28,8 +28,11 @@ class MockQueryResult:
     def __init__(self, rows: Optional[List[Dict[str, Any]]] = None):
         self._rows = rows or []
 
-    def result(self, timeout: float = 30.0):
-        return self._rows
+    def result(self, timeout: float = 30.0, max_results: Optional[int] = None):
+        rows = self._rows
+        if max_results is not None:
+            rows = rows[:max_results]
+        return rows
 
     def to_dataframe(self):
         try:
