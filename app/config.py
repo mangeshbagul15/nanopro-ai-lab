@@ -31,7 +31,7 @@ SYSTEM_IDENTITY = {
     "architecture": "4,804+ Models & 320 Autonomous Agents Unified Mesh",
     "engine": "Groq LPU Sub-Second Orchestrator",
     "sla": "<300ms",
-    "memory_overhead": "0 MB Render RAM Overhead",
+    "memory_overhead": "Live Edge Execution (Zero-Copy Buffer)",
     "total_dags": 86,
     "total_reports": 49,
     "total_databases": 5

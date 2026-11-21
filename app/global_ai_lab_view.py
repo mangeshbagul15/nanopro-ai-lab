@@ -4422,7 +4422,7 @@ body.in-global_ai_lab .nano-dynamic-island {
     </div>
     <div class="ailab-modal-footer">
       <span>⚡ Single AUTO Engine evaluates Pareto Frontier in &lt; 3.0ms</span>
-      <span style="color:#10B981;">🛡️ 429 Shield Active • Render RAM: 0 MB</span>
+      <span style="color:#10B981;">🛡️ 429 Shield Active • Live Sub-Second Inference</span>
     </div>
   </div>
 </div>

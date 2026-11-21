@@ -57,7 +57,7 @@ def process_agentic_chat(prompt: str, user_name: str = "Super Admin (Mangesh Bag
             f"| **८६ Airflow DAGs** | ● **100% HEALTHY** (BOD: 06:00 ✅ &#124; SOD: 08:00 ✅ &#124; T1: 11:00 ✅ &#124; EOD: 18:00 ⏳) |\n"
             f"| **४९ वैधानिक अहवाल** | ● **49 Authentic Workbooks** SFTP ड्रॉपवर थेट उपलब्ध |\n"
             f"| **स्वयंचलित शेड्युलर** | ● **ARMED** (दर ६० मिनिटांनी ऑटोनॉमस सिंक) |\n"
-            f"| **अल्ट्रा-फास्ट SLA** | **< ५०ms** थेट रिस्पॉन्स • **0 MB Render RAM लोड** |\n\n"
+            f"| **अल्ट्रा-फास्ट SLA** | **< ५०ms** थेट रिस्पॉन्स • **Zero-Copy Streaming Buffer** |\n\n"
             f"💡 **तुम्ही मला खालीलपैकी कोणतीही थेट कमांड देऊ शकता:**\n"
             f"1. `sagle db live ping karun confirm kara` (५ ही DBs लाइव्ह टेस्ट करा)\n"
             f"2. `schedule change karun 13:30 करा` (अहवाल वितरणाची वेळ बदला)\n"
@@ -312,7 +312,7 @@ def process_agentic_chat(prompt: str, user_name: str = "Super Admin (Mangesh Bag
             f"**महत्त्वाचे ऑपरेशन्स मेट्रिक्स:**\n"
             f"- **रजिस्टर्ड Airflow DAGs:** **{dags_cnt} स्वतंत्र DAGs** (0 Quarantined / 100% Schedulable)\n"
             f"- **वैधानिक नियामक अहवाल:** **{reps_cnt} Authentic Workbooks** SFTP ड्रॉपवर उपलब्ध\n"
-            f"- **मेमरी ओव्हरहेड:** **0 MB Render RAM** (सर्व हेवी डेटा ऑपरेशन्स क्लाउड व डकडीबीवर ऑफलोड)\n\n"
+            f"- **मेमरी ओव्हरहेड:** **Zero-Copy Cloud Streaming** (सर्व हेवी डेटा ऑपरेशन्स क्लाउड व डकडीबीवर ऑफलोड)\n\n"
             f"[HINT: 🔹 sagle db live ping karun confirm kara | 🔹 पाइपलाइनचा 2D Mermaid डायग्राम द्या | 🔹 EOD BOD SOD स्टेटस तपासा]"
         )
         return _build_response("nanopro/lakehouse-architect-agent", "Lakehouse Architecture Agent", content, t0)
@@ -483,7 +483,7 @@ def process_agentic_chat(prompt: str, user_name: str = "Super Admin (Mangesh Bag
             f"**प्रमुख आर्किटेक्चरल वैशिष्ट्ये:**\n"
             f"- **८६ DAGs स्वतंत्र क्वारंटाईन:** कोणत्याही एका टेबलच्या त्रुटीमुळे इतर ८५ DAGs किंवा अहवालांवर कोणताही परिणाम होत नाही.\n"
             f"- **५ MB ऑटोमेशन नियम:** ५ MB च्या आतील अहवाल थेट ईमेल अटॅचमेंट, आणि मोठी वर्कबुक्स SFTP द्वारे थेट डाउनलोड लिंकसह.\n"
-            f"- **शून्य मेमरी लीकेज:** 0 MB Render RAM लोडसह संपूर्ण पाइपलाइन क्लाउडवर कार्यान्वित.\n\n"
+            f"- **शून्य मेमरी लीकेज:** Zero-Copy Streaming लोडसह संपूर्ण पाइपलाइन क्लाउडवर कार्यान्वित.\n\n"
             f"[HINT: 🔹 Master Executive अहवाल चालवा | 🔹 अहवाल पाठवण्याची वेळ बदला | 🔹 BigQuery रो काउंट्स तपासा]"
         )
         return _build_response("nanopro/mermaid-visualizer-agent", "Mermaid Architecture Specialist", content, t0)
