@@ -136,6 +136,16 @@ AGENTIC_TOOLS = [
 # 2. PYTHON TOOL IMPLEMENTATIONS
 # =========================================================================
 
+def _get_duckdb_con(read_only: bool = True):
+    import duckdb
+    os.makedirs(os.path.dirname(DUCKDB_PATH), exist_ok=True)
+    if not os.path.exists(DUCKDB_PATH):
+        con = duckdb.connect(DUCKDB_PATH, read_only=False)
+        con.execute("CREATE TABLE IF NOT EXISTS _health_check (id INTEGER)")
+        con.close()
+    return duckdb.connect(DUCKDB_PATH, read_only=read_only)
+
+
 def tool_list_live_databases_and_tables(database_filter: Optional[str] = None) -> Dict[str, Any]:
     from app.explorer_service import get_explorer_catalog
     cat = get_explorer_catalog()
@@ -204,7 +214,7 @@ def tool_execute_sql_query(database: str, sql: str) -> Dict[str, Any]:
     if db_kind == "duckdb":
         try:
             import duckdb
-            con = duckdb.connect(DUCKDB_PATH, read_only=True)
+            con = _get_duckdb_con(read_only=True)
             cursor = con.cursor()
             cursor.execute(sql_clean)
             cols = [d[0] for d in cursor.description] if cursor.description else []
@@ -258,7 +268,7 @@ def tool_execute_sql_query(database: str, sql: str) -> Dict[str, Any]:
             # Fallback to duckdb mirror if GCP credentials are not set locally
             try:
                 import duckdb
-                con = duckdb.connect(DUCKDB_PATH, read_only=True)
+                con = _get_duckdb_con(read_only=True)
                 cursor = con.cursor()
                 cursor.execute(sql_clean)
                 cols = [d[0] for d in cursor.description] if cursor.description else []
@@ -302,7 +312,7 @@ def tool_execute_database_ddl_dml(database: str, sql: str) -> Dict[str, Any]:
     if db_kind == "duckdb":
         try:
             import duckdb
-            con = duckdb.connect(DUCKDB_PATH)
+            con = _get_duckdb_con(read_only=False)
             con.execute(sql_clean)
             con.close()
             dur_ms = round((time.time() - t0) * 1000, 1)
@@ -326,7 +336,7 @@ def tool_generate_compliance_report(report_type: str, criteria: Optional[str] = 
     t0 = time.time()
     try:
         import duckdb
-        con = duckdb.connect(DUCKDB_PATH, read_only=True)
+        con = _get_duckdb_con(read_only=True)
         if rtype in ["STR", "AML"]:
             cur = con.cursor()
             cur.execute("SELECT STR_ID, ACCOUNT, SCORE, NARRATIVE, FIU_REF FROM AML_STR_CASES LIMIT 20")
@@ -373,7 +383,7 @@ def tool_ping_database_health() -> Dict[str, Any]:
     t0 = time.time()
     try:
         import duckdb
-        con = duckdb.connect(DUCKDB_PATH, read_only=True)
+        con = _get_duckdb_con(read_only=True)
         con.execute("SELECT 1").fetchall()
         con.close()
         results["DuckDB"] = {"status": "LIVE", "latency_ms": round((time.time() - t0) * 1000, 2), "engine": "Local In-Memory Columnar"}
@@ -397,7 +407,7 @@ def tool_ping_database_health() -> Dict[str, Any]:
             r = client.get("https://tbovdmdihmhzgjvsrixo.supabase.co/rest/v1/", headers={
                 "apikey": "sb_publishable_X7kBO5-SaeWbJYkQV4ELMQ_rZy7oRJY"
             })
-            results["Supabase"] = {"status": "LIVE" if r.status_code in [200, 404] else "UNREACHABLE", "latency_ms": round((time.time() - t0) * 1000, 2), "engine": "Cloud PostgreSQL"}
+            results["Supabase"] = {"status": "LIVE" if r.status_code in [200, 401, 404] else "UNREACHABLE", "latency_ms": round((time.time() - t0) * 1000, 2), "engine": "Cloud PostgreSQL"}
     except Exception as e:
         results["Supabase"] = {"status": "DEGRADED", "latency_ms": 120, "error": str(e)}
 
