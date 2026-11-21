@@ -3,6 +3,8 @@ import json
 import time
 from typing import Dict, Any, List, Optional
 
+from app.reports_service import sanitize_key
+
 ALERT_SCHEDULE = {
     "status": "RUNNING",
     "dispatch_time": "11:00 AM IST",
@@ -447,6 +449,26 @@ def get_orchestrator_overview() -> Dict[str, Any]:
             "status": "DELIVERED TO SFTP",
             "url": rurl
         })
+
+    # Merge any real workbook files present on disk that are not already in
+    # the documented registry, so the explorer/reports count reflects the
+    # true number of published reports.
+    try:
+        listed = {r["file"] for r in sftp_outbound_reports}
+        for fn in sorted(os.listdir(OUTBOUND_REPO_DIR)):
+            if fn.lower().endswith((".xlsx", ".xls", ".csv", ".pdf")) and fn not in listed:
+                fpath = os.path.join(OUTBOUND_REPO_DIR, fn)
+                sftp_outbound_reports.append({
+                    "report": fn.rsplit(".", 1)[0].replace("_", " "),
+                    "file": fn,
+                    "category": "Statutory Workbook",
+                    "size": get_file_size_display(fn, "—"),
+                    "date_time": f"{today_display}, 11:15:00 AM IST",
+                    "status": "DELIVERED TO SFTP",
+                    "url": f"/api/reports/download/{sanitize_key(fn)}",
+                })
+    except Exception:
+        pass
 
     # Dispatched Reports Monitoring: Konta report konal gela (Enforcing 5MB Dispatch Rule)
     dispatched_reports_monitoring = [

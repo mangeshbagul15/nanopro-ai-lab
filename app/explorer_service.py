@@ -192,7 +192,22 @@ def get_explorer_catalog() -> Dict[str, Any]:
         base = dict(fallback[db_id])
         live = fn()
         if live:
-            base["schemas"] = live["schemas"]
+            # Merge live-introspected schemas with the documented catalog so
+            # nothing disappears when a store only exposes part of its data
+            # (e.g. BigQuery mock driver knows bronze but not bank_core).
+            merged: Dict[str, Dict[str, Any]] = {}
+            order: List[str] = []
+            for sch in base.get("schemas", []) + live["schemas"]:
+                name = sch["name"]
+                if name not in merged:
+                    merged[name] = {"name": name, "tables": []}
+                    order.append(name)
+                seen = {t["name"] for t in merged[name]["tables"]}
+                for t in sch.get("tables", []):
+                    if t["name"] not in seen:
+                        merged[name]["tables"].append(t)
+                        seen.add(t["name"])
+            base["schemas"] = [merged[n] for n in order]
             base["detail"] = live.get("detail", base["detail"])
             base["status"] = "live"
             base["error"] = ""
